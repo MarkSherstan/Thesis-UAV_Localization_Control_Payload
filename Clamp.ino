@@ -7,7 +7,7 @@ LED's - Pins 12 and 13
 Current Sensor (ACS714 with 220uF capacitor) - Pin A0
 
 500-1500 --> Open Jaws - Green
-1500 --> Stationary 
+1520 --> Stationary 
 1500-2500 --> Closes Jaws - No LED
 
 Weighted average is based on David A. Mellis / Tom Igoe smoothing tutorial...
