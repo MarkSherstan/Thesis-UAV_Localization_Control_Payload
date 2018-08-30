@@ -1,19 +1,3 @@
-/* 
-Used for clamping mechansim to control range of motion and to grip lid based off of current spike
-
-Limit Switches - Pin 2 and 3
-Servo (HS-645MG Hitec Ultra Torque) - Pin 9
-Current Sensor (ACS714 with 220uF capacitor) - Pin A0
-
-500-1500 --> Open Jaws
-1520 --> Stationary 
-1500-2500 --> Closes Jaws
-
-Weighted average is based on David A. Mellis / Tom Igoe smoothing tutorial...
-http://www.arduino.cc/en/Tutorial/Smoothing
-*/
-
-
 const int numReadings = 30;     // Number of readings to be averaged 
 int readings[numReadings];      // The readings from the analog input
 int readIndex = 0;              // The index of the current reading
@@ -33,7 +17,7 @@ void setup() {
   pinMode(3, INPUT_PULLUP);     // Big Switch, pullup to stop floating 
 
   // Servo
-  myservo.attach(9);
+  myservo.attach(8);
   myservo.writeMicroseconds(1520);  
 
   // Initialize all the readings to 0 for weighted average
@@ -47,14 +31,14 @@ void loop() {
   bool littleSwitch = digitalRead(2);
   bool bigSwitch = digitalRead(3);
 
-  if (littleSwitch == 0) {            // Are jaws fully closed?
-    myservo.writeMicroseconds(1000);  // Open jaws medium speed
-    delay(1000);                      // Set delay to not trip current sensor on startup 
+  if (littleSwitch == 0) {                      // Are jaws fully closed?
+    myservo.writeMicroseconds(1000);            // Open jaws medium speed
+    delay(1000);                                // Set delay to not trip current sensor on startup 
   }
 
-  if (bigSwitch == 0) {               // Are jaws fully open?
-    myservo.writeMicroseconds(2000);  // Close jaws medium speed 
-    delay(1000);                      // Set delay to not trip current sensor on startup  
+  if (bigSwitch == 0) {                         // Are jaws fully open?
+    myservo.writeMicroseconds(2000);            // Close jaws medium speed 
+    delay(1000);                                // Set delay to not trip current sensor on startup  
   }
        
   // Weighted Average 
