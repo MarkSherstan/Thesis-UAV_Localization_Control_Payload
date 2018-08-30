@@ -3,12 +3,11 @@ Used for clamping mechansim to control range of motion and to grip lid based off
 
 Limit Switches - Pin 2 and 3
 Servo (HS-645MG Hitec Ultra Torque) - Pin 9
-LED's - Pins 12 and 13
 Current Sensor (ACS714 with 220uF capacitor) - Pin A0
 
-500-1500 --> Open Jaws - Green
+500-1500 --> Open Jaws
 1520 --> Stationary 
-1500-2500 --> Closes Jaws - No LED
+1500-2500 --> Closes Jaws
 
 Weighted average is based on David A. Mellis / Tom Igoe smoothing tutorial...
 http://www.arduino.cc/en/Tutorial/Smoothing
@@ -28,10 +27,6 @@ Servo myservo;
 
 void setup() {
   Serial.begin(9600);
-
-  //LED's
-  pinMode(12, OUTPUT);
-  pinMode(13, OUTPUT);
 
   // Limit Switches
   pinMode(2, INPUT_PULLUP);     // Little Switch, pullup to stop floating 
@@ -53,19 +48,13 @@ void loop() {
   bool bigSwitch = digitalRead(3);
 
   if (littleSwitch == 0) {            // Are jaws fully closed?
-    digitalWrite(12,HIGH);            // Turn on signal LED
     myservo.writeMicroseconds(1000);  // Open jaws medium speed
     delay(1000);                      // Set delay to not trip current sensor on startup 
-  } else {
-    digitalWrite(12,LOW);
   }
 
   if (bigSwitch == 0) {               // Are jaws fully open?
-    digitalWrite(13,HIGH);            // Turn on signal LED
     myservo.writeMicroseconds(2000);  // Close jaws medium speed 
     delay(1000);                      // Set delay to not trip current sensor on startup  
-  } else {
-    digitalWrite(13,LOW);
   }
        
   // Weighted Average 
