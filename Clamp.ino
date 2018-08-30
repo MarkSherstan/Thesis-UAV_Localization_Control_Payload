@@ -1,3 +1,4 @@
+// Smoothing for current sensor
 const int numReadings = 30;     // Number of readings to be averaged 
 int readings[numReadings];      // The readings from the analog input
 int readIndex = 0;              // The index of the current reading
@@ -32,13 +33,13 @@ void loop() {
   bool bigSwitch = digitalRead(3);
 
   if (littleSwitch == 0) {                      // Are jaws fully closed?
-    myservo.writeMicroseconds(1000);            // Open jaws medium speed
-    delay(1000);                                // Set delay to not trip current sensor on startup 
+    myservo.writeMicroseconds(700);             // Open jaws
+    delay(1500);                                // Set delay to not trip current sensor on startup 
   }
 
   if (bigSwitch == 0) {                         // Are jaws fully open?
-    myservo.writeMicroseconds(2000);            // Close jaws medium speed 
-    delay(1000);                                // Set delay to not trip current sensor on startup  
+    myservo.writeMicroseconds(2300);            // Close jaws
+    delay(1500);                                // Set delay to not trip current sensor on startup  
   }
        
   // Weighted Average 
@@ -54,7 +55,7 @@ void loop() {
   average = total / numReadings;                // Calculate the average
   Serial.println(average);                      // Print average 
 
-  if (average >= 520) {                         // If current spikes (jaws clamped) turn off servo  
+  if (average >= 483) {                         // If current spikes (jaws clamped) turn off servo  
     myservo.writeMicroseconds(1520);
   }
 
