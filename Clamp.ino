@@ -1,10 +1,14 @@
 // Smoothing for current sensor
-const int numReadings = 30;     // Number of readings to be averaged 
-int readings[numReadings];      // The readings from the analog input
-int readIndex = 0;              // The index of the current reading
-int total = 0;                  // The running total
-int average = 0;                // The average
-int inputPin = A0;              // Current sensor analog pin 
+const unsigned int numReadings = 50;         // Number of readings to be averaged
+unsigned int readings[numReadings];          // The readings from the analog input
+unsigned int readIndex = 0;                  // The index of the current reading
+unsigned int total = 0;                      // The running total
+double average = 0;                          // The average
+int inputPin = A0;                           // Current sensor analog pin
+double minaverage = 1024;                    // For visualizing max and min
+double maxaverage = 0;                       // For visualizing max and min
+int count = 0;
+
 
 #include <Servo.h> 
 Servo myservo;
@@ -21,9 +25,10 @@ void setup() {
   myservo.attach(8);
   myservo.writeMicroseconds(1520);  
 
-  // Initialize all the readings to 0 for weighted average
+  // Initialize all the readings
   for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = 0;
+    readings[thisReading] = analogRead(inputPin);
+    total += readings[thisReading];
   }
 }
 
@@ -42,7 +47,7 @@ void loop() {
     delay(1500);                                // Set delay to not trip current sensor on startup  
   }
        
-  // Weighted Average 
+// Weighted Average
   total = total - readings[readIndex];          // Subtract the last reading
   readings[readIndex] = analogRead(inputPin);   // Read Sensor
   total = total + readings[readIndex];          // Add reading to total
@@ -52,13 +57,27 @@ void loop() {
     readIndex = 0;
   }
 
-  average = total / numReadings;                // Calculate the average
-  Serial.println(average);                      // Print average 
-
-  if (average >= 483) {                         // If current spikes (jaws clamped) turn off servo  
+  average = total / (float) numReadings;        // Calculate the average
+  //valuePlotter();                             // Find optimal value for if statment below
+ 
+  if (average >= 514) {                         // If current spikes (jaws clamped) turn off servo  
     myservo.writeMicroseconds(1520);
   }
 
   delay(1);                                     // Delay for stability
 }
 
+
+
+void valuePlotter(){
+  if (average > maxaverage)
+    maxaverage = average;
+  else if ( average < minaverage)
+    minaverage = average;
+
+  Serial.print(maxaverage);
+  Serial.print(",");
+  Serial.print(minaverage);
+  Serial.print(",");
+  Serial.println(average);
+}
