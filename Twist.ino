@@ -5,10 +5,9 @@ unsigned int readIndex = 0;                  // The index of the current reading
 unsigned int total = 0;                      // The running total
 double average = 0;                          // The average
 int inputPin = A1;                           // Current sensor analog pin
-int count = 0;
 double minaverage = 1024;                    // For visualizing max and min
 double maxaverage = 0;                       // For visualizing max and min
-
+int count = 0;
 
 // Gear and speed information
 double sun = 40;                    // Number of teeth on sun gear
@@ -72,14 +71,18 @@ void loop() {
   }
 
   average = total / (float) numReadings;        // Calculate the average
-
-  if (average >= 536) {                         // If current spikes (the cap is on tight) turn off servo
+  //valuePlotter();                             // Find optimal value for if statment below
+ 
+  if (average >= 529) {                         // If current spikes (the cap is on tight) turn off servo
     myservo.writeMicroseconds(1520);
   }
 
   delay(1);                                     // Delay for stability
 
-/* Plot max and min values
+}
+
+
+void valuePlotter(){
   if (average > maxaverage)
     maxaverage = average;
   else if ( average < minaverage)
@@ -90,6 +93,4 @@ void loop() {
   Serial.print(minaverage);
   Serial.print(",");
   Serial.println(average);
-*/
 }
-
