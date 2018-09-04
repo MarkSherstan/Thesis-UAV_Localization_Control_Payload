@@ -1,11 +1,13 @@
 // Smoothing for current sensor
-unsigned int numReadings = 50;                    // Number of readings to be averaged
+const unsigned int numReadings = 50;              // Number of readings to be averaged
 unsigned int readings[numReadings];               // The readings from the analog input
 unsigned int readIndex = 0;                       // The index of the current reading
 unsigned int total = 0;                           // The running total
 double average = 0;                               // The average
 int inputPinA0 = A0;                              // Current sensor analog pin
 int inputPinA1 = A1;                              // Current sensor analog pin
+double minaverage = 1024;                         // For visualizing max and min
+double maxaverage = 0;                            // For visualizing max and min
 int count = 0;                                    // Counter
 
 // Gear and speed information
@@ -23,7 +25,11 @@ double speedRatioBevel = 1 / gearRatioBevel;      // Speed ratio of bevel gears
 double servoRPM = (1 / (servoSpeed * 6)) * 60;    // RPM's of servo
 double outputRPM = servoRPM * speedRatioPlanet * speedRatioBevel;
 
-double numberOfTwists = 1;
+double numberOfTwists = 1.25;
+
+// Boolean
+bool clampRun = false;
+bool twistOnRun = false;
 
 // Servo
 #include <Servo.h>
@@ -45,33 +51,32 @@ void setup() {
   clampServo.writeMicroseconds(1520);      // Turn servo off
   twistServo.writeMicroseconds(1520);      // Turn servo off
 
-  firstOpen();                             // Open jaws all the way
+  fullOpen();                              // Open jaws all the way
 
-  // Initialize all the readings for first servo current draw
-  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
-    readings[thisReading] = analogRead(inputPinA0);
-    total += readings[thisReading];
-  }
-}
-
-
-void loop() {
-  // Code for up and down - will have one more limit switch
+  // Function for raising/lowering mechanism
 
   clamp();
 
   twistOff();
 
+  delay(5000);
+
   // Sample fluid
 
   twistOn();
+
+  //fullOpen(); Commented for testing purposes
+}
+
+
+void loop() {
 }
 
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 //////////////////////////////////////////////////////////////////////////////////////////////
 
-void firstOpen() {
+void fullOpen() {
   bool bigSwitch = digitalRead(3);
 
   while (bigSwitch != 0) {
@@ -80,46 +85,54 @@ void firstOpen() {
   }
 
   clampServo.writeMicroseconds(1520);      // Turn servo off
+  Serial.println("Clamps are open");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 void clamp() {
-  bool littleSwitch = digitalRead(2);
-  bool bigSwitch = digitalRead(3);
-
-  if (littleSwitch == 0) {                      // Are jaws fully closed?
-    clampServo.writeMicroseconds(700);          // Open jaws
-    delay(1500);                                // Set delay to not trip current sensor on startup
+  // Initialize all the readings for clamp servo current draw
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = analogRead(inputPinA0);
+    total += readings[thisReading];
   }
 
-  if (bigSwitch == 0) {                         // Are jaws fully open?
-    clampServo.writeMicroseconds(2300);         // Close jaws
-    delay(1500);                                // Set delay to not trip current sensor on startup
-  }
+  while (clampRun != true) {
+    bool littleSwitch = digitalRead(2);
+    bool bigSwitch = digitalRead(3);
 
-  // Weighted Average
-  total = total - readings[readIndex];          // Subtract the last reading
-  readings[readIndex] = analogRead(inputPinA0); // Read Sensor
-  total = total + readings[readIndex];          // Add reading to total
-  readIndex = readIndex + 1;                    // Advance to the next position in the array
-
-  if (readIndex >= numReadings) {               // If at the end of the array...wrap around to beginning
-    readIndex = 0;
-  }
-
-  average = total / (float) numReadings;        // Calculate the average
-
-  if (average >= 514) {                         // If current spikes (jaws clamped) turn off servo
-    clampServo.writeMicroseconds(1520);
-
-    for (int thisReading = 0; thisReading < numReadings; thisReading++) {  // Reset smoothing for next servo
-      readings[thisReading] = analogRead(inputPinA1);
-      total += readings[thisReading];
+    if (littleSwitch == 0) {                      // Are jaws fully closed?
+      clampServo.writeMicroseconds(700);          // Open jaws
+      delay(1500);                                // Set delay to not trip current sensor on startup
     }
-  }
 
-  delay(1);                                     // Delay for stability
+    if (bigSwitch == 0) {                         // Are jaws fully open?
+      clampServo.writeMicroseconds(2300);         // Close jaws
+      delay(1500);                                // Set delay to not trip current sensor on startup
+    }
+
+    // Weighted Average
+    total = total - readings[readIndex];          // Subtract the last reading
+    readings[readIndex] = analogRead(inputPinA0); // Read Sensor
+    total = total + readings[readIndex];          // Add reading to total
+    readIndex = readIndex + 1;                    // Advance to the next position in the array
+
+    if (readIndex >= numReadings) {               // If at the end of the array...wrap around to beginning
+      readIndex = 0;
+    }
+
+    average = total / (float) numReadings;        // Calculate the average
+    Serial.print("Clamp current: ");
+    Serial.println(average);
+
+    if (average >= 515) {                         // If current spikes (jaws clamped) turn off servo
+      clampServo.writeMicroseconds(1520);
+      break;
+    }
+
+    delay(1);                                     // Delay for stability
+  }
+  Serial.println("Clamps are secure");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
@@ -128,26 +141,41 @@ void twistOff() {
   twistServo.writeMicroseconds(2200);                 // Unscrew... Tighty righty, loosey lefty
   delay((numberOfTwists / (outputRPM / 60)) * 1000);  // Let the cap twist off
   twistServo.writeMicroseconds(1520);                 // Turn servo off
+  Serial.println("Cap is unthreaded");
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////////
 
 void twistOn() {
-// Weighted Average
-  total = total - readings[readIndex];          // Subtract the last reading
-  readings[readIndex] = analogRead(inputPinA1); // Read Sensor
-  total = total + readings[readIndex];          // Add reading to total
-  readIndex = readIndex + 1;                    // Advance to the next position in the array
-
-  if (readIndex >= numReadings) {               // If at the end of the array...wrap around to beginning
-    readIndex = 0;
+  // Reset all the readings for twist servo current draw
+  for (int thisReading = 0; thisReading < numReadings; thisReading++) {
+    readings[thisReading] = analogRead(inputPinA1);
+    total += readings[thisReading];
   }
 
-  average = total / (float) numReadings;        // Calculate the average
+  while (twistOnRun != true) {
+    twistServo.writeMicroseconds(700);            // Screw... Tighty righty, loosey lefty
 
-  if (average >= 529) {                         // If current spikes (the cap is on tight) turn off servo - Value from twist ValuePlotter
-    twistServo.writeMicroseconds(1520);
+    // Weighted Average
+    total = total - readings[readIndex];          // Subtract the last reading
+    readings[readIndex] = analogRead(inputPinA1); // Read Sensor
+    total = total + readings[readIndex];          // Add reading to total
+    readIndex = readIndex + 1;                    // Advance to the next position in the array
+
+    if (readIndex >= numReadings) {               // If at the end of the array...wrap around to beginning
+      readIndex = 0;
+    }
+
+    average = total / (float) numReadings;        // Calculate the average
+    Serial.print("Twist current: ");
+    Serial.println(average);
+
+    if (average >= 1034) {                         // If current spikes (the cap is on tight) turn off servo - Value from twist ValuePlotter
+      twistServo.writeMicroseconds(1520);
+      break;
+    }
+
+    delay(1);                                     // Delay for stability
   }
-
-  delay(1);                                     // Delay for stability
+  Serial.println("Cap is secure");
 }
