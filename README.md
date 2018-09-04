@@ -25,5 +25,5 @@ PWM values for modified HS-645MG Hitec Ultra Torque Servo:
 * 1520 --> Stationary 
 * 1500-2500 --> Closes Jaws and Loosen Cap
 
-## Acknowledgments
-Weighted average is based on David A. Mellis and Tom Igoe [smoothing tutorial](http://www.arduino.cc/en/Tutorial/Smoothing)
+## Wiring Diagram
+Under development, using [Fritzing](http://fritzing.org/home/).
