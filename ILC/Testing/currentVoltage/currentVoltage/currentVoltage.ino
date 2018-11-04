@@ -12,7 +12,7 @@ double amps;
 
 
 void setup(){
- Serial.begin(9600);
+ Serial.begin(115200);
 
  myservo.attach(3);
  myservo.writeMicroseconds(1000);
@@ -21,8 +21,8 @@ void setup(){
 
 void loop(){
  rawValue = analogRead(A0);
- amps = (((RawValue / 1024.0) * 5000) - offSet) / scale;
+ amps = (((rawValue / 1024.0) * 5000) - offSet) / scale;
 
- Serial.println(amps,3);
+ Serial.println(amps*1000,3);
  delay(10);
 }
