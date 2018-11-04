@@ -2,6 +2,7 @@
 #define outputB 7
 
 int counter = 0;
+int angle = 0;
 int aState;
 int aLastState;
 
@@ -28,9 +29,19 @@ void loop() {
      } else {
        counter --;
      }
-     Serial.print("Position: ");
-     Serial.println(counter);
+
+     // Track total rotations and bound between -20 and 20
+     if (counter >= 40){
+       counter = 0;
+     } else if (counter <= -40){
+       counter = 0;
+     }
+
+     // Print angle to screen. 360 / 40 = 9
+     //Serial.println(counter);
+     Serial.println(counter*9);
    }
+   
    // Updates the previous state of the outputA with the current state
    aLastState = aState;
 }
