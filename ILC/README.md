@@ -13,3 +13,7 @@ Saved data to be referenced for the model.
 ## Implementation / Testing
 
 Code for the updated control system on actual hardware.
+
+* currentVoltage 
+* encoder
+* forceSensor
