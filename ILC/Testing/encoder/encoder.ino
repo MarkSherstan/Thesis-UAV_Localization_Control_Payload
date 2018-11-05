@@ -25,22 +25,32 @@ void setup() {
 }
 
 
-void loop(){
-  Serial.println(encoderValue);
+void loop() {
+  // 360/80 = 4.5 degrees per step... First step is "2" the rest are 4. Really its a half step
+  Serial.print(encoderValue); Serial.print(",");
+  Serial.println((float)encoderValue * (360.0 / 80.0),1);
 }
 
 
-void updateEncoder(){
+void updateEncoder() {
   // Get data
   int MSB = digitalRead(encoderPin1);
   int LSB = digitalRead(encoderPin2);
 
   // Convert the 2 pin values to single number using bit shift and add to previous value
-  int encoded = (MSB << 1) |LSB;
+  int encoded = (MSB << 1) | LSB;
   int sum = (lastEncoded << 2) | encoded;
 
   // Calculate if there should be an increase or decrease in encoder value then store
-  if(sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) encoderValue ++;
-  if(sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) encoderValue --;
+  if (sum == 0b1101 || sum == 0b0100 || sum == 0b0010 || sum == 0b1011) encoderValue ++;
+  if (sum == 0b1110 || sum == 0b0111 || sum == 0b0001 || sum == 0b1000) encoderValue --;
   lastEncoded = encoded;
+
+  // Keep value bounded between [-80 and 80] --> one rotation
+  if (encoderValue >= 80) {
+    encoderValue -= 80;
+  } else if (encoderValue <= -80) {
+    encoderValue += 80;
+  }
+
 }
