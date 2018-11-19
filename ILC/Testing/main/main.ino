@@ -14,9 +14,13 @@ volatile long encoderValue = 0;
 int sensorValue;
 float voltage;
 
+int scale = 185;  // mV/A
+int offSet = 2500; // mV
+int currentSensor;
+double amps;
 
 void setup() {
-  Serial.begin(9600);
+  Serial.begin(57600);
 
   myServo.attach(9);
   myServo.writeMicroseconds(1520);
@@ -31,6 +35,7 @@ void setup() {
   attachInterrupt(1, updateEncoder, CHANGE);
 
   delay(3000);
+  Serial.println("Starting");
 }
 
 
@@ -41,12 +46,19 @@ void loop() {
   sensorValue = analogRead(A0);
   voltage = sensorValue * (5.0 / 1023.0);
 
+  currentSensor = analogRead(A2);
+  amps = (((currentSensor / 1024.0) * 5000) - offSet) / scale;
+
   // 360/80 = 4.5 degrees per step... First step is "2" the rest are 4. Really its a half step
   Serial.print(micros()); Serial.print(",");
-  Serial.print(encoderValue); Serial.print(",");
   Serial.print((float)encoderValue * (360.0 / 80.0),1); Serial.print(",");
   Serial.print(voltage); Serial.print(",");
+  Serial.print(amps*1000,3); Serial.print(",");
   Serial.println(PWM);
+
+  if (micros()*(1e-6) > 15){
+     myServo.writeMicroseconds(1520);
+  }
 }
 
 
