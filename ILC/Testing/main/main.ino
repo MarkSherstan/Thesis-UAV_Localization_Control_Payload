@@ -56,8 +56,10 @@ void loop() {
   Serial.print(amps*1000,3); Serial.print(",");
   Serial.println(PWM);
 
-  if (micros()*(1e-6) > 15){
+  if (micros()*0.000001 > 20){
+    Serial.println("STOP");
      myServo.writeMicroseconds(1520);
+     delay(10000);
   }
 }
 
