@@ -1,8 +1,8 @@
 clear all
 close all
 
-load trial#.txt
-trial# = A;
+load 1000PWM.txt
+A = X1000PWM;
 
 time = A(:,1) * 1e-6;
 pos = A(:,2); % Measured at gear (multiply by 2 to get pinion)
