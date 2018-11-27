@@ -18,6 +18,10 @@ Code for the updated control system on actual hardware.
 * encoder
 * forceSensor
 
+## Analysis
+
+
+
 ## Review:
 https://stackoverflow.com/questions/20588200/how-to-get-a-transfer-function-from-a-simulink-model-into-matlab
 
