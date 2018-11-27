@@ -1,6 +1,6 @@
 clear all
 close all
-clc
 
+% Get the data
 fileName = '1000PWM';
-[inputU outputY] = fileReader(fileName);
+[Ts U Y] = fileReader(fileName);
