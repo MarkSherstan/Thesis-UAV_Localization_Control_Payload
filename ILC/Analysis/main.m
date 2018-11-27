@@ -31,3 +31,13 @@ num = [5.0861   27.1602];
 den = [1.0000   31.9422  101.6955];
 
 tf1 = tf(num,den);
+
+% Stability analysis
+pzmap(num,den)
+roots(den) % Find poles
+roots(num)
+step(num,den)
+bode(tf1)
+
+% Implment ILC
+ILC(tf1,Ts)
