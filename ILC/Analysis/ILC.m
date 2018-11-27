@@ -1,8 +1,7 @@
-clear all
-close all
+function [ ] = ILC(sys,Ts)
 
-load('plantAndControllerAndLinear.mat')
-ssd = c2d(linsys1,Ts);
+
+ssd = c2d(sys,Ts,'ZOH');
 [Ad Bd Cd Dd] = ssdata(ssd);
 T = Ts;
 
