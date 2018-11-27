@@ -49,7 +49,7 @@ outputy = y;
 
 % data = iddata(y,u,Ts);
 % sys = tfest(data,3);
-% 
+%
 % sys.num
 % sys.den
 
