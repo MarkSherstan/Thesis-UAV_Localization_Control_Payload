@@ -1,20 +1,19 @@
 function [ ] = ILC(sys,Ts)
 
-% Convert to discrete time using ZOH and find state space
-ssd = c2d(sys,Ts,'ZOH');
-[Ad Bd Cd Dd] = ssdata(ssd);
+% Get state space - system already in discrete time
+[Ad Bd Cd Dd] = ssdata(sys);
 
-% Set up initial conditions and rr vector
+% Set up initial conditions and input vector U
 x0 = 0;
-rr = [3*ones(1,354) 1*ones(1,354) 4*ones(1,354) 2*ones(1,354) 0*ones(1,356)]; % [3 1 4 2 0];
-% rr is actually U
+U = [1000*ones(1,354) 1200*ones(1,354) 1000*ones(1,354) 1200*ones(1,354) 0*ones(1,356) 0];
 
+% Run linear simulation
 figure(1)
-lsim(ssd,rr,[],x0)
+lsim(sys,U,[],x0)
 ylabel('Amplitude')
 xlabel('time [s]')
 
-% Find sample time, n0, t, N
+% Set time period, n0, r and N
 t = 0:Ts:10;
 n0 = 0;
 r = 1;
@@ -52,7 +51,8 @@ G = tril(toeplitz(Gvec));
 
 
 % Formulate U to be 1x101, solve, and plot
-U = [rr 0]';
+%U = [rr 0]';
+U = U';
 
 y = G*U; % y = G0*x0 + G*U;
 
