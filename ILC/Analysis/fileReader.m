@@ -27,10 +27,4 @@ rpm = (1/mean(rps))*60;
 Ts = mean(diff(timeSec));
 t = [0:Ts:timeSec(1) timeSec']';
 U = [zeros(1,length(0:Ts:timeSec(1))) PWM']';
-Y = [zeros(1,length(0:Ts:timeSec(1))) current']'; %ones(1,length(0:Ts:timeSec(1)))*current(1)
-
-% Plot the input and output
-figure
-plot(t,U,t,Y)
-legend('Input-PWM','Output-Current');
-title('Single Input Single Output Response(s)')
+Y = [zeros(1,length(0:Ts:timeSec(1))) current']';
