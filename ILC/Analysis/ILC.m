@@ -49,6 +49,7 @@ Ej = zeros(N,1); Ejold = Ej;
 e2k = zeros(jmax,1);
 yyy = zeros(jmax,N);
 
+% Run ILC and plot the response for each iteration
 for ii = 1:jmax
     Uj = Q*Ujold + L*Ejold;
     Yj = G*Uj;
@@ -58,32 +59,33 @@ for ii = 1:jmax
     Ujold = Uj;
 
     % To visualize response real time
-    plot(t,Ej,t,Rj); title(['Iteration: ', num2str(ii)]); pause(0.1);
+    %plot(t,Ej,t,Rj); title(['Iteration: ', num2str(ii)]); ylim([-200 1200]); pause(0.1);
 
-    yyy(ii,:) = Ej;
+    % yyy(ii,:) = Ej;
     e2k(ii) = Ej' * Ej;
 end
 
-figure(3)
-plot(t,Rj,t,Yj,t,Uj)
-title('ILC - Supervector Format - Iteration 55')
-xlabel('Time (k) [s]')
-ylabel('Amplitude')
-legend('r_k','y_k','u_k')
+plot(t,Yj)
+% figure(3)
+% plot(t,Rj,t,Yj,t,Uj)
+% title('ILC - Supervector Format - Iteration 55')
+% xlabel('Time (k) [s]')
+% ylabel('Amplitude')
+% legend('r_k','y_k','u_k')
+%
+% figure(4)
+% semilogy(1:length(e2k),e2k)
+% title('Error as a function of Iteration Index - Semi-log Scale Plot')
+% xlabel('Iteration Index')
+% ylabel('Sum of Squares of Error')
 
-figure(4)
-semilogy(1:length(e2k),e2k)
-title('Error as a function of Iteration Index - Semi-log Scale Plot')
-xlabel('Iteration Index')
-ylabel('Sum of Squares of Error')
-
-figure(5)
-y = (1:jmax)';
-x = t';
-z = yyy;
-
-waterfall(y,x,z')
-xlabel('Itteration')
-ylabel('Time')
-zlabel('Response')
-colormap spring
+% figure(5)
+% y = (1:jmax)';
+% x = t';
+% z = yyy;
+%
+% waterfall(y,x,z')
+% xlabel('Itteration')
+% ylabel('Time')
+% zlabel('Response')
+% colormap spring
