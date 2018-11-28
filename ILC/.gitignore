@@ -1,0 +1,4 @@
+# Simulink cache and other
+*.slxc
+*.mat
+*.xml
