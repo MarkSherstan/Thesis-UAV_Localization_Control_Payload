@@ -3,21 +3,16 @@ function [ ] = ILC(sys,Ts)
 % Get state space - system already in discrete time
 [Ad Bd Cd Dd] = ssdata(sys);
 
-% Set up initial conditions and input vector U
+% Set initial condition x0, time range t, pure time delay n0, relative degree r, and matrix sizes N
 x0 = 0;
-U = [1000*ones(1,354) 1200*ones(1,354) 1000*ones(1,354) 1200*ones(1,354) 0*ones(1,356) 0];
-
-% Run linear simulation
-figure(1)
-lsim(sys,U,[],x0)
-ylabel('Amplitude')
-xlabel('time [s]')
-
-% Set time range t, pure time delay n0, relative degree r, and matrix sizes N
 t = 0:Ts:10;
 n0 = 0;
 r = 1;
 N = length(t);
+
+% Define input vector U and reference J
+U = 1000*ones(1,N);
+Rj = 263.9*ones(N,1) + 10*rand(N,1);
 
 % G0 not formulated as initial condition is 0
 
@@ -33,10 +28,7 @@ end
 G = tril(toeplitz(Gvec));
 
 % Set up ILC
-figure(2)
-Rj = U';
-
-jmax = 150;
+jmax = 50;
 l0 = 0.95;
 q0 = 1;
 
@@ -50,6 +42,8 @@ e2k = zeros(jmax,1);
 yyy = zeros(jmax,N);
 
 % Run ILC and plot the response for each iteration
+figure(2)
+
 for ii = 1:jmax
     Uj = Q*Ujold + L*Ejold;
     Yj = G*Uj;
@@ -59,20 +53,19 @@ for ii = 1:jmax
     Ujold = Uj;
 
     % To visualize response real time
-    %plot(t,Ej,t,Rj); title(['Iteration: ', num2str(ii)]); ylim([-200 1200]); pause(0.1);
+    plot(t,Ej,t,Rj); title(['Iteration: ', num2str(ii)]); ylim([-200 1200]); pause(0.1);
 
     % yyy(ii,:) = Ej;
     e2k(ii) = Ej' * Ej;
 end
 
-plot(t,Yj)
 % figure(3)
 % plot(t,Rj,t,Yj,t,Uj)
 % title('ILC - Supervector Format - Iteration 55')
 % xlabel('Time (k) [s]')
 % ylabel('Amplitude')
 % legend('r_k','y_k','u_k')
-%
+
 % figure(4)
 % semilogy(1:length(e2k),e2k)
 % title('Error as a function of Iteration Index - Semi-log Scale Plot')
