@@ -1,0 +1,7 @@
+# Simulink cache and other
+*.slxc
+*.mat
+*.xml
+*.autosave
+
+# Mac OS ignores
