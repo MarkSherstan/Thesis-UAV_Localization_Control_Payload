@@ -5,7 +5,7 @@ function [sysd1 sysd2] = stability(tf1, ss2, Ts)
 [A1 B1 C1 D1] = tf2ss(tf1.num{1},tf1.den{1});
 [A2 B2 C2 D2] = ssdata(ss2);
 
-% Find transfer function of system 2 - simscape 
+% Find transfer function of system 2 - simscape linearization
 [num den] = ss2tf(A2,B2,C2,D2);
 tf2 = tf(num,den);
 
@@ -25,27 +25,27 @@ sysd1 = c2d(tf1,Ts,'ZOH');
 sysd2 = c2d(tf2,Ts,'ZOH');
 
 % Ensure all poles and zeros are within the unit circle
-figure(1);
+figure
 pzmap(sysd1)
 title('Pole Zero Map - System Identification')
 axis equal
 
-figure(2);
+figure
 pzmap(sysd2)
 title('Pole Zero Map - Simscape Linearization')
 axis equal
 
 % Plot nyquist
-figure(3)
+figure
 nyquist(sysd1)
 title('Nyquist Stability - System Identification')
 
-figure(4)
+figure
 nyquist(sysd2)
 title('Nyquist Stability - Simscape Linearization')
 
 % Plot bode
-figure(5);
+figure
 bode(sysd1,sysd2)
 legend('System Identification','Simscape Linearization','FontSize',16)
 set(findall(gcf,'type','line'),'linewidth',2)
