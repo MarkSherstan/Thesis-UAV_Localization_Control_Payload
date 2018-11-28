@@ -1,54 +1,60 @@
 function [ ] = ILC(sys,Ts)
 
-
+% Convert to discrete time using ZOH and find state space
 ssd = c2d(sys,Ts,'ZOH');
 [Ad Bd Cd Dd] = ssdata(ssd);
-T = Ts;
 
-tr = linspace(0,1,5);
-Uz = [3 1 4 2 0];
-
+% Set up initial conditions and rr vector
 x0 = 0;
-rr = [3*ones(1,35) 1*ones(1,35) 4*ones(1,35) 2*ones(1,35) 0*ones(1,37)];
+rr = [3*ones(1,35) 1*ones(1,35) 4*ones(1,35) 2*ones(1,35) 0*ones(1,37)]; % [3 1 4 2 0];
+% rr is actually U
 
 figure
-lsim(ssd,rr,[],x0,'zoh')
+lsim(ssd,rr,[],x0)
 ylabel('Amplitude')
 xlabel('time [s]')
 
-%%%%%%%%%%%%%%%%%%%%%%%
-% Part E
-%%%%%%%%%%%%%%%%%%%%%%%
-t = 0:T:1;
+% Find sample time, n0, t, N
+t = 0:Ts:1;
 n0 = 0;
 r = 1;
 N = length(t);
 
-% Formulate G0
-G0 = zeros(N,1);
-G0(2,1) = Cd' * Ad^(n0+r+1);
+% Assume G0 goes to 0
 
-for ii = 3:length(G0)
-    G0(ii,1) = Cd' * Ad^(n0+ii);
-end
+% % Formulate G0
+% G0 = zeros(N,1);
+% G0(2,1) = Cd' * Ad^(n0+r+1);
+%
+% for ii = 3:length(G0)
+%     G0(ii,1) = Cd' * Ad^(n0+ii);
+% end
+
 
 % Formulate G
-G = zeros(N,N);
-
 Gvec = zeros(N,1);
-Gvec(1,1) = Cd' * Ad^(r-1) * Bd;
-Gvec(2,1) = Cd' * Ad^(r) * Bd;
+% Gvec(1,1) = Cd' * Ad^(r-1) * Bd;
+% Gvec(2,1) = Cd' * Ad^(r) * Bd;
+rvec = (r-1:N-n0-1)';
 
-for ii = 3:length(Gvec)
-    Gvec(ii,1) = Cd' * Ad^(ii-n0-1) * Bd;
+for ii = 1:length(rvec)
+  Apow_vec = Ad ^ rvec(ii);
+  Gvec(ii) = [Cd*Apow_vec*Bd];
 end
 
+% for ii = 3:length(Gvec)
+%     Gvec(ii,1) = Cd' * Ad^(ii-n0-1) * Bd;
+% end
+
 G = tril(toeplitz(Gvec));
+
+
+
 
 % Formulate U to be 1x101, solve, and plot
 U = [rr 0]';
 
-y = G0*x0 + G*U;
+y = G*U; % y = G0*x0 + G*U;
 
 %%%%%%%%%%%%%%%%%%%%%%%
 % Part F
@@ -56,7 +62,7 @@ y = G0*x0 + G*U;
 figure(2)
 Rj = U;
 
-jmax = 200;
+jmax = 100;
 l0 = 0.95;
 q0 = 1;
 
@@ -70,7 +76,7 @@ e2k = zeros(jmax,1);
 
 for ii = 1:jmax
     Uj = Q*Ujold + L*Ejold;
-    Yj = G*Uj + G0*x0;
+    Yj = G*Uj; %Yj = G*Uj + G0*x0;
 
     Ej = Rj - Yj; Ej(1) = 0;
     Ejold = Ej;
