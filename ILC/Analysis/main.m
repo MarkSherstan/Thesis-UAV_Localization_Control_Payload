@@ -27,12 +27,7 @@ hold on
 hold off
 
 % Stability analysis
-figure; pzmap(num,den);
-roots(den);
-roots(num);
-figure; step(num,den);
-figure; bode(tf1);
-
+[sysd1 sysd2] = stability(tf1, linsys1, Ts);
 
 % Implment ILC
 %ILC(tf1,Ts)
