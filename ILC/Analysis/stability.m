@@ -20,6 +20,13 @@ unco1 = length(A1) - rank(Co1);
 Co2 = ctrb(A2,B2);
 unco2 = length(A2) - rank(Co2);
 
+% Test see if the systems are observable.
+Oo1 = obsv(A1,C1);
+obsv1 = length(A1) - rank(Oo1);
+
+Oo2 = obsv(A2,C2);
+obsv2 = length(A2) - rank(Oo2);
+
 % Convert to transfer functions as required then discrete time
 sysd1 = c2d(tf1,Ts,'ZOH');
 sysd2 = c2d(tf2,Ts,'ZOH');
