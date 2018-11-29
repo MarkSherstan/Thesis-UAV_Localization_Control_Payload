@@ -59,11 +59,11 @@ L = l0 * eye(N,N);
 Q = q0 * eye(N,N);
 I = eye(N);
 
-Uj = zeros(N,1); Ujold = Uj;
+Uj = zeros(N,1); Ujold = U';
 Ej = zeros(N,1); Ejold = Ej;
 
 e2k = zeros(jmax,1);
-yyy = zeros(jmax,N);
+EE = zeros(jmax,N);
 
 % Set up video writer
 v = VideoWriter('simulation.avi');
@@ -71,45 +71,38 @@ v.FrameRate = 5;
 open(v);
 
 % Run ILC and plot the response for each iteration
-
 for ii = 1:jmax
+  noise = 15*rand(N,1) - 7.5;
 
-    noise = 15*rand(N,1) - 7.5;
+  Uj = Q*Ujold + L*Ejold;
+  Yj = G*Uj - (I-G)*(noise + disturbance);
 
-    Uj = Q*Ujold + L*Ejold;
-    Yj = G*Uj - (I - G)*(noise + disturbance);
+  Ej = Rj - Yj; Ej(1) = 0;
+  Ejold = Ej;
+  Ujold = Uj;
 
-    Ej = Rj - Yj; Ej(1) = 0;
-    Ejold = Ej;
-    Ujold = Uj;
+  plotter(ii,t,Ej,Yj,Uj,Rj,U)
+  frame = getframe(gcf);
+  writeVideo(v,frame);
 
-    plotter(ii,t,Ej,Yj,Uj,Rj,U)
-
-    frame = getframe(gcf);
-    writeVideo(v,frame);
-
-    yyy(ii,:) = Ej;
-    e2k(ii) = Ej' * Ej;
+  EE(ii,:) = Ej;
+  e2k(ii) = Ej'*Ej;
 end
 
 close(v);
 
-% figure(4)
+% figure
 % semilogy(1:length(e2k),e2k)
 % title('Error as a function of Iteration Index - Semi-log Scale Plot')
 % xlabel('Iteration Index')
 % ylabel('Sum of Squares of Error')
-
-% figure(3)
-% y = (1:jmax)';
-% x = t';
-% z = yyy;
-
-% waterfall(y,x,z')
-% xlabel('Itteration')
-% ylabel('Time')
+%
+% figure
+% waterfall(t',(1:jmax)',EE)
+% xlabel('Time')
+% ylabel('Itteration')
 % zlabel('Error')
-% colormap spring
+% colormap bone
 
 end
 
@@ -118,23 +111,26 @@ function [] = plotter(ii,t,Ej,Yj,Uj,Rj,U)
   figure(2)
 
   subplot(1,3,1);
-  plot(t,Ej,t,Rj,'-k','LineWidth',1.5);
+  plot(t,Ej,'LineWidth',1.5);
   title('Error, Ej','FontSize',16);
-  ylabel('Response (mA)','FontSize',16);
-  ylim([-25 300]);
+  ylabel('Error Response (mA)','FontSize',16);
+  ylim([-25 125]);
+  xlim([0 17.5])
 
   subplot(1,3,2);
   plot(t,Uj,t,U,'-k','LineWidth',1.5);
   title({['Iteration: ', num2str(ii)],'Input, Uj'},'FontSize',16);
   xlabel('Time (s)','FontSize',16);
-  ylabel('PWM','FontSize',16);
+  ylabel('Input PWM','FontSize',16);
   ylim([-25 1400]);
+  xlim([0 17.5])
 
   subplot(1,3,3);
   plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
   title('Output, Yj','FontSize',16);
-  ylabel('Response (mA)','FontSize',16);
+  ylabel('Output Response (mA)','FontSize',16);
   ylim([-25 300]);
+  xlim([0 17.5])
 
   pause(0.1);
 end
