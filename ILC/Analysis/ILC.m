@@ -65,6 +65,11 @@ Ej = zeros(N,1); Ejold = Ej;
 e2k = zeros(jmax,1);
 yyy = zeros(jmax,N);
 
+% Set up video writer
+v = VideoWriter('simulation.avi');
+v.FrameRate = 7;
+open(v);
+
 % Run ILC and plot the response for each iteration
 figure(2)
 
@@ -80,13 +85,19 @@ for ii = 1:jmax
     Ujold = Uj;
 
     % To visualize response real time
-    subplot(1,3,1); plot(t,Ej,t,Rj); title(['Ej Iteration: ', num2str(ii)]); ylim([-50 600]); pause(0.1);
-    subplot(1,3,2); plot(t,Yj,t,Rj); title(['Yj Iteration: ', num2str(ii)]); ylim([-50 600]); pause(0.1);
-    subplot(1,3,3); plot(t,Uj,t,Rj); title(['Uj Iteration: ', num2str(ii)]); ylim([-50 1100]); pause(0.1);
+    subplot(1,3,1); plot(t,Ej,t,Rj); title('Ej'); ylim([-50 450]);
+    subplot(1,3,2); plot(t,Yj,t,Rj); title(['Yj Iteration: ', num2str(ii)]); ylim([-50 450]);
+    subplot(1,3,3); plot(t,Uj,t,Rj); title('Uj'); ylim([-50 1300]);
+    pause(0.1);
+
+    frame = getframe(gcf);
+    writeVideo(v,frame);
 
     yyy(ii,:) = Ej;
     e2k(ii) = Ej' * Ej;
 end
+
+close(v);
 
 % figure(4)
 % semilogy(1:length(e2k),e2k)
