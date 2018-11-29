@@ -75,7 +75,7 @@ for ii = 1:jmax
   noise = 15*rand(N,1) - 7.5;
 
   Uj = Q*Ujold + L*Ejold;
-  Yj = G*Uj - (I-G)*(noise + disturbance);
+  Yj = G*Uj - (I-G)*(noise - disturbance);
 
   Ej = Rj - Yj; Ej(1) = 0;
   Ejold = Ej;
@@ -114,7 +114,7 @@ function [] = plotter(ii,t,Ej,Yj,Uj,Rj,U)
   plot(t,Ej,'LineWidth',1.5);
   title('Error, Ej','FontSize',16);
   ylabel('Error Response (mA)','FontSize',16);
-  ylim([-25 125]);
+  ylim([-125 25]);
   xlim([0 17.5])
 
   subplot(1,3,2);
@@ -122,14 +122,14 @@ function [] = plotter(ii,t,Ej,Yj,Uj,Rj,U)
   title({['Iteration: ', num2str(ii)],'Input, Uj'},'FontSize',16);
   xlabel('Time (s)','FontSize',16);
   ylabel('Input PWM','FontSize',16);
-  ylim([-25 1400]);
+  ylim([-25 1200]);
   xlim([0 17.5])
 
   subplot(1,3,3);
   plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
   title('Output, Yj','FontSize',16);
   ylabel('Output Response (mA)','FontSize',16);
-  ylim([-25 300]);
+  ylim([-25 400]);
   xlim([0 17.5])
 
   pause(0.1);
