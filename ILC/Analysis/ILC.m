@@ -67,11 +67,10 @@ yyy = zeros(jmax,N);
 
 % Set up video writer
 v = VideoWriter('simulation.avi');
-v.FrameRate = 7;
+v.FrameRate = 5;
 open(v);
 
 % Run ILC and plot the response for each iteration
-figure(2)
 
 for ii = 1:jmax
 
@@ -84,11 +83,7 @@ for ii = 1:jmax
     Ejold = Ej;
     Ujold = Uj;
 
-    % To visualize response real time
-    subplot(1,3,1); plot(t,Ej,t,Rj); title('Ej'); ylim([-50 450]);
-    subplot(1,3,2); plot(t,Yj,t,Rj); title(['Yj Iteration: ', num2str(ii)]); ylim([-50 450]);
-    subplot(1,3,3); plot(t,Uj,t,Rj); title('Uj'); ylim([-50 1300]);
-    pause(0.1);
+    plotter(ii,t,Ej,Yj,Uj,Rj,U)
 
     frame = getframe(gcf);
     writeVideo(v,frame);
@@ -105,13 +100,41 @@ close(v);
 % xlabel('Iteration Index')
 % ylabel('Sum of Squares of Error')
 
-figure(3)
-y = (1:jmax)';
-x = t';
-z = yyy;
+% figure(3)
+% y = (1:jmax)';
+% x = t';
+% z = yyy;
 
-waterfall(y,x,z')
-xlabel('Itteration')
-ylabel('Time')
-zlabel('Error')
-colormap spring
+% waterfall(y,x,z')
+% xlabel('Itteration')
+% ylabel('Time')
+% zlabel('Error')
+% colormap spring
+
+end
+
+
+function [] = plotter(ii,t,Ej,Yj,Uj,Rj,U)
+  figure(2)
+
+  subplot(1,3,1);
+  plot(t,Ej,t,Rj,'-k','LineWidth',1.5);
+  title('Error, Ej','FontSize',16);
+  ylabel('Response (mA)','FontSize',16);
+  ylim([-25 300]);
+
+  subplot(1,3,2);
+  plot(t,Uj,t,U,'-k','LineWidth',1.5);
+  title({['Iteration: ', num2str(ii)],'Input, Uj'},'FontSize',16);
+  xlabel('Time (s)','FontSize',16);
+  ylabel('PWM','FontSize',16);
+  ylim([-25 1400]);
+
+  subplot(1,3,3);
+  plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
+  title('Output, Yj','FontSize',16);
+  ylabel('Response (mA)','FontSize',16);
+  ylim([-25 300]);
+
+  pause(0.1);
+end
