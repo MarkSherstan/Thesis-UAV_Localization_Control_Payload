@@ -30,7 +30,7 @@ hold off
 [sysd1 sysd2] = stability(tf1, linsys1, Ts);
 
 % Implment ILC
-%ILC(tf1,Ts)
+%ILC(sysd1,Ts)
 
 % Estimation result(s):
 % RatedV = 9.6297;

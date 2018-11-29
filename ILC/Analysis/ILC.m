@@ -1,114 +1,136 @@
 function [ ] = ILC(sys,Ts)
 
-% Convert to discrete time using ZOH and find state space
-ssd = c2d(sys,Ts,'ZOH');
-[Ad Bd Cd Dd] = ssdata(ssd);
+% Get state space - system already in discrete time
+[Ad Bd Cd Dd] = ssdata(sys);
 
-% Set up initial conditions and rr vector
+% Set initial condition x0, time range t, pure time delay n0, relative degree r, and matrix sizes N
 x0 = 0;
-rr = [3*ones(1,354) 1*ones(1,354) 4*ones(1,354) 2*ones(1,354) 0*ones(1,356)]; % [3 1 4 2 0];
-% rr is actually U
-
-figure(1)
-lsim(ssd,rr,[],x0)
-ylabel('Amplitude')
-xlabel('time [s]')
-
-% Find sample time, n0, t, N
-t = 0:Ts:10;
+t = 0:Ts:17.5;
 n0 = 0;
 r = 1;
 N = length(t);
 
-% Assume G0 goes to 0
+% Define input vector U and reference J
+U = [zeros(1,267) 1000*ones(1,N-267)];
+Rj = [zeros(1,267) 263.9*ones(1,N-267)]';
 
-% % Formulate G0
-% G0 = zeros(N,1);
-% rvec = ((n0+r):N)';
-%
-% %G0(2,1) = Cd' * Ad^(n0+r+1);
-%
-% for ii = 1:length(rvec)
-%   Apow_vec = Ad^rvec(ii);
-%   %G0(ii) = Cd*Apow_vec;
-% end
+% G0 not formulated as initial condition is 0
 
 % Formulate G
 Gvec = zeros(N,1);
-% Gvec(1,1) = Cd' * Ad^(r-1) * Bd;
-% Gvec(2,1) = Cd' * Ad^(r) * Bd;
 rvec = ((r-1):(N-n0-1))';
 
 for ii = 1:length(rvec)
-  Apow_vec = Ad^rvec(ii);
-  Gvec(ii) = Cd*Apow_vec*Bd;
+  ApowVec = Ad^rvec(ii);
+  Gvec(ii) = Cd*ApowVec*Bd;
 end
-
-% for ii = 3:length(Gvec)
-%     Gvec(ii,1) = Cd' * Ad^(ii-n0-1) * Bd;
-% end
 
 G = tril(toeplitz(Gvec));
 
+% Define distrubance every 2 rotations or every 3 seconds after t = 1.5s
+disturbance = zeros(N,1);
+counter = 1;
 
-% Formulate U to be 1x101, solve, and plot
-U = [rr 0]';
+for ii = 267:length(disturbance)
+  if (counter > 534) & (counter < 534+20)
+    disturbance(ii,1) = 50;
+  elseif counter == 555;
+    counter = 1;
+  end
+counter = counter + 1;
+end
 
-y = G*U; % y = G0*x0 + G*U;
+% Add a big distrubance after 1 full rotation at about 10.8 s after t = 1.5s
+disturbance(2177:2177+150) = 125;
 
-%%%%%%%%%%%%%%%%%%%%%%%
-% Part F
-%%%%%%%%%%%%%%%%%%%%%%%
-figure(2)
-Rj = U;
+% Plot the disturbance
+figure(1);
+plot(t,disturbance,'-k','LineWidth',1.5)
+xlabel('Time (s)','FontSize',16)
+ylabel('Disturbance (mA)','FontSize',16)
+title('Periodic Disturbance due to Gear Train','FontSize',16)
 
-jmax = 150;
+% Set up ILC
+jmax = 25;
 l0 = 0.95;
 q0 = 1;
 
 L = l0 * eye(N,N);
 Q = q0 * eye(N,N);
+I = eye(N);
 
-Uj = zeros(N,1); Ujold = Uj;
+Uj = zeros(N,1); Ujold = U';
 Ej = zeros(N,1); Ejold = Ej;
 
 e2k = zeros(jmax,1);
-yyy = zeros(jmax,N);
+EE = zeros(jmax,N);
 
+% Set up video writer
+v = VideoWriter('simulation.avi');
+v.FrameRate = 5;
+open(v);
+
+% Run ILC and plot the response for each iteration
 for ii = 1:jmax
-    Uj = Q*Ujold + L*Ejold;
-    Yj = G*Uj; %Yj = G*Uj + G0*x0;
+  noise = 15*rand(N,1) - 7.5;
 
-    Ej = Rj - Yj; Ej(1) = 0;
-    Ejold = Ej;
-    Ujold = Uj;
+  Uj = Q*Ujold + L*Ejold;
+  Yj = G*Uj - (I-G)*(noise - disturbance);
 
-    % To visualize response real time
-    %plot(t,Ej,t,Rj); title(['Iteration: ', num2str(ii)]); pause(0.1);
-    yyy(ii,:) = Ej;
-    e2k(ii) = Ej' * Ej;
+  Ej = Rj - Yj; Ej(1) = 0;
+  Ejold = Ej;
+  Ujold = Uj;
+
+  plotter(ii,t,Ej,Yj,Uj,Rj,U)
+  frame = getframe(gcf);
+  writeVideo(v,frame);
+
+  EE(ii,:) = Ej;
+  e2k(ii) = Ej'*Ej;
 end
 
-figure(3)
-plot(t,Rj,t,Yj,t,Uj)
-title('ILC - Supervector Format - Iteration 55')
-xlabel('Time (k) [s]')
-ylabel('Amplitude')
-legend('r_k','y_k','u_k')
+close(v);
 
-figure(4)
-semilogy(1:length(e2k),e2k)
-title('Error as a function of Iteration Index - Semi-log Scale Plot')
-xlabel('Iteration Index')
-ylabel('Sum of Squares of Error')
+% figure
+% semilogy(1:length(e2k),e2k)
+% title('Error as a function of Iteration Index - Semi-log Scale Plot')
+% xlabel('Iteration Index')
+% ylabel('Sum of Squares of Error')
+%
+% figure
+% waterfall(t',(1:jmax)',EE)
+% xlabel('Time')
+% ylabel('Itteration')
+% zlabel('Error')
+% colormap bone
 
-figure(5)
-y = (1:jmax)';
-x = t';
-z = yyy;
+end
 
-waterfall(y,x,z')
-xlabel('Itteration')
-ylabel('Time')
-zlabel('Response')
-colormap spring
+
+function [] = plotter(ii,t,Ej,Yj,Uj,Rj,U)
+  figure(2)
+
+  subplot(1,3,1);
+  plot(t,Ej,'LineWidth',1.5);
+  title('Error, Ej','FontSize',16);
+  ylabel('Error Response (mA)','FontSize',16);
+  ylim([-125 25]);
+  xlim([0 17.5])
+
+  subplot(1,3,2);
+  plot(t,Uj,t,U,'-k','LineWidth',1.5);
+  title({['Iteration: ', num2str(ii)],'Input, Uj'},'FontSize',16);
+  xlabel('Time (s)','FontSize',16);
+  ylabel('Input PWM','FontSize',16);
+  ylim([-25 1200]);
+  xlim([0 17.5])
+
+  subplot(1,3,3);
+  plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
+  title('Output, Yj','FontSize',16);
+  ylabel('Output Response (mA)','FontSize',16);
+  ylim([-25 400]);
+  xlim([0 17.5])
+
+  pause(0.1);
+end
