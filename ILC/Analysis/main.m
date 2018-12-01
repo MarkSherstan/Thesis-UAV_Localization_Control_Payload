@@ -31,24 +31,3 @@ hold off
 
 % Implment ILC
 %ILC(sysd1,Ts)
-
-% Estimation result(s):
-% RatedV = 9.6297;
-% armatureInduc = 7.4126e-06;
-% noLoadCurrent = 0.48351;
-% noLoadSpeed = 27.2;
-% rotorInertia = 9.8946e-06;
-% stallTorque = 0.68957;
-% supply4noLoadCurrent = 21.841;
-
-% % Original Estimates of motor parameters and validation results
-%
-% armatureInduc = 12e-6;
-% stallTorque = 0.755;
-% noLoadSpeed = 42;
-% RatedV = 5;
-% noLoadCurrent = 0.21;
-% supply4noLoadCurrent = 4.78;
-% rotorInertia = 0.0002;
-%
-% validation = [t Y./1000];
