@@ -1,3 +1,11 @@
+% Parameter estimation fit results for DC motor
+RatedV = 9.6297;
+armatureInduc = 7.4126e-06;
+noLoadCurrent = 0.48351;
+noLoadSpeed = 27.2;
+rotorInertia = 9.8946e-06;
+stallTorque = 0.68957;
+supply4noLoadCurrent = 21.841;
 
 % Get state space - system already in discrete time
 [Ad Bd Cd Dd] = ssdata(sysd2);
@@ -66,23 +74,19 @@ open(v);
 figure(2)
 
 
-Rj = [zeros(1,267) 263.9*ones(1,N-267)]';
-U = [[0:Ts:17.5]' [zeros(1,267) 1000*ones(1,N-267)]'];
-
-
-
-
-
-
 % Run ILC and plot the response for each iteration
 for ii = 1:jmax
-  U = Uj;
-  sim('Twist',17.5)
-  Yj = Y;
-
   noise = 15*rand(N,1) - 7.5;
 
   Uj = Q*Ujold + L*Ejold;
+  %Yj = G*Uj - (I-G)*(noise - disturbance);
+  U = [t' Uj];
+
+  simOut = sim('Twist');
+
+  Yj = Y.Data;
+
+  %Uj = Q*Ujold + L*Ejold;
   %Yj = G*Uj - (I-G)*(noise + disturbance);
 
   Ej = Rj - Yj; Ej(1) = 0;
@@ -101,6 +105,8 @@ for ii = 1:jmax
 
   EE(ii,:) = Ej;
   e2k(ii) = Ej'*Ej;
+
+  ii
 end
 
 close(v);
