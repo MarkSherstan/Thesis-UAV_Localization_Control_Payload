@@ -14,6 +14,9 @@ supply4noLoadCurrent = 21.841;
 % Get state space - system already in discrete time
 [Ad Bd Cd Dd] = ssdata(sysd2);
 
+%Ts = round(Ts,5);
+Ts = 0.01;
+
 % Set initial condition x0, time range t, pure time delay n0, relative degree r, and matrix sizes N
 x0 = 0;
 t = 0:Ts:17.5;
@@ -21,9 +24,9 @@ n0 = 0;
 r = 1;
 N = length(t);
 
-% Define input vector U and reference J
-UU = [zeros(1,267) 1000*ones(1,N-267)];
-Rj = [zeros(1,268) 263.9*ones(1,N-268)]';
+% % Define input vector U and reference J
+Uref = [zeros(1,151) 1000*ones(1,N-151)];
+Rj = [zeros(1,152) 265.1*ones(1,N-152)]'; %263.9
 
 % G0 not formulated as initial condition is 0
 
@@ -67,7 +70,7 @@ L = l0 * eye(N,N);
 Q = q0 * eye(N,N);
 I = eye(N);
 
-Uj = zeros(N,1); Ujold = UU';
+Uj = zeros(N,1); Ujold = Uref';
 Ej = zeros(N,1); Ejold = Ej;
 
 e2k = zeros(jmax,1);
@@ -80,23 +83,24 @@ open(v);
 
 figure(2)
 
+% Uj = Ujold;
 
 % Run ILC and plot the response for each iteration
 for ii = 1:jmax
-  %noise = 15*rand(N,1) - 7.5;
-
   Uj = Q*Ujold + L*Ejold;
   U = [t' Uj]; % Requirment for simulink (needs time stamp)
 
   simOut = sim('Twist');
 
   Yj = Y.Data;
+  %Rj = refOut.Data;
+  %Uj = refIn.Data;
 
   Ej = Rj - Yj; Ej(1) = 0;
   Ejold = Ej;
   Ujold = Uj;
 
-  plotter(ii,t,Ej,Yj,Uj,Rj,UU)
+  plotter(ii,t,Ej,Yj,Uj,Rj,Uref)
   frame = getframe(gcf);
   writeVideo(v,frame);
 
