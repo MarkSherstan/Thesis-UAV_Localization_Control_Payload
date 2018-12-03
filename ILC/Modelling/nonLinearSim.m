@@ -1,4 +1,6 @@
-function [ ] = nonLinearSim(sys,Ts)
+% function [ ] = nonLinearSim(sys,Ts)
+close all
+
 
 % Parameter estimation fit results for DC motor
 RatedV = 9.6297;
@@ -10,7 +12,7 @@ stallTorque = 0.68957;
 supply4noLoadCurrent = 21.841;
 
 % Get state space - system already in discrete time
-[Ad Bd Cd Dd] = ssdata(sys);
+[Ad Bd Cd Dd] = ssdata(sysd2);
 
 % Set initial condition x0, time range t, pure time delay n0, relative degree r, and matrix sizes N
 x0 = 0;
@@ -20,7 +22,7 @@ r = 1;
 N = length(t);
 
 % Define input vector U and reference J
-U = [zeros(1,267) 1000*ones(1,N-267)];
+UU = [zeros(1,267) 1000*ones(1,N-267)];
 Rj = [zeros(1,267) 263.9*ones(1,N-267)]';
 
 % G0 not formulated as initial condition is 0
@@ -52,6 +54,9 @@ end
 % Add a big distrubance after 1 full rotation at about 10.8 s after t = 1.5s
 disturbance(2177:2177+150) = 125;
 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOOOK HERE
+disturbance(1:end) = 0;
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 % Set up ILC
 jmax = 25;
@@ -62,7 +67,7 @@ L = l0 * eye(N,N);
 Q = q0 * eye(N,N);
 I = eye(N);
 
-Uj = zeros(N,1); Ujold = U';
+Uj = zeros(N,1); Ujold = UU';
 Ej = zeros(N,1); Ejold = Ej;
 
 e2k = zeros(jmax,1);
@@ -80,10 +85,10 @@ figure(2)
 for ii = 1:jmax
   %noise = 15*rand(N,1) - 7.5;
 
-  Uj = Q*Ujold + L*Ejold;
+  %Uj = Q*Ujold + L*Ejold;
 
   %Yj = G*Uj - (I-G)*(noise - disturbance);
-  U = [t' Uj]; % Requirment for simulink (needs time stamp)
+  U = [t' Ujold]; % Requirment for simulink (needs time stamp)
 
   simOut = sim('Twist');
 
@@ -92,51 +97,20 @@ for ii = 1:jmax
   %Uj = Q*Ujold + L*Ejold;
   %Yj = G*Uj - (I-G)*(noise + disturbance);
 
-  Ej = Rj - Yj; Ej(1) = 0;
-  Ejold = Ej;
-  Ujold = Uj;
+  % Ej = Rj - Yj; Ej(1) = 0;
+  % Ejold = Ej;
+  % Ujold = Uj;
 
-  plotter(ii,t,Ej,Yj,Uj,Rj,U)
+  Uj = U(:,2);
+  
+  plotter(ii,t,Ej,Yj,Uj,Rj,UU)
   frame = getframe(gcf);
   writeVideo(v,frame);
 
-  EE(ii,:) = Ej;
-  e2k(ii) = Ej'*Ej;
+  % EE(ii,:) = Ej;
+  % e2k(ii) = Ej'*Ej;
 end
 
 
 
 close(v);
-
-
-end
-
-
-
-function [] = plotter(ii,t,Ej,Yj,Uj,Rj,U)
-  figure(2)
-
-  subplot(1,3,1);
-  plot(t,Ej,'LineWidth',1.5);
-  title('Error, Ej','FontSize',16);
-  ylabel('Error Response (mA)','FontSize',16);
-  ylim([-125 25]);
-  xlim([0 17.5])
-
-  subplot(1,3,2);
-  plot(t,Uj,t,U,'-k','LineWidth',1.5);
-  title({['Iteration: ', num2str(ii)],'Input, Uj'},'FontSize',16);
-  xlabel('Time (s)','FontSize',16);
-  ylabel('Input PWM','FontSize',16);
-  ylim([-25 1200]);
-  xlim([0 17.5])
-
-  subplot(1,3,3);
-  plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
-  title('Output, Yj','FontSize',16);
-  ylabel('Output Response (mA)','FontSize',16);
-  ylim([-25 400]);
-  xlim([0 17.5])
-
-  pause(0.1);
-end
