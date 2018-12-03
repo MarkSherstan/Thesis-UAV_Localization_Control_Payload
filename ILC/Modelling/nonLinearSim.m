@@ -45,21 +45,17 @@ G = tril(toeplitz(Gvec));
 disturbance = zeros(N,1);
 counter = 1;
 
-for ii = 267:length(disturbance)
-  if (counter > 534) & (counter < 534+20)
+for ii = 150:length(disturbance)
+  if (counter > 300) & (counter < 300+20)
     disturbance(ii,1) = 50;
-  elseif counter == 555;
+  elseif counter == 321;
     counter = 1;
   end
 counter = counter + 1;
 end
 
 % Add a big distrubance after 1 full rotation at about 10.8 s after t = 1.5s
-disturbance(2177:2177+150) = 125;
-
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% LOOOK HERE
-disturbance(1:end) = 0;
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+disturbance(1080:1080+150) = 125;
 
 % Set up ILC
 jmax = 25;
@@ -92,9 +88,7 @@ for ii = 1:jmax
 
   simOut = sim('Twist');
 
-  Yj = Y.Data;
-  %Rj = refOut.Data;
-  %Uj = refIn.Data;
+  Yj = Y.Data + disturbance;
 
   Ej = Rj - Yj; Ej(1) = 0;
   Ejold = Ej;
