@@ -23,7 +23,7 @@ N = length(t);
 
 % Define input vector U and reference J
 UU = [zeros(1,267) 1000*ones(1,N-267)];
-Rj = [zeros(1,267) 263.9*ones(1,N-267)]';
+Rj = [zeros(1,268) 263.9*ones(1,N-268)]';
 
 % G0 not formulated as initial condition is 0
 
@@ -85,24 +85,17 @@ figure(2)
 for ii = 1:jmax
   %noise = 15*rand(N,1) - 7.5;
 
-  %Uj = Q*Ujold + L*Ejold;
-
-  %Yj = G*Uj - (I-G)*(noise - disturbance);
-  U = [t' Ujold]; % Requirment for simulink (needs time stamp)
+  Uj = Q*Ujold + L*Ejold;
+  U = [t' Uj]; % Requirment for simulink (needs time stamp)
 
   simOut = sim('Twist');
 
   Yj = Y.Data;
 
-  %Uj = Q*Ujold + L*Ejold;
-  %Yj = G*Uj - (I-G)*(noise + disturbance);
+  Ej = Rj - Yj; Ej(1) = 0;
+  Ejold = Ej;
+  Ujold = Uj;
 
-  % Ej = Rj - Yj; Ej(1) = 0;
-  % Ejold = Ej;
-  % Ujold = Uj;
-
-  Uj = U(:,2);
-  
   plotter(ii,t,Ej,Yj,Uj,Rj,UU)
   frame = getframe(gcf);
   writeVideo(v,frame);
