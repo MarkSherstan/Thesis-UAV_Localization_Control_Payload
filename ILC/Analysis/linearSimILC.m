@@ -1,4 +1,4 @@
-function [ ] = ILC(sys,disturbance,Ts)
+function [ ] = linearSimILC(sys,disturbance,Ts)
 
 % Get state space - system already in discrete time
 [Ad Bd Cd Dd] = ssdata(sys);
