@@ -3,6 +3,7 @@
 *.mat
 *.xml
 *.autosave
+*.avi
 
 # Mac OS ignores
 .DS_Store
