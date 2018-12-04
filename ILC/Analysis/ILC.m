@@ -1,4 +1,4 @@
-function [ ] = ILC(sys,Ts)
+function [ ] = ILC(sys,disturbance,Ts)
 
 % Get state space - system already in discrete time
 [Ad Bd Cd Dd] = ssdata(sys);
@@ -26,29 +26,6 @@ for ii = 1:length(rvec)
 end
 
 G = tril(toeplitz(Gvec));
-
-% Define distrubance every 2 rotations or every 3 seconds after t = 1.5s
-disturbance = zeros(N,1);
-counter = 1;
-
-for ii = 267:length(disturbance)
-  if (counter > 534) & (counter < 534+20)
-    disturbance(ii,1) = 50;
-  elseif counter == 555;
-    counter = 1;
-  end
-counter = counter + 1;
-end
-
-% Add a big distrubance after 1 full rotation at about 10.8 s after t = 1.5s
-disturbance(2177:2177+150) = 125;
-
-% Plot the disturbance
-figure(1);
-plot(t,disturbance,'-k','LineWidth',1.5)
-xlabel('Time (s)','FontSize',16)
-ylabel('Disturbance (mA)','FontSize',16)
-title('Periodic Disturbance due to Gear Train','FontSize',16)
 
 % Set up ILC
 jmax = 25;

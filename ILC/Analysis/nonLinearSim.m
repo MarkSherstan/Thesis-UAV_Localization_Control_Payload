@@ -26,23 +26,6 @@ end
 
 G = tril(toeplitz(Gvec));
 
-% Define distrubance every 2 rotations of pinion or every 3 seconds after t = 1.5 s
-disturbance = zeros(N,1);
-counter = 1;
-
-for ii = 267:length(disturbance)
-  if (counter > 534) & (counter < 534+20)
-    disturbance(ii,1) = 50;
-  elseif counter == 555;
-    counter = 1;
-  end
-counter = counter + 1;
-end
-
-% Add a big distrubance after 1 full rotation of planetary gear at about 10.8 s
-% after t = 1.5s
-disturbance(2177:2177+150) = 125;
-
 % Set up ILC variables
 jmax = 25;
 l0 = 0.95;
