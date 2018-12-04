@@ -96,13 +96,6 @@ close(v);
 % title('Error as a function of Iteration Index - Semi-log Scale Plot')
 % xlabel('Iteration Index')
 % ylabel('Sum of Squares of Error')
-%
-% figure
-% waterfall(t',(1:jmax)',EE)
-% xlabel('Time')
-% ylabel('Itteration')
-% zlabel('Error')
-% colormap bone
 
 end
 
