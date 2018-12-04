@@ -3,6 +3,8 @@
 *.mat
 *.xml
 *.autosave
+
+# Auto generated videos from simulation
 *.avi
 
 # Mac OS ignores
