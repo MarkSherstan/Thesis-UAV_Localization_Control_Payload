@@ -1,23 +1,15 @@
-% Parameter estimation fit results for DC motor --> Add this to a single .mat file?
-RatedV = 9.6297;
-armatureInduc = 7.4126e-06;
-noLoadCurrent = 0.48351;
-noLoadSpeed = 27.2;
-rotorInertia = 9.8946e-06;
-stallTorque = 0.68957;
-supply4noLoadCurrent = 21.841;
-
-% Get state space - system already in discrete time
+% Get state space data - system already in discrete time.
 [Ad Bd Cd Dd] = ssdata(sysd2);
 
-% Set initial condition x0, time range t, pure time delay n0, relative degree r, and matrix sizes N
+% Set initial condition x0, time range t, pure time delay n0, relative degree r,
+% and matrix sizes N from length of t.
 x0 = 0;
 t = 0:Ts:17.5;
 n0 = 0;
 r = 1;
 N = length(t);
 
-% % Define input vector U and reference J
+% Define input vector U and reference J. Step at 1.5s
 Uref = [zeros(1,267) 1000*ones(1,N-267)];
 Rj = [zeros(1,267) 263.9*ones(1,N-267)]';
 
@@ -34,7 +26,7 @@ end
 
 G = tril(toeplitz(Gvec));
 
-% Define distrubance every 2 rotations or every 3 seconds after t = 1.5s
+% Define distrubance every 2 rotations of pinion or every 3 seconds after t = 1.5 s
 disturbance = zeros(N,1);
 counter = 1;
 
@@ -47,10 +39,11 @@ for ii = 267:length(disturbance)
 counter = counter + 1;
 end
 
-% Add a big distrubance after 1 full rotation at about 10.8 s after t = 1.5s
+% Add a big distrubance after 1 full rotation of planetary gear at about 10.8 s
+% after t = 1.5s
 disturbance(2177:2177+150) = 125;
 
-% Set up ILC
+% Set up ILC variables
 jmax = 25;
 l0 = 0.95;
 q0 = 1;
@@ -62,12 +55,14 @@ I = eye(N);
 Uj = zeros(N,1); Ujold = Uref';
 Ej = zeros(N,1); Ejold = Ej;
 
+% Run ILC and plot the response for each iteration
 figure(2)
 
-% Run ILC and plot the response for each iteration
 for ii = 1:jmax
   Uj = Q*Ujold + L*Ejold;
-  U = [t' Uj]; % Requirment for simulink (needs time stamp)
+
+  % Requirment for simulink (needs time stamp)
+  U = [t' Uj];
 
   simOut = sim('Twist');
 
