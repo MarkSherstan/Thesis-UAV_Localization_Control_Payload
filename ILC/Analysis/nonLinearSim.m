@@ -47,7 +47,11 @@ for ii = 1:jmax
   % Requirment for simulink (needs time stamp)
   U = [t' Uj];
 
+<<<<<<< HEAD
   simOut = sim('nonLinearILC');
+=======
+  simOut = sim('nonLinear');
+>>>>>>> 3ca4aea3291633778e83b4c43353a0f165beac99
 
   Yj = Y.Data + disturbance;
 
