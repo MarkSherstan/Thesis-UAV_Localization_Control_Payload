@@ -51,3 +51,6 @@ ylabel('Disturbance (mA)','FontSize',16)
 title('Periodic Disturbance due to Gear Train','FontSize',16)
 
 % Implment ILC
+% linearSimILC(sysd1,disturbance,Ts)
+% linearSimILC(sysd2,disturbance,Ts)
+% nonLinearSimILC
