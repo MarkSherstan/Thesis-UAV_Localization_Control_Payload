@@ -17,20 +17,11 @@ hold on
   xlim([0 10])
 hold off
 
-% Load the transfer function from system identification (tf1), the state space
-% model from simscape linearization (ss2), and the paramter estimation values
+% Load the transfer function from system identification (tf1), the PID controller
+% and the system identification PD controller transfer function (tf2) the state
+% space model from simscape linearization (ss2), and the paramter estimation values
 % for the DC motor (non linear simulation)
 load('model_tf_ss_motor_data.mat')
-
-
-% 0.1 respone with 0.9 transient
-Kp = 4.3027;
-Ki = 102.6293;
-Kd = 0;
-k = 1/0.2639; % Negative feddback gain
-
-C = pid(Kp,Ki,Kd);
-tf2 = feedback(C*tf1,k);
 
 % Stability analysis
 close all
@@ -62,7 +53,9 @@ xlabel('Time (s)','FontSize',16)
 ylabel('Disturbance (mA)','FontSize',16)
 title('Periodic Disturbance due to Gear Train','FontSize',16)
 
+
 % Implment ILC
 % linearSimILC(sysd1,disturbance,Ts)
 % linearSimILC(sysd2,disturbance,Ts)
+% linearSimILC(sysd3,disturbance,Ts)
 % nonLinearSimILC
