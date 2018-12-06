@@ -11,10 +11,6 @@ function [sysd1,sysd2,sysd3] = stability(tf1,tf2,ss,Ts)
 [num den] = ss2tf(A3,B3,C3,D3);
 tf3 = tf(num,den);
 
-tf1
-tf2
-tf3
-
 % Test see if the systems are controllable.
 Co1 = ctrb(A1,B1);
 unco1 = length(A1) - rank(Co1);
@@ -36,9 +32,9 @@ Oo3 = obsv(A3,C3);
 obsv3 = length(A3) - rank(Oo3);
 
 % Convert to transfer functions as required then discrete time
-sysd1 = c2d(tf1,Ts,'ZOH')
-sysd2 = c2d(tf2,Ts,'ZOH')
-sysd3 = c2d(tf3,Ts,'ZOH')
+sysd1 = c2d(tf1,Ts,'ZOH');
+sysd2 = c2d(tf2,Ts,'ZOH');
+sysd3 = c2d(tf3,Ts,'ZOH');
 
 % Relative degree. How many more poles than zeros;
 r1 = length(pole(sysd1)) - length(zero(sysd1));
