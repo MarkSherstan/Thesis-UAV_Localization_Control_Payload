@@ -68,8 +68,23 @@ close(v);
 
 % figure
 % semilogy(1:length(e2k),e2k)
-% title('Error as a function of Iteration Index - Semi-log Scale Plot')
-% xlabel('Iteration Index')
-% ylabel('Sum of Squares of Error')
+% %title('Error as a function of Iteration Index - Semi-log Scale Plot')
+% xlabel('Iteration Index, j','interpreter','latex','FontSize',16)
+% ylabel('2-norm Error $||e(k)^2_2||$','interpreter','latex','FontSize',16)
+% grid on
+
+% figure
+% subplot(2,1,1);
+% plot(t,Uj,t,U,'-k','LineWidth',1.5);
+% title('Input, Uj','FontSize',16);
+% xlabel('Time (s)','FontSize',16);
+% ylabel('Input PWM (\mus)','FontSize',16);
+% ylim([-50 2000]);
+%
+% subplot(2,1,2);
+% plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
+% title('Output, Yj','FontSize',16);
+% xlabel('Time (s)','FontSize',16);
+% ylabel('Output Response (mA)','FontSize',16);
 
 end
