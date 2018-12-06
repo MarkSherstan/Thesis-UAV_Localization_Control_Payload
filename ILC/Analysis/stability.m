@@ -11,6 +11,10 @@ function [sysd1,sysd2,sysd3] = stability(tf1,tf2,ss,Ts)
 [num den] = ss2tf(A3,B3,C3,D3);
 tf3 = tf(num,den);
 
+tf1
+tf2
+tf3
+
 % Test see if the systems are controllable.
 Co1 = ctrb(A1,B1);
 unco1 = length(A1) - rank(Co1);
@@ -32,9 +36,9 @@ Oo3 = obsv(A3,C3);
 obsv3 = length(A3) - rank(Oo3);
 
 % Convert to transfer functions as required then discrete time
-sysd1 = c2d(tf1,Ts,'ZOH');
-sysd2 = c2d(tf2,Ts,'ZOH');
-sysd3 = c2d(tf3,Ts,'ZOH');
+sysd1 = c2d(tf1,Ts,'ZOH')
+sysd2 = c2d(tf2,Ts,'ZOH')
+sysd3 = c2d(tf3,Ts,'ZOH')
 
 % Relative degree. How many more poles than zeros;
 r1 = length(pole(sysd1)) - length(zero(sysd1));
@@ -43,39 +47,35 @@ r3 = length(pole(sysd3)) - length(zero(sysd3));
 
 % Ensure all poles and zeros are within the unit circle
 figure(1)
-
-subplot(1,3,1)
 pzmap(sysd1)
 title('Pole Zero Map - System Identification')
 axis equal
 
-subplot(1,3,2)
+figure(2)
 pzmap(sysd2)
 title('Pole Zero Map - System Identification (PD Controller)')
 axis equal
 
-subplot(1,3,3)
+figure(3)
 pzmap(sysd3)
 title('Pole Zero Map - Simscape Linearization')
 axis equal
 
 % Plot nyquist
-figure(2)
-
-subplot(1,3,1)
+figure(4)
 nyquist(sysd1)
 title('Nyquist Stability - System Identification')
 
-subplot(1,3,2)
+figure(5)
 nyquist(sysd2)
 title('Nyquist Stability - System Identification (PD Controller)')
 
-subplot(1,3,3)
+figure(6)
 nyquist(sysd3)
-title('Pole Zero Map - Simscape Linearization')
+title('Nyquist Stability - Simscape Linearization')
 
 % Plot bode
-figure(3)
-bode(sysd1,sysd2,sysd3)
+figure(7)
+bode(sysd1,'k-',sysd2,'k--',sysd3,'k-.')
 legend('System Identification','System Identification (PD Controller)','Simscape Linearization','FontSize',16)
 set(findall(gcf,'type','line'),'linewidth',2)
