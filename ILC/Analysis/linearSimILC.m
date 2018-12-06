@@ -42,9 +42,9 @@ Ej = zeros(N,1); Ejold = Ej;
 e2k = zeros(jmax,1);
 
 % Set up video writer
-v = VideoWriter('simulation.avi');
-v.FrameRate = 5;
-open(v);
+% v = VideoWriter('simulation.avi');
+% v.FrameRate = 5;
+% open(v);
 
 % Run ILC and plot the response for each iteration
 for ii = 1:jmax
@@ -58,13 +58,13 @@ for ii = 1:jmax
   Ujold = Uj;
 
   plotter(ii,t,Ej,Yj,Uj,Rj,U)
-  frame = getframe(gcf);
-  writeVideo(v,frame);
+  % frame = getframe(gcf);
+  % writeVideo(v,frame);
 
   e2k(ii) = Ej'*Ej;
 end
 
-close(v);
+% close(v);
 
 % figure
 % semilogy(1:length(e2k),e2k)
