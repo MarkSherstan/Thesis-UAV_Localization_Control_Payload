@@ -8,10 +8,11 @@ fileName = '1000PWM';
 
 figure(1)
 hold on
-  plot(t,U,'-b',t,Y,'-r','LineWidth',1)
-  legend('Input-PWM','Output-Current (mA)','FontSize',16,'Location','SouthEast');
+  plot(t,U,'--k',t,Y,'-k','LineWidth',1.5)
+  legend('Input - PWM (\mus)','Output - Current (mA)','FontSize',16,'Location','SouthEast');
   title('Single Input - Single Output Response','FontSize',16)
   xlabel('Time (s)','FontSize',16)
+  ylabel('Input / Output Value','FontSize',16)
   ylim([0 1050])
   xlim([0 10])
 hold off
@@ -21,8 +22,19 @@ hold off
 % for the DC motor (non linear simulation)
 load('model_tf_ss_motor_data.mat')
 
+
+% 0.1 respone with 0.9 transient
+Kp = 4.3027;
+Ki = 102.6293;
+Kd = 0;
+k = 1/0.2639; % Negative feddback gain
+
+C = pid(Kp,Ki,Kd);
+tf2 = feedback(C*tf1,k);
+
 % Stability analysis
-[sysd1 sysd2] = stability(tf1, ss2, Ts);
+close all
+[sysd1 sysd2 sysd3] = stability(tf1, tf2, ss2, Ts);
 
 % Formulate a distrubance every 2 rotations of the pinion or every 3 seconds
 % after t = 1.5 s (initial step response). Add a big distrubance after 1 full
