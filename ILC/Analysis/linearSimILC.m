@@ -40,7 +40,6 @@ Uj = zeros(N,1); Ujold = U';
 Ej = zeros(N,1); Ejold = Ej;
 
 e2k = zeros(jmax,1);
-EE = zeros(jmax,N);
 
 % Set up video writer
 v = VideoWriter('simulation.avi');
@@ -62,7 +61,6 @@ for ii = 1:jmax
   frame = getframe(gcf);
   writeVideo(v,frame);
 
-  EE(ii,:) = Ej;
   e2k(ii) = Ej'*Ej;
 end
 
