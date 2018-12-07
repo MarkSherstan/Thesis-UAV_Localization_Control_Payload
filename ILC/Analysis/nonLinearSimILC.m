@@ -34,7 +34,7 @@ for ii = 1:jmax
 
   simOut = sim('nonLinearModel');
 
-  Yj = Y.Data + disturbance;
+  Yj = Y.Data + disturbance + noise;
 
   Ej = Rj - Yj; Ej(1) = 0;
   Ejold = Ej;
