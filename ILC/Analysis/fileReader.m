@@ -1,17 +1,17 @@
 function [Ts t U Y] = fileReader(fileName)
 
-  % Load txt file with data from experiment
+  % Load txt file with experimental data into MATLAB
   load('1000PWM.txt')
   A = X1000PWM;
 
-  % Simplify data loaded in
+  % Split data into useful variable names
   timeSec = A(:,1) * 1e-6;
   pos = A(:,2); % Measured at gear (multiply by 2 to get pinion)
   voltage = A(:,3);
   current = A(:,4);
   PWM = A(:,5);
 
-  % Find the min angle values for rpm calc
+  % Find the min angle values as refernce point for rpm calc
   localMin = islocalmin(pos,'MinProminence',30);
   idx = find(localMin);
   deltatimeSec = timeSec(idx);

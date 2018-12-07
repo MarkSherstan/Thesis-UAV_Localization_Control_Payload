@@ -1,8 +1,10 @@
 function [sysd1,sysd2,sysd3] = stability(tf1,tf2,ss,Ts)
 
-% System 1 is from system identification and must be converted to state space.
+% System 1 is from system identification.
 % System 2 is from system ID with feedback from a PD controller.
-% System 3 is from simscape linearization. Get A B C and D matrices.
+% System 3 is from simscape linearization.
+
+% Get A B C and D matrices
 [A1 B1 C1 D1] = tf2ss(tf1.num{1},tf1.den{1});
 [A2 B2 C2 D2] = tf2ss(tf2.num{1},tf2.den{1});
 [A3 B3 C3 D3] = ssdata(ss);
@@ -31,12 +33,12 @@ obsv2 = length(A2) - rank(Oo2);
 Oo3 = obsv(A3,C3);
 obsv3 = length(A3) - rank(Oo3);
 
-% Convert to transfer functions as required then discrete time
+% Convert to transfer functions to discrete time using zero order hold
 sysd1 = c2d(tf1,Ts,'ZOH');
 sysd2 = c2d(tf2,Ts,'ZOH');
 sysd3 = c2d(tf3,Ts,'ZOH');
 
-% Relative degree. How many more poles than zeros;
+% Find relative degree, how many more poles than zeros?
 r1 = length(pole(sysd1)) - length(zero(sysd1));
 r2 = length(pole(sysd2)) - length(zero(sysd2));
 r3 = length(pole(sysd3)) - length(zero(sysd3));
@@ -57,7 +59,7 @@ pzmap(sysd3)
 title('Pole Zero Map - Simscape Linearization')
 axis equal
 
-% Plot nyquist
+% Plot nyquist and ensure -1 is not encircled
 figure(4)
 nyquist(sysd1)
 title('Nyquist Stability - System Identification')

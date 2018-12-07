@@ -1,9 +1,10 @@
 function [ ] = linearSimILC(sys,disturbance,Ts)
 
-% Get state space - system already in discrete time
+% Get state space - system is already in discrete time from stability function
 [Ad Bd Cd Dd] = ssdata(sys);
 
-% Set initial condition x0, time range t, pure time delay n0, relative degree r, and matrix sizes N
+% Set initial condition x0, time range t, pure time delay n0, relative degree r,
+% and matrix size N
 x0 = 0;
 t = 0:Ts:17.5;
 n0 = 0;
@@ -41,7 +42,7 @@ Ej = zeros(N,1); Ejold = Ej;
 
 e2k = zeros(jmax,1);
 
-% Set up video writer
+%% Set up video writer to record the simulation to a .avi video file.
 % v = VideoWriter('simulation.avi');
 % v.FrameRate = 5;
 % open(v);
@@ -66,25 +67,26 @@ end
 
 % close(v);
 
-% figure
-% semilogy(1:length(e2k),e2k)
-% %title('Error as a function of Iteration Index - Semi-log Scale Plot')
-% xlabel('Iteration Index, j','interpreter','latex','FontSize',16)
-% ylabel('2-norm Error $||e(k)^2_2||$','interpreter','latex','FontSize',16)
-% grid on
+% Plot the 2- norm error and the results of the final iteration
+figure
+semilogy(1:length(e2k),e2k)
+title('2-norm Error as a function of Iteration Index - Semi-log Scale Plot')
+xlabel('Iteration Index, j','interpreter','latex','FontSize',16)
+ylabel('2-norm Error $||e(k)^2_2||$','interpreter','latex','FontSize',16)
+grid on
 
-% figure
-% subplot(2,1,1);
-% plot(t,Uj,t,U,'-k','LineWidth',1.5);
-% title('Input, Uj','FontSize',16);
-% xlabel('Time (s)','FontSize',16);
-% ylabel('Input PWM (\mus)','FontSize',16);
-% ylim([-50 2000]);
-%
-% subplot(2,1,2);
-% plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
-% title('Output, Yj','FontSize',16);
-% xlabel('Time (s)','FontSize',16);
-% ylabel('Output Response (mA)','FontSize',16);
+figure
+subplot(2,1,1);
+plot(t,Uj,t,U,'-k','LineWidth',1.5);
+title('Input, Uj','FontSize',16);
+xlabel('Time (s)','FontSize',16);
+ylabel('Input PWM (\mus)','FontSize',16);
+ylim([-50 2000]);
+
+subplot(2,1,2);
+plot(t,Yj,t,Rj,'-k','LineWidth',1.5);
+title('Output, Yj','FontSize',16);
+xlabel('Time (s)','FontSize',16);
+ylabel('Output Response (mA)','FontSize',16);
 
 end

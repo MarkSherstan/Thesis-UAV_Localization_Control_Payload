@@ -2,7 +2,7 @@ clear all
 close all
 clc
 
-% Get the experimental data and create a plot. Output Ts and data to make the plot
+% Get the experimental data from .txt and file reader and create a plot
 fileName = '1000PWM';
 [Ts t U Y] = fileReader(fileName);
 
@@ -18,7 +18,7 @@ hold on
 hold off
 
 % Load the transfer function from system identification (tf1), the PID controller
-% and the system identification PD controller transfer function (tf2) the state
+% and the system identification PD controller transfer function (tf2), the state
 % space model from simscape linearization (ss2), and the paramter estimation values
 % for the DC motor (non linear simulation)
 load('model_tf_ss_motor_data.mat')
@@ -46,16 +46,9 @@ end
 
 disturbance(2177:2177+150) = 125;
 
-% Plot the disturbance
+% Plot the disturbance that will be introduced into the system
 figure(10);
 plot(t,disturbance,'-k','LineWidth',1.5)
 xlabel('Time (s)','FontSize',16)
 ylabel('Disturbance (mA)','FontSize',16)
 title('Periodic Disturbance due to Gear Train','FontSize',16)
-
-
-% Implment ILC
-% linearSimILC(sysd1,disturbance,Ts)
-% linearSimILC(sysd2,disturbance,Ts)
-% linearSimILC(sysd3,disturbance,Ts)
-% nonLinearSimILC
