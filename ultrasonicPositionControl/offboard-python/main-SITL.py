@@ -1,8 +1,9 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
 from pymavlink import mavutil
+import matplotlib.pyplot as plt
+import matplotlib
 import time
 import math
-import dronekit_sitl
 
 ##################################
 # Function definitions
@@ -34,7 +35,7 @@ def arm_and_takeoff_nogps(aTargetAltitude):
     print("Taking off!")
 
     vehicle.simple_takeoff(aTargetAltitude)
-    time.sleep(3)
+    time.sleep(2)
 
 def send_attitude_target(roll_angle = 0.0, pitch_angle = 0.0, yaw_angle = None, yaw_rate = 0.0, use_yaw_rate = False, thrust = 0.5):
     # use_yaw_rate: the yaw can be controlled using yaw_angle OR yaw_rate.
@@ -68,6 +69,7 @@ def send_attitude_target(roll_angle = 0.0, pitch_angle = 0.0, yaw_angle = None, 
 def set_attitude(roll_angle = 0.0, pitch_angle = 0.0, yaw_angle = None, yaw_rate = 0.0, use_yaw_rate = False, thrust = 0.5, duration = 0):
     # ATTITUDE_TARGET order has a timeout of 1s for Arducopter 3.3 and higher
     send_attitude_target(roll_angle, pitch_angle, yaw_angle, yaw_rate, False, thrust)
+    print 'Roll: ', round(vehicle.attitude.roll,4), ' Pitch: ', round(vehicle.attitude.pitch,4), ' Yaw: ', round(vehicle.attitude.yaw,4)
 
     start = time.time()
     while time.time() - start < duration:
@@ -97,92 +99,68 @@ def euler2quaternion(roll = 0.0, pitch = 0.0, yaw = 0.0):
 # Main Function
 ##################################
 
-# Connect to SITL simulator
-sitl = dronekit_sitl.start_default()
-connection_string = sitl.connection_string()
-
 # Connect to the Vehicle
+connection_string = "127.0.0.1:14551"
 print('Connecting to vehicle on: %s' % connection_string)
 vehicle = connect(connection_string, wait_ready=True)
 
-
-
 # Take off to 2.5 m
-print("Take off to 2.5 m")
+print("Make connection")
 arm_and_takeoff_nogps(2.5)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
+print("Take off to 2.5 m")
+print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
+print(" ")
 
-# Hold the position for 2 seconds
-print("Hold position for 2 seconds")
-set_attitude(duration = 2)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
+# Hold the position for 1 seconds
+print("Hold position for 1 seconds")
+set_attitude(duration = 1)
+print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
+print(" ")
 
+# Desired
+northDesired = 2
+kp = 2
+actualList = []
+desiredList = []
+errorList = []
+timeList = []
+startTime = time.time()
 
+# Run a quick controller
+for ii in range(50):
+    error = vehicle.location.local_frame.north - northDesired
 
-# Move the drone left and right
-print("Move left")
-set_attitude(roll_angle = -20, thrust = 0.5, duration = 3)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
+    timeList.append(time.time() - startTime)
+    actualList.append(vehicle.location.local_frame.north)
+    desiredList.append(northDesired)
+    errorList.append(error)
 
-time.sleep(2)
+    P = kp * error
+    D = 0
+    controller = P + D
 
-print("Move right")
-set_attitude(roll_angle = 20, thrust = 0.5, duration = 3)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
+    set_attitude(pitch_angle = controller, thrust = 0.5, duration = 0.4)
 
-
-
-# Move the drone forward and backward.
-print("Move forward")
-set_attitude(pitch_angle = -20, thrust = 0.5, duration = 3)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
-
-time.sleep(2)
-
-print("Move backward")
-set_attitude(pitch_angle = 20, thrust = 0.5, duration = 3)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
-
-
-
-# Rotate 180 degrees and then back the same way
-print("Spin around")
-set_attitude(yaw_rate = 90, thrust = 0.5, duration = 2)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
-
-time.sleep(2)
-
-print("Spin around some more")
-set_attitude(yaw_rate = -90, thrust = 0.5, duration = 2)
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
-
-
+    print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
+    print 'Actual: ', round(vehicle.location.local_frame.north,4), 'Error: ', round(error,4), 'Controller: ', round(controller,4)
+    print(" ")
 
 # Land the drone
-print("Setting LAND mode...")
+print("\nSetting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
 
-time.sleep(1)
+# Plot the results
+fig, ax = plt.subplots()
+ax.plot(timeList,actualList,timeList,desiredList)
 
-print("N: ", vehicle.location.local_frame.north, " E: ", vehicle.location.local_frame.east, " D: ",vehicle.location.local_frame.down, " Yaw: ", vehicle.attitude.yaw)
-print("")
+ax.set(xlabel='Time (s)', ylabel='position (m)', title='Position Control North')
 
+plt.gca().legend(('actual','desired'))
+ax.grid()
 
+fig.savefig("test.png")
+plt.show()
 
 # Close vehicle object
-print("Close vehicle")
+print("Close vehicle and complete")
 vehicle.close()
-
-# Shut down the simulator
-if sitl is not None:
-    sitl.stop()
-
-print("Completed")
