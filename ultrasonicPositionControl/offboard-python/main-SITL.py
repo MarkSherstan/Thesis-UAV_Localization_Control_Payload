@@ -22,7 +22,7 @@ def arm_and_takeoff_nogps(aTargetAltitude):
     print("Arming motors")
 
     # Set vehicle mode
-    vehicle.mode = VehicleMode("GUIDED")
+    vehicle.mode = VehicleMode("GUIDED") #GUIDED_NOGPS
     vehicle.armed = True
 
     # Arm the vehicle
@@ -95,6 +95,20 @@ def euler2quaternion(roll = 0.0, pitch = 0.0, yaw = 0.0):
 
     return [q0, q1, q2, q3]
 
+def plotController(timeList, actualList, desiredList):
+    # Make subplot and actually plot
+    fig, ax = plt.subplots()
+    ax.plot(timeList, actualList, timeList, desiredList)
+
+    # Set labels and legend and grid
+    ax.set(xlabel='Time (s)', ylabel='position (m)', title='Position Control North')
+    plt.gca().legend(('actual','desired'))
+    ax.grid()
+
+    # Show results and save the plot
+    fig.savefig("test.png")
+    plt.show()
+
 ##################################
 # Main Function
 ##################################
@@ -117,28 +131,46 @@ set_attitude(duration = 1)
 print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
 print(" ")
 
-# Desired
-northDesired = 2
-kp = 2
+# Data logging
 actualList = []
 desiredList = []
 errorList = []
 timeList = []
+
+# Set up PID gains
+kp = 1
+ki = 1
+kd = 1
+
+# Set up some required values
+northDesired = 1
+previousNorthPos = 0
+I = 0
 startTime = time.time()
 
-# Run a quick controller
-for ii in range(50):
-    error = vehicle.location.local_frame.north - northDesired
+# Simulate PID for 60 itterations
+for ii in range(60):
+    # Get important values
+    currentNorthPos = vehicle.location.local_frame.north
+    error = currentNorthPos - northDesired
+    deltaT = time.time() - startTime
 
-    timeList.append(time.time() - startTime)
-    actualList.append(vehicle.location.local_frame.north)
+    # Append values
+    timeList.append(deltaT)
+    actualList.append(currentNorthPos)
     desiredList.append(northDesired)
     errorList.append(error)
 
+    # Run the PID controller
     P = kp * error
-    D = 0
-    controller = P + D
+    I += ki * error
+    D = kd * ((currentNorthPos - previousNorthPos) / deltaT)
+    controller = P + I + D
 
+    # Save the previous position
+    previousNorthPos = currentNorthPos
+
+    # Execute the controller and print results
     set_attitude(pitch_angle = controller, thrust = 0.5, duration = 0.4)
 
     print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
@@ -150,16 +182,7 @@ print("\nSetting LAND mode...")
 vehicle.mode = VehicleMode("LAND")
 
 # Plot the results
-fig, ax = plt.subplots()
-ax.plot(timeList,actualList,timeList,desiredList)
-
-ax.set(xlabel='Time (s)', ylabel='position (m)', title='Position Control North')
-
-plt.gca().legend(('actual','desired'))
-ax.grid()
-
-fig.savefig("test.png")
-plt.show()
+plotController(timeList, actualList, desiredList)
 
 # Close vehicle object
 print("Close vehicle and complete")
