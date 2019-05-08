@@ -1,189 +1,244 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
 from pymavlink import mavutil
-import matplotlib.pyplot as plt
-import matplotlib
 import time
 import math
 
-##################################
-# Function definitions
-##################################
+class Simulate:
+    def __init__(self):
+        self.vehicleArmed = True
+        self.vehicleMode = "GUIDED" #GUIDED_NOGPS
 
-def arm_and_takeoff_nogps(aTargetAltitude):
-    # Give the user some info
-    print("Basic pre-arm checks")
-    print("--------------------------------------------------")
+    def armAndTakeOff(self, vehicle, targetAltitude):
+        # Give the user some info
+        print("Basic pre-arm checks")
+        print("--------------------------------------------------")
 
-    # Wait till vehicle is ready
-    while not vehicle.is_armable:
-        print(" Waiting for vehicle to initialise...")
-        time.sleep(1)
+        # Wait till vehicle is ready
+        while not vehicle.is_armable:
+            print(" Waiting for vehicle to initialise...")
+            time.sleep(1)
 
-    print("Arming motors")
+        print("Arming motors")
 
-    # Set vehicle mode
-    vehicle.mode = VehicleMode("GUIDED") #GUIDED_NOGPS
-    vehicle.armed = True
+        # Set vehicle mode
+        vehicle.mode = VehicleMode(self.vehicleMode)
+        vehicle.armed = self.vehicleArmed
 
-    # Arm the vehicle
-    while not vehicle.armed:
-        print(" Waiting for arming...")
-        vehicle.armed = True
-        time.sleep(1)
+        # Arm the vehicle
+        while not vehicle.armed:
+            print(" Waiting for arming...")
+            vehicle.armed = self.vehicleArmed
+            time.sleep(1)
 
-    # Take off
-    print("Taking off!")
+        # Take off
+        print("Taking off!")
+        print("--------------------------------------------------")
 
-    vehicle.simple_takeoff(aTargetAltitude)
-    time.sleep(2)
+        vehicle.simple_takeoff(targetAltitude)
+        time.sleep(2)
 
-def send_attitude_target(roll_angle = 0.0, pitch_angle = 0.0, yaw_angle = None, yaw_rate = 0.0, use_yaw_rate = False, thrust = 0.5):
-    # use_yaw_rate: the yaw can be controlled using yaw_angle OR yaw_rate.
-    #
-    # thrust: 0 <= thrust <= 1, as a fraction of maximum vertical thrust.
-    #         Note that as of Copter 3.5, thrust = 0.5 triggers a special case in
-    #         the code for maintaining current altitude.
-    #             Thrust >  0.5: Ascend
-    #             Thrust == 0.5: Hold the altitude
-    #             Thrust <  0.5: Descend
-    #
-    # https://mavlink.io/en/messages/common.html#SET_POSITION_TARGET_LOCAL_NED
+        # Display the results
+        print 'Took off to: ', targetAltitude, ' m'
+        print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
+        print(" ")
 
-    if yaw_angle is None:
-        yaw_angle = vehicle.attitude.yaw
+    def disarmAndLand(self, vehicle):
+        # Land the drone
+        self.vehicleMode = "RTL"
+        print("\nSetting RTL mode...\n")
+        vehicle.mode = VehicleMode(self.vehicleMode)
+        time.sleep(4)
 
-    msg = vehicle.message_factory.set_attitude_target_encode(
-        0, # time_boot_ms
-        1, # Target system
-        1, # Target component
-        0b00000000 if use_yaw_rate else 0b00000100,
-        euler2quaternion(roll_angle, pitch_angle, yaw_angle), # Quaternion
-        0, # Body roll rate in radian
-        0, # Body pitch rate in radian
-        math.radians(yaw_rate), # Body yaw rate in radian/second
-        thrust  # Thrust
-    )
+        # Close vehicle object
+        print("Closing vehicle connection")
+        vehicle.close()
 
-    vehicle.send_mavlink(msg)
+class Controller:
+    def __init__(self):
+        # Initial conditions (rads)
+        self.rollAngle = 0.0
+        self.pitchAngle = 0.0
+        self.yawAngle = None
+        self.yawRate = 0.0
+        self.useYawRate = False
+        self.thrust = 0.5
+        self.duration = 0.5
 
-def set_attitude(roll_angle = 0.0, pitch_angle = 0.0, yaw_angle = None, yaw_rate = 0.0, use_yaw_rate = False, thrust = 0.5, duration = 0):
-    # ATTITUDE_TARGET order has a timeout of 1s for Arducopter 3.3 and higher
-    send_attitude_target(roll_angle, pitch_angle, yaw_angle, yaw_rate, False, thrust)
-    print 'Roll: ', round(vehicle.attitude.roll,4), ' Pitch: ', round(vehicle.attitude.pitch,4), ' Yaw: ', round(vehicle.attitude.yaw,4)
+        # Angle Constraint
+        self.minVal = -3.1415/6
+        self.maxVal = 3.1415/6
 
-    start = time.time()
-    while time.time() - start < duration:
-        send_attitude_target(roll_angle, pitch_angle, yaw_angle, yaw_rate, False, thrust)
-        time.sleep(0.1)
+        # Controller PID Gains
+        self.kp = 1
+        self.ki = 1
+        self.kd = 1
 
-    # Reset attitude, or it will persist for 1s more due to the timeout
-    send_attitude_target(0, 0, 0, 0, True, thrust)
+        # Controller
+        self.northDesired = None
+        self.northPreviousPos = None
+        self.startTime = None
+        self.I = 0
 
-def euler2quaternion(roll = 0.0, pitch = 0.0, yaw = 0.0):
-    # Euler angles (deg) to quaternion
-    yc = math.cos(math.radians(yaw * 0.5))
-    ys = math.sin(math.radians(yaw * 0.5))
-    rc = math.cos(math.radians(roll * 0.5))
-    rs = math.sin(math.radians(roll * 0.5))
-    pc = math.cos(math.radians(pitch * 0.5))
-    ps = math.sin(math.radians(pitch * 0.5))
+        # Data logging for controller
+        self.desiredList = []
+        self.actualList = []
+        self.errorList = []
+        self.timeList = []
 
-    q0 = yc * rc * pc + ys * rs * ps
-    q1 = yc * rs * pc - ys * rc * ps
-    q2 = yc * rc * ps + ys * rs * pc
-    q3 = ys * rc * pc - yc * rs * ps
+    def sendAttitudeTarget(self, vehicle):
+        # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
+        #
+        # useYawRate: the yaw can be controlled using yawAngle OR yawRate.
+        #
+        # thrust: 0 <= thrust <= 1, as a fraction of maximum vertical thrust.
+        #         Note that as of Copter 3.5, thrust = 0.5 triggers a special case in
+        #         the code for maintaining current altitude.
+        #             Thrust >  0.5: Ascend
+        #             Thrust == 0.5: Hold the altitude
+        #             Thrust <  0.5: Descend
 
-    return [q0, q1, q2, q3]
+        # Update the yaw angle
+        if self.yawAngle is None:
+            self.yawAngle = vehicle.attitude.yaw
 
-def plotController(timeList, actualList, desiredList):
-    # Make subplot and actually plot
-    fig, ax = plt.subplots()
-    ax.plot(timeList, actualList, timeList, desiredList)
+        # Create the mavlink message
+        msg = vehicle.message_factory.set_attitude_target_encode(
+            0, # time_boot_ms
+            1, # Target system
+            1, # Target component
+            0b00000000 if self.useYawRate else 0b00000100, # If bit is set corresponding input ignored
+            self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
+            0, # Body roll rate in radian
+            0, # Body pitch rate in radian
+            self.yawRate, # Body yaw rate in radian/second
+            self.thrust # Thrust
+        )
 
-    # Set labels and legend and grid
-    ax.set(xlabel='Time (s)', ylabel='position (m)', title='Position Control North')
-    plt.gca().legend(('actual','desired'))
-    ax.grid()
+        # Send the constructed message
+        vehicle.send_mavlink(msg)
 
-    # Show results and save the plot
-    fig.savefig("test.png")
-    plt.show()
+    def setAttitude(self, vehicle):
+        # Send the command
+        self.sendAttitudeTarget(vehicle)
 
-##################################
-# Main Function
-##################################
+        # SET_ATTITUDE_TARGET has a timeout of 1s for Arducopter 3.3 and higher so keep it running
+        start = time.time()
+        while time.time() - start < self.duration:
+            self.sendAttitudeTarget(vehicle)
+            time.sleep(0.1)
 
-# Connect to the Vehicle
-connection_string = "127.0.0.1:14551"
-print('Connecting to vehicle on: %s' % connection_string)
-vehicle = connect(connection_string, wait_ready=True)
+        # Print the angle before resetting
+        print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
+            ' Pitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
+            ' Yaw: ', round(math.degrees(vehicle.attitude.yaw),3)
 
-# Take off to 2.5 m
-print("Make connection")
-arm_and_takeoff_nogps(2.5)
-print("Take off to 2.5 m")
-print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
-print(" ")
+        # Reset attitude, or it will persist for 1s more due to the timeout
+        self.rollAngle = 0
+        self.pitchAngle = 0
+        self.yawAngle = 0
+        self.sendAttitudeTarget(vehicle)
 
-# Hold the position for 1 seconds
-print("Hold position for 1 seconds")
-set_attitude(duration = 1)
-print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
-print(" ")
+    def euler2quaternion(self, roll, pitch, yaw):
+        # Euler angles (rad) to quaternion
+        yc = math.cos(yaw * 0.5)
+        ys = math.sin(yaw * 0.5)
+        rc = math.cos(roll * 0.5)
+        rs = math.sin(roll * 0.5)
+        pc = math.cos(pitch * 0.5)
+        ps = math.sin(pitch * 0.5)
 
-# Data logging
-actualList = []
-desiredList = []
-errorList = []
-timeList = []
+        q0 = yc * rc * pc + ys * rs * ps
+        q1 = yc * rs * pc - ys * rc * ps
+        q2 = yc * rc * ps + ys * rs * pc
+        q3 = ys * rc * pc - yc * rs * ps
 
-# Set up PID gains
-kp = 1
-ki = 1
-kd = 1
+        return [q0, q1, q2, q3]
 
-# Set up some required values
-northDesired = 1
-previousNorthPos = 0
-I = 0
-startTime = time.time()
+    def constrain(self, val):
+        return max(min(self.maxVal, val), self.minVal)
 
-# Simulate PID for 60 itterations
-for ii in range(60):
-    # Get important values
-    currentNorthPos = vehicle.location.local_frame.north
-    error = currentNorthPos - northDesired
-    deltaT = time.time() - startTime
+    def PID(self, vehicle):
+        # Get important values and begin calcs
+        northCurrentPos = vehicle.location.local_frame.north
+        error = northCurrentPos - self.northDesired
+        deltaT = time.time() - self.startTime
 
-    # Append values
-    timeList.append(deltaT)
-    actualList.append(currentNorthPos)
-    desiredList.append(northDesired)
-    errorList.append(error)
+        if self.northPreviousPos is None:
+            self.northPreviousPos = northCurrentPos
 
-    # Run the PID controller
-    P = kp * error
-    I += ki * error
-    D = kd * ((currentNorthPos - previousNorthPos) / deltaT)
-    controller = P + I + D
+        # Append values
+        self.desiredList.append(self.northDesired)
+        self.actualList.append(northCurrentPos)
+        self.errorList.append(error)
+        self.timeList.append(deltaT)
 
-    # Save the previous position
-    previousNorthPos = currentNorthPos
+        # Run the PID controller
+        P = self.kp * error
+        self.I += self.ki * error
+        D = self.kd * ((northCurrentPos - self.northPreviousPos) / deltaT)
+        controller = P + self.I + D
 
-    # Execute the controller and print results
-    set_attitude(pitch_angle = controller, thrust = 0.5, duration = 0.4)
+        # Save the previous position
+        self.northPreviousPos = northCurrentPos
 
-    print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
-    print 'Actual: ', round(vehicle.location.local_frame.north,4), 'Error: ', round(error,4), 'Controller: ', round(controller,4)
-    print(" ")
+        # Execute the controller and print results
+        self.pitchAngle = self.constrain(controller)
+        self.setAttitude(vehicle)
 
-# Land the drone
-print("\nSetting LAND mode...")
-vehicle.mode = VehicleMode("LAND")
+        print 'N: ', round(vehicle.location.local_frame.north,3), ' E: ', round(vehicle.location.local_frame.east,3), ' D: ', round(vehicle.location.local_frame.down,3)
+        print 'Actual: ', round(vehicle.location.local_frame.north,3), 'Error: ', round(error,3), 'Input [deg]: ', round(math.degrees(self.constrain(controller)),3)
+        print(" ")
 
-# Plot the results
-plotController(timeList, actualList, desiredList)
+    def plotController(self):
+        # Import required modules
+        import matplotlib.pyplot as plt
+        import matplotlib
 
-# Close vehicle object
-print("Close vehicle and complete")
-vehicle.close()
+        # Make subplot and actually plot
+        fig, ax = plt.subplots()
+        ax.plot(self.timeList, self.actualList, self.timeList, self.desiredList)
+
+        # Set labels, titles, info, legend and grid
+        ax.set(xlabel='Time (s)',
+                ylabel='position (m)',
+                title='Position Control North\n' +
+                ' Kp: ' + str(self.kp) +
+                ' Ki: ' + str(self.ki) +
+                ' Kd: ' + str(self.kd))
+
+        plt.gca().legend(('actual','desired'))
+        ax.grid()
+
+        # Show results and save the plot
+        fig.savefig("positionController.png")
+        plt.show()
+
+def main():
+    # Connect to the Vehicle
+    connection_string = "127.0.0.1:14551"
+    print('Connecting to vehicle on: %s\n' % connection_string)
+    vehicle = connect(connection_string, wait_ready=True)
+
+    # Setup simulation class and take off
+    sim = Simulate()
+    sim.armAndTakeOff(vehicle, 2.5)
+
+    # Set up controller class
+    C = Controller()
+    C.northDesired = 1.0
+    C.startTime = time.time()
+
+    # Run the controller for 50 itterations
+    for ii in range(40):
+        C.PID(vehicle)
+
+    # Land the UAV and close connection
+    sim.disarmAndLand(vehicle)
+
+    # Plot the results
+    C.plotController()
+
+
+# Main loop
+if __name__ == '__main__':
+	main()
