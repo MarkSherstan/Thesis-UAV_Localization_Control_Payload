@@ -40,17 +40,17 @@ class Simulate:
         # Display the results
         print 'Took off to: ', targetAltitude, ' m'
         print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
-        print(" ")
+        print("\n")
 
     def disarmAndLand(self, vehicle):
         # Land the drone
         self.vehicleMode = "RTL"
-        print("\nSetting RTL mode...\n")
+        print("\nSetting RTL mode...")
         vehicle.mode = VehicleMode(self.vehicleMode)
         time.sleep(4)
 
         # Close vehicle object
-        print("Closing vehicle connection")
+        print("Closing vehicle connection\n")
         vehicle.close()
 
 class Controller:
@@ -62,16 +62,16 @@ class Controller:
         self.yawRate = 0.0
         self.useYawRate = False
         self.thrust = 0.5
-        self.duration = 0.5
+        self.duration = 0.3
 
         # Angle Constraint
         self.minVal = -3.1415/6
         self.maxVal = 3.1415/6
 
         # Controller PID Gains
-        self.kp = 1
-        self.ki = 1
-        self.kd = 1
+        self.kp = 0.16
+        self.ki = 0
+        self.kd = 0.75
 
         # Controller
         self.northDesired = None
@@ -131,12 +131,6 @@ class Controller:
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
             ' Pitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
             ' Yaw: ', round(math.degrees(vehicle.attitude.yaw),3)
-
-        # Reset attitude, or it will persist for 1s more due to the timeout
-        self.rollAngle = 0
-        self.pitchAngle = 0
-        self.yawAngle = 0
-        self.sendAttitudeTarget(vehicle)
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Euler angles (rad) to quaternion
@@ -225,11 +219,11 @@ def main():
 
     # Set up controller class
     C = Controller()
-    C.northDesired = 1.0
+    C.northDesired = vehicle.location.local_frame.north + 1.0
     C.startTime = time.time()
 
     # Run the controller for 50 itterations
-    for ii in range(40):
+    for ii in range(60):
         C.PID(vehicle)
 
     # Land the UAV and close connection
