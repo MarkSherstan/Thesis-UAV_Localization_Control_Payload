@@ -14,7 +14,7 @@ class Controller:
         self.pitchAngle = 0.0
         self.yawAngle = None
         self.yawRate = 0.0
-        self.useYawRate = False
+        self.useYawRate = True
         self.thrust = 0.5
         self.duration = 0.3
 
@@ -52,8 +52,8 @@ class Controller:
         # Create the mavlink message
         msg = vehicle.message_factory.set_attitude_target_encode(
             0, # time_boot_ms
-            1, # Target system
-            1, # Target component
+            0, # Target system
+            0, # Target component
             0b00000000 if self.useYawRate else 0b00000100, # If bit is set corresponding input ignored
             self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
             0, # Body roll rate in radian
@@ -136,7 +136,8 @@ class Controller:
         self.setAttitude(vehicle)
 
     def pitchTest(self, vehicle):
-        self.pitchAngle = math.radians(5.0)
+        print 'start loop'
+        self.pitchAngle = math.radians(3.0)
         self.setAttitude(vehicle)
         time.sleep(1)
 
@@ -144,13 +145,14 @@ class Controller:
         self.setAttitude(vehicle)
         time.sleep(1)
 
-        self.pitchAngle = math.radians(-5.0)
+        self.pitchAngle = math.radians(-3.0)
         self.setAttitude(vehicle)
         time.sleep(1)
 
         self.pitchAngle = 0.0
         self.setAttitude(vehicle)
         time.sleep(1)
+        print 'end loop\n'
 
 class DAQ:
     def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
@@ -247,7 +249,7 @@ def main():
     while(True):
         # print str(s.dataOut[0]), ' [cm]'
         C.pitchTest(vehicle)
-        time.sleep(5)
+        time.sleep(4)
 
     # s.close()
 
