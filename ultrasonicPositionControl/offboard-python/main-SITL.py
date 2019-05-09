@@ -68,21 +68,22 @@ class Controller:
         self.minVal = -3.1415/6
         self.maxVal = 3.1415/6
 
-        # Controller PID Gains
+        # Controller PD Gains
         self.kp = 0.16
-        self.ki = 0
         self.kd = 0.75
 
         # Controller
         self.northDesired = None
         self.northPreviousPos = None
+        self.eastDesired = None
+        self.eastPreviousPos = None
         self.startTime = None
-        self.I = 0
 
-        # Data logging for controller
-        self.desiredList = []
-        self.actualList = []
-        self.errorList = []
+        # Save values for plotting
+        self.northDesiredList = []
+        self.northActualList = []
+        self.eastDesiredList = []
+        self.eastActualList = []
         self.timeList = []
 
     def sendAttitudeTarget(self, vehicle):
@@ -151,37 +152,73 @@ class Controller:
     def constrain(self, val):
         return max(min(self.maxVal, val), self.minVal)
 
-    def PID(self, vehicle):
-        # Get important values and begin calcs
+    def PD(self, error, current, previous, deltaT):
+        # Run the PD controller
+        P = self.kp * error
+        D = self.kd * ((current - previous) / deltaT)
+        return(P + D)
+
+    def control(self, vehicle):
+        # Get current values
         northCurrentPos = vehicle.location.local_frame.north
-        error = northCurrentPos - self.northDesired
+        eastCurrentPos = vehicle.location.local_frame.east
         deltaT = time.time() - self.startTime
 
+        # Save values for plotting
+        self.northDesiredList.append(self.northDesired)
+        self.northActualList.append(northCurrentPos)
+        self.eastDesiredList.append(self.eastDesired)
+        self.eastActualList.append(eastCurrentPos)
+        self.timeList.append(deltaT)
+
+        # Error caculations
+        errorNorth = northCurrentPos - self.northDesired
+        errorEast = eastCurrentPos - self.eastDesired
+
+        # Update previous position(s) if none
         if self.northPreviousPos is None:
             self.northPreviousPos = northCurrentPos
 
-        # Append values
-        self.desiredList.append(self.northDesired)
-        self.actualList.append(northCurrentPos)
-        self.errorList.append(error)
-        self.timeList.append(deltaT)
+        if self.eastPreviousPos is None:
+            self.eastPreviousPos = eastCurrentPos
 
-        # Run the PID controller
-        P = self.kp * error
-        self.I += self.ki * error
-        D = self.kd * ((northCurrentPos - self.northPreviousPos) / deltaT)
-        controller = P + self.I + D
+        # Run PD control
+        pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
+        rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
 
         # Save the previous position
         self.northPreviousPos = northCurrentPos
+        self.eastPreviousPos = eastCurrentPos
 
         # Execute the controller and print results
-        self.pitchAngle = self.constrain(controller)
+        self.pitchAngle = self.constrain(pitchControl)
+        self.rollAngle = self.constrain(-rollControl)
         self.setAttitude(vehicle)
 
-        print 'N: ', round(vehicle.location.local_frame.north,3), ' E: ', round(vehicle.location.local_frame.east,3), ' D: ', round(vehicle.location.local_frame.down,3)
-        print 'Actual: ', round(vehicle.location.local_frame.north,3), 'Error: ', round(error,3), 'Input [deg]: ', round(math.degrees(self.constrain(controller)),3)
+        print 'N: ', round(vehicle.location.local_frame.north,3), \
+            ' E: ', round(vehicle.location.local_frame.east,3), \
+            ' D: ', round(vehicle.location.local_frame.down,3)
+        print 'N Error: ', round(errorNorth,3), 'E Error: ', round(errorEast,3)
+        print 'Input N: ', round(math.degrees(self.constrain(pitchControl)),3), \
+            'Input E: ', round(math.degrees(self.constrain(rollControl)),3), '[deg]'
         print(" ")
+
+    def pitchTest(self, vehicle):
+        self.pitchAngle = math.radians(5.0)
+        self.setAttitude(vehicle)
+        time.sleep(1)
+
+        self.pitchAngle = 0.0
+        self.setAttitude(vehicle)
+        time.sleep(1)
+
+        self.pitchAngle = math.radians(-5.0)
+        self.setAttitude(vehicle)
+        time.sleep(1)
+
+        self.pitchAngle = 0.0
+        self.setAttitude(vehicle)
+        time.sleep(1)
 
     def plotController(self):
         # Import required modules
@@ -190,17 +227,17 @@ class Controller:
 
         # Make subplot and actually plot
         fig, ax = plt.subplots()
-        ax.plot(self.timeList, self.actualList, self.timeList, self.desiredList)
+        ax.plot(self.timeList, self.northActualList, self.timeList, self.northDesiredList,
+            self.timeList, self.eastActualList, self.timeList, self.eastDesiredList)
 
         # Set labels, titles, info, legend and grid
         ax.set(xlabel='Time (s)',
                 ylabel='position (m)',
-                title='Position Control North\n' +
+                title='Position Control\n' +
                 ' Kp: ' + str(self.kp) +
-                ' Ki: ' + str(self.ki) +
                 ' Kd: ' + str(self.kd))
 
-        plt.gca().legend(('actual','desired'))
+        plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired'))
         ax.grid()
 
         # Show results and save the plot
@@ -219,12 +256,13 @@ def main():
 
     # Set up controller class
     C = Controller()
-    C.northDesired = vehicle.location.local_frame.north + 1.0
+    C.northDesired = vehicle.location.local_frame.north + 2.0
+    C.eastDesired = vehicle.location.local_frame.east - 2.0
     C.startTime = time.time()
 
     # Run the controller for 50 itterations
-    for ii in range(60):
-        C.PID(vehicle)
+    for ii in range(40):
+        C.control(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
