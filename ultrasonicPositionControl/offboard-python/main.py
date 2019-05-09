@@ -29,6 +29,8 @@ class Controller:
         # Controller
         self.northDesired = None
         self.northPreviousPos = None
+        self.eastDesired = None
+        self.eastPreviousPos = None
         self.startTime = None
 
     def sendAttitudeTarget(self, vehicle):
@@ -97,30 +99,41 @@ class Controller:
     def constrain(self, val):
         return max(min(self.maxVal, val), self.minVal)
 
-    def PID(self, vehicle):
-        # Get important values and begin calcs
+    def PD(self, error, current, previous, deltaT):
+        # Run the PD controller
+        P = self.kp * error
+        D = self.kd * ((current - previous) / deltaT)
+        return(P + D)
+
+    def control(self, vehicle):
+        # Get current values
         northCurrentPos = vehicle.location.local_frame.north
-        error = northCurrentPos - self.northDesired
+        eastCurrentPos = vehicle.location.local_frame.east
         deltaT = time.time() - self.startTime
 
+        # Error caculations
+        errorNorth = northCurrentPos - self.northDesired
+        errorEast = eastCurrentPos - self.eastDesired
+
+        # Update previous position(s) if none
         if self.northPreviousPos is None:
             self.northPreviousPos = northCurrentPos
 
-        # Run the PD controller
-        P = self.kp * error
-        D = self.kd * ((northCurrentPos - self.northPreviousPos) / deltaT)
-        controller = P + D
+        if self.eastPreviousPos is None:
+            self.eastPreviousPos = eastCurrentPos
+
+        # Run PD control
+        pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
+        rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
 
         # Save the previous position
         self.northPreviousPos = northCurrentPos
+        self.eastPreviousPos = eastCurrentPos
 
         # Execute the controller and print results
-        self.pitchAngle = self.constrain(controller)
+        self.pitchAngle = self.constrain(pitchControl)
+        self.rollAngle = self.constrain(-rollControl)
         self.setAttitude(vehicle)
-
-        print 'N: ', round(vehicle.location.local_frame.north,3), ' E: ', round(vehicle.location.local_frame.east,3), ' D: ', round(vehicle.location.local_frame.down,3)
-        print 'Actual: ', round(vehicle.location.local_frame.north,3), 'Error: ', round(error,3), 'Input [deg]: ', round(math.degrees(self.constrain(controller)),3)
-        print(" ")
 
     def pitchTest(self, vehicle):
         self.pitchAngle = math.radians(5.0)
