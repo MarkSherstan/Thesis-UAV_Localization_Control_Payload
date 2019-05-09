@@ -229,7 +229,7 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=True)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=57600)
 
     # Connect to serial port Arduino
     portName = '/dev/ttyACM0'
@@ -237,8 +237,8 @@ def main():
     dataNumBytes = 2
     numSignals = 1
 
-    s = DAQ(portName, baudRate, dataNumBytes, numSignals)
-    s.readSerialStart()
+    # s = DAQ(portName, baudRate, dataNumBytes, numSignals)
+    # s.readSerialStart()
 
     # Set up controller class
     C = Controller()
@@ -249,6 +249,7 @@ def main():
         C.pitchTest(vehicle)
         time.sleep(5)
 
+    # s.close()
 
 # Main loop
 if __name__ == '__main__':
