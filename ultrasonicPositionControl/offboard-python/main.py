@@ -205,7 +205,7 @@ class DAQ:
             # Copy raw data to new variable and set up the data out variable
             privateData = copy.deepcopy(self.rawData[:])
 
-            # Loop through all the signals and decode the values to decimal
+            # Loop through all the signals and decode the values
             for i in range(self.numSignals):
                 data = privateData[(i*self.dataNumBytes):(self.dataNumBytes + i*self.dataNumBytes)]
                 value, = struct.unpack(self.dataType, data)
@@ -245,6 +245,7 @@ def main():
 
     # Run pitchTest forever
     while(True):
+        # print str(s.dataOut[0]), ' [cm]'
         C.pitchTest(vehicle)
         time.sleep(5)
 
