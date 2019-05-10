@@ -17,7 +17,7 @@ class Controller:
         self.yawRate = 0.0
         self.useYawRate = True
         self.thrust = 0.5
-        self.duration = 0.3
+        self.duration = 0.1
 
         # Angle Constraint
         self.minVal = -3.1415/6
@@ -74,7 +74,7 @@ class Controller:
         start = time.time()
         while time.time() - start < self.duration:
             self.sendAttitudeTarget(vehicle)
-            time.sleep(0.1)
+            time.sleep(0.05)
 
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
@@ -277,7 +277,6 @@ def main():
     #     # print str(s.dataOut[0]), ' [cm]'
     #     C.pitchTest(vehicle)
     #     time.sleep(4)
-
     C.altitudeTest(vehicle, s)
 
     s.close()
