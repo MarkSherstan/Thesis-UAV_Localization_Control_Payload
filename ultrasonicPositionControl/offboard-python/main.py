@@ -1,6 +1,7 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
 from pymavlink import mavutil
 from threading import Thread
+import numpy as np
 import time
 import math
 import struct
@@ -135,6 +136,32 @@ class Controller:
         self.rollAngle = self.constrain(-rollControl)
         self.setAttitude(vehicle)
 
+    def altitudeTest(self, vehicle, s):
+        # Set parameters
+        goal = 1
+        kp = 0.5
+        self.minVal = -2
+        self.maxVal = 2
+
+        try:
+            while(True):
+                # Get actual altitiude from ultrasonic sensor
+                actual = s.dataOut[0] * 0.01
+
+                # Calculate error and constrain the value
+                error = actual - goal
+                control = -self.constrain(kp * error)
+
+                # Set the thrust value between 0 and 1 and send command
+                self.thrust = np.interp(control,[-2,-1,0,1,2],[0, 0.25, 0.5, 0.75, 1])
+                self.setAttitude(vehicle)
+
+                # Print values to screen
+                print 'Actual: ', round(actual,3), 'Error: ', round(error,3), 'Control: ', round(control,3), 'Command: ', round(self.thrust,3)
+                print(" ")
+        except KeyboardInterrupt:
+            s.close()
+
     def pitchTest(self, vehicle):
         print 'start loop'
         self.pitchAngle = math.radians(3.0)
@@ -239,19 +266,21 @@ def main():
     dataNumBytes = 2
     numSignals = 1
 
-    # s = DAQ(portName, baudRate, dataNumBytes, numSignals)
-    # s.readSerialStart()
+    s = DAQ(portName, baudRate, dataNumBytes, numSignals)
+    s.readSerialStart()
 
     # Set up controller class
     C = Controller()
 
-    # Run pitchTest forever
-    while(True):
-        # print str(s.dataOut[0]), ' [cm]'
-        C.pitchTest(vehicle)
-        time.sleep(4)
+    # # Run pitchTest forever
+    # while(True):
+    #     # print str(s.dataOut[0]), ' [cm]'
+    #     C.pitchTest(vehicle)
+    #     time.sleep(4)
 
-    # s.close()
+    C.altitudeTest(vehicle, s)
+
+    s.close()
 
 # Main loop
 if __name__ == '__main__':
