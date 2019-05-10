@@ -2,6 +2,7 @@ from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelativ
 from pymavlink import mavutil
 import time
 import math
+import numpy as np
 
 class Simulate:
     def __init__(self):
@@ -220,6 +221,49 @@ class Controller:
         self.setAttitude(vehicle)
         time.sleep(1)
 
+    def altitudeTest(self, vehicle):
+        # Sleep for stability and set desired parameters
+        time.sleep(5)
+        goal = -1
+        kp = 0.5
+        self.minVal = -2
+        self.maxVal = 2
+        down = []
+        startTime = time.time()
+
+        for ii in range(60):
+            # Get actual value and add to list
+            actual = vehicle.location.local_frame.down
+            self.timeList.append(time.time() - startTime)
+            down.append(actual)
+
+            # Calculate error and constrain the value
+            error = actual - goal
+            control = self.constrain(kp * error)
+
+            # Set the thrust value between 0 and 1 and send command
+            self.thrust = np.interp(control,[-2,-1,0,1,2],[0, 0.25, 0.5, 0.75, 1])
+            self.setAttitude(vehicle)
+
+            # Print values to screen
+            print 'Actual: ', round(actual,3), 'Error: ', round(error,3), 'Control: ', round(control,3), 'Command: ', round(self.thrust,3)
+            print(" ")
+
+        # Import packages and plot the results
+        import matplotlib.pyplot as plt
+        import matplotlib
+
+        fig, ax = plt.subplots()
+        ax.plot(self.timeList, down)
+
+        # Set labels, titles, and grid
+        ax.set(xlabel='Time (s)', ylabel='Altitude (m)', title='Altitude Control')
+        ax.grid()
+
+        # Show results and save the plot
+        plt.show()
+
+
     def plotController(self):
         # Import required modules
         import matplotlib.pyplot as plt
@@ -252,23 +296,23 @@ def main():
 
     # Setup simulation class and take off
     sim = Simulate()
-    sim.armAndTakeOff(vehicle, 2.5)
+    sim.armAndTakeOff(vehicle, 0.4)
 
     # Set up controller class
     C = Controller()
-    C.northDesired = vehicle.location.local_frame.north + 2.0
-    C.eastDesired = vehicle.location.local_frame.east - 2.0
+    C.northDesired = vehicle.location.local_frame.north + 1.0
+    C.eastDesired = vehicle.location.local_frame.east - 0.5
     C.startTime = time.time()
 
     # Run the controller for 50 itterations
-    for ii in range(40):
-        C.control(vehicle)
+    # for ii in range(50):
+    C.altitudeTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
 
-    # Plot the results
-    C.plotController()
+    # # Plot the results
+    # C.plotController()
 
 
 # Main loop
