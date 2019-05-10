@@ -60,7 +60,7 @@ class Controller:
         self.pitchAngle = 0.0
         self.yawAngle = None
         self.yawRate = 0.0
-        self.useYawRate = False
+        self.useYawRate = True
         self.thrust = 0.5
         self.duration = 0.3
 
@@ -69,8 +69,8 @@ class Controller:
         self.maxVal = 3.1415/6
 
         # Controller PD Gains
-        self.kp = 0.16
-        self.kd = 0.75
+        self.kp = 0.17
+        self.kd = 0.90
 
         # Controller
         self.northDesired = None
@@ -99,14 +99,14 @@ class Controller:
         #             Thrust <  0.5: Descend
 
         # Update the yaw angle
-        if self.yawAngle is None:
-            self.yawAngle = vehicle.attitude.yaw
+        # if self.yawAngle is None:
+        self.yawAngle = vehicle.attitude.yaw
 
         # Create the mavlink message
         msg = vehicle.message_factory.set_attitude_target_encode(
             0, # time_boot_ms
-            1, # Target system
-            1, # Target component
+            0, # Target system
+            0, # Target component
             0b00000000 if self.useYawRate else 0b00000100, # If bit is set corresponding input ignored
             self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
             0, # Body roll rate in radian
