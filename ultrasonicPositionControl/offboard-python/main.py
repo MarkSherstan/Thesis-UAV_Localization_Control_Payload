@@ -174,8 +174,6 @@ class Controller:
                     '\tD: ', round(self.thrust,2)
                 print(" ")
 
-
-
         except KeyboardInterrupt:
             s.close()
 

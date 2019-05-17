@@ -251,7 +251,7 @@ class Controller:
             control = self.constrain(error * self.kThrottle, self.minValD, self.maxValD)
 
             # Set the thrust value between 0 and 1 and send command
-            self.thrust = np.interp(control,self.two2two, self.zero2one)
+            self.thrust = np.interp(control, self.two2two, self.zero2one)
             self.setAttitude(vehicle)
 
             # Print values to screen
