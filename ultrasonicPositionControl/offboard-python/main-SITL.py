@@ -237,44 +237,34 @@ class Controller:
         plt.show()
 
     def altitudeTest(self, vehicle):
-        # Set desired parameters
-        goal = -1
-        kp = 0.5
-        self.minVal = -2
-        self.maxVal = 2
-        down = []
-        desired = []
-        startTime = time.time()
+        # Run for 10 seconds
+        while (time.time() < self.startTime + 10):
 
-        while (time.time() < startTime + 10):
             # Get actual value and add to list
             actual = vehicle.location.local_frame.down
-            self.timeList.append(time.time() - startTime)
-            down.append(actual)
-            desired.append(goal)
+            self.timeList.append(time.time() - self.startTime)
+            self.downActualList.append(actual)
+            self.downDesiredList.append(self.downDesired)
 
             # Calculate error and constrain the value
-            error = actual - goal
-            control = self.constrain(kp * error)
+            error = actual - self.downDesired
+            control = self.constrain(error * self.kThrottle, self.minValD, self.maxValD)
 
             # Set the thrust value between 0 and 1 and send command
-            self.thrust = np.interp(control,[-2,-1,0,1,2],[0, 0.25, 0.5, 0.75, 1])
+            self.thrust = np.interp(control,self.two2two, self.zero2one)
             self.setAttitude(vehicle)
 
             # Print values to screen
             print 'Actual: ', round(actual,3), 'Error: ', round(error,3), 'Control: ', round(control,3), 'Command: ', round(self.thrust,3)
             print(" ")
 
-        # Import packages and plot the results
-        import matplotlib.pyplot as plt
-        import matplotlib
-
+        # Plot the results
         fig, ax = plt.subplots()
-        ax.plot(self.timeList, down, self.timeList, desired)
+        ax.plot(self.timeList, self.downActualList, self.timeList, self.downDesiredList)
 
         # Set labels, titles, and grid
         ax.set(xlabel='Time (s)', ylabel='Altitude (m)',
-            title='Altitude Control\n' + ' kp: ' + str(kp) +
+            title='Altitude Control\n' + ' kT: ' + str(self.kThrottle) +
             ' Command Rate: ' + str(self.duration) + ' s')
         plt.gca().legend(('Actual Down','Desired Down'))
         ax.grid()
@@ -373,8 +363,8 @@ def main():
 
     # Simulate testing options
     C.northEastTest(vehicle)
-    # C.altitudeTest(vehicle)
-    # C.fullTest(vehicle)
+    C.altitudeTest(vehicle)
+    C.fullTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
