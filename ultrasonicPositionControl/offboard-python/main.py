@@ -20,12 +20,12 @@ class Controller:
         self.duration = 0.1
 
         # Angle Constraint
-        self.minVal = -3.1415/6
-        self.maxVal = 3.1415/6
+        self.minVal = -3.1415/12
+        self.maxVal = 3.1415/12
 
         # Controller PD Gains
-        self.kp = 0.16
-        self.kd = 0.75
+        self.kp = 0.2
+        self.kd = 5.4
 
         # Controller
         self.northDesired = None
@@ -74,7 +74,7 @@ class Controller:
         start = time.time()
         while time.time() - start < self.duration:
             self.sendAttitudeTarget(vehicle)
-            time.sleep(0.05)
+            time.sleep(0.025)
 
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
