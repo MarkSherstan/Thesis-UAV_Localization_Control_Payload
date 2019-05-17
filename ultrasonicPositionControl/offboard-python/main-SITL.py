@@ -1,8 +1,11 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
 from pymavlink import mavutil
+import matplotlib.pyplot as plt
+import numpy as np
+import matplotlib
 import time
 import math
-import numpy as np
+
 
 class Simulate:
     def __init__(self):
@@ -36,12 +39,7 @@ class Simulate:
         print("--------------------------------------------------")
 
         vehicle.simple_takeoff(targetAltitude)
-        time.sleep(2)
-
-        # Display the results
-        print 'Took off to: ', targetAltitude, ' m'
-        print 'N: ', round(vehicle.location.local_frame.north,4), ' E: ', round(vehicle.location.local_frame.east,4), ' D: ', round(vehicle.location.local_frame.down,4)
-        print("\n")
+        time.sleep(5)
 
     def disarmAndLand(self, vehicle):
         # Land the drone
@@ -65,11 +63,13 @@ class Controller:
         self.thrust = 0.5
         self.duration = 0.1
 
-        # Angle Constraint
-        self.minVal = -3.1415/12
-        self.maxVal = 3.1415/12
+        # Constraints for roll, pitch, and thrust
+        self.minValNE = -3.1415/12
+        self.maxValNE = 3.1415/12
+        self.minValD = -2
+        self.maxValD = 2
 
-        # Controller PD Gains
+        # PD Controller Gains
         self.kp = 0.2
         self.kd = 5.4
 
@@ -78,13 +78,21 @@ class Controller:
         self.northPreviousPos = None
         self.eastDesired = None
         self.eastPreviousPos = None
+        self.downDesired = None
         self.startTime = None
+
+        # Thrust Control
+        self.kThrottle = 0.5
+        self.two2two = [-2,-1,0,1,2]
+        self.zero2one = [0, 0.25, 0.5, 0.75, 1]
 
         # Save values for plotting
         self.northDesiredList = []
         self.northActualList = []
         self.eastDesiredList = []
         self.eastActualList = []
+        self.downDesiredList = []
+        self.downActualList = []
         self.timeList = []
 
     def sendAttitudeTarget(self, vehicle):
@@ -131,8 +139,9 @@ class Controller:
 
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
-            ' Pitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
-            ' Yaw: ', round(math.degrees(vehicle.attitude.yaw),3)
+            '\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
+            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
+            '\tThrust: ', round(self.thrust,3)
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Euler angles (rad) to quaternion
@@ -150,8 +159,8 @@ class Controller:
 
         return [q0, q1, q2, q3]
 
-    def constrain(self, val):
-        return max(min(self.maxVal, val), self.minVal)
+    def constrain(self, val, minVal, maxVal):
+        return max(min(maxVal, val), minVal)
 
     def PD(self, error, current, previous, deltaT):
         # Run the PD controller
@@ -268,6 +277,77 @@ class Controller:
         fig.savefig("altitudeController.png")
         plt.show()
 
+    def fullTest(self, vehicle):
+        # Run for 10 seconds
+        while (time.time() < self.startTime + 10):
+
+            # Get current values
+            northCurrentPos = vehicle.location.local_frame.north
+            eastCurrentPos = vehicle.location.local_frame.east
+            downCurrentPos = vehicle.location.local_frame.down
+            deltaT = time.time() - self.startTime
+
+            # Save values for plotting
+            self.northDesiredList.append(self.northDesired)
+            self.northActualList.append(northCurrentPos)
+            self.eastDesiredList.append(self.eastDesired)
+            self.eastActualList.append(eastCurrentPos)
+            self.downDesiredList.append(self.downDesired)
+            self.downActualList.append(downCurrentPos)
+            self.timeList.append(deltaT)
+
+            # Error caculations
+            errorNorth = northCurrentPos - self.northDesired
+            errorEast = eastCurrentPos - self.eastDesired
+            errorDown = downCurrentPos - self.downDesired
+
+            # Update previous position(s) if none
+            if self.northPreviousPos is None:
+                self.northPreviousPos = northCurrentPos
+
+            if self.eastPreviousPos is None:
+                self.eastPreviousPos = eastCurrentPos
+
+            # Run some control
+            pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
+            rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
+            thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+
+            # Save the previous position
+            self.northPreviousPos = northCurrentPos
+            self.eastPreviousPos = eastCurrentPos
+
+            # Execute the controller
+            self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
+            self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
+            self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
+            self.setAttitude(vehicle)
+
+        # Plot the results
+        fig, ax = plt.subplots()
+        ax.plot(self.timeList, self.northActualList, self.timeList, self.northDesiredList,
+            self.timeList, self.eastActualList, self.timeList, self.eastDesiredList,
+            self.timeList, self.downActualList, self.timeList, self.downDesiredList)
+
+        # Set labels and titles
+        fig.suptitle('NED Attitude Control', fontsize=14, fontweight='bold')
+        ax.set_title('$K_p:$ ' + str(self.kp) + '\t$K_d:$ ' + str(self.kd) +
+            '\t$k_T:$ ' + str(self.kThrottle) + '\t$Cmd Rate:$ ' + str(self.duration) + '$s$')
+        ax.set_xlabel('Time (s)', fontweight='bold')
+        ax.set_ylabel('Position (m)', fontweight='bold')
+
+        # Set ylim, legend, and grid
+        bottom, top = ax.get_ylim()
+        ax.set_ylim(bottom=bottom-1)
+        plt.gca().legend(('North Actual','North Desired',
+            'East Actual', 'East Desired',
+            'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
+        ax.grid()
+
+        # Show the plot and save
+        fig.savefig('masterController.png')
+        plt.show()
+
     def plotController(self):
         # Import required modules
         import matplotlib.pyplot as plt
@@ -302,12 +382,12 @@ def main():
     # Setup simulation class and take off
     sim = Simulate()
     sim.armAndTakeOff(vehicle, 0.4)
-    time.sleep(5)
 
     # Set up controller class
     C = Controller()
     C.northDesired = vehicle.location.local_frame.north + 1.0
     C.eastDesired = vehicle.location.local_frame.east - 0.5
+    C.downDesired = -1.5
     C.startTime = time.time()
 
     # Run the controller for 10 seconds
@@ -315,8 +395,9 @@ def main():
     # while (time.time() < startTime + 10):
     #     C.control(vehicle)
 
+    C.fullTest(vehicle)
     # Run the alititude test
-    C.altitudeTest(vehicle)
+    # C.altitudeTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
