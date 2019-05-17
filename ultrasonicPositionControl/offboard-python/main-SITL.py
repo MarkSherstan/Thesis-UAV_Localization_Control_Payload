@@ -7,7 +7,7 @@ import numpy as np
 class Simulate:
     def __init__(self):
         self.vehicleArmed = True
-        self.vehicleMode = "GUIDED" #GUIDED_NOGPS
+        self.vehicleMode = "GUIDED" #GUIDED_NOGPS wont display position for simulating
 
     def armAndTakeOff(self, vehicle, targetAltitude):
         # Give the user some info
@@ -63,15 +63,15 @@ class Controller:
         self.yawRate = 0.0
         self.useYawRate = True
         self.thrust = 0.5
-        self.duration = 0.3
+        self.duration = 0.1
 
         # Angle Constraint
-        self.minVal = -3.1415/6
-        self.maxVal = 3.1415/6
+        self.minVal = -3.1415/12
+        self.maxVal = 3.1415/12
 
         # Controller PD Gains
-        self.kp = 0.17
-        self.kd = 0.90
+        self.kp = 0.2
+        self.kd = 5.4
 
         # Controller
         self.northDesired = None
@@ -127,7 +127,7 @@ class Controller:
         start = time.time()
         while time.time() - start < self.duration:
             self.sendAttitudeTarget(vehicle)
-            time.sleep(0.1)
+            time.sleep(0.025)
 
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
@@ -222,20 +222,21 @@ class Controller:
         time.sleep(1)
 
     def altitudeTest(self, vehicle):
-        # Sleep for stability and set desired parameters
-        time.sleep(5)
+        # Set desired parameters
         goal = -1
         kp = 0.5
         self.minVal = -2
         self.maxVal = 2
         down = []
+        desired = []
         startTime = time.time()
 
-        for ii in range(60):
+        while (time.time() < startTime + 10):
             # Get actual value and add to list
             actual = vehicle.location.local_frame.down
             self.timeList.append(time.time() - startTime)
             down.append(actual)
+            desired.append(goal)
 
             # Calculate error and constrain the value
             error = actual - goal
@@ -254,15 +255,18 @@ class Controller:
         import matplotlib
 
         fig, ax = plt.subplots()
-        ax.plot(self.timeList, down)
+        ax.plot(self.timeList, down, self.timeList, desired)
 
         # Set labels, titles, and grid
-        ax.set(xlabel='Time (s)', ylabel='Altitude (m)', title='Altitude Control')
+        ax.set(xlabel='Time (s)', ylabel='Altitude (m)',
+            title='Altitude Control\n' + ' kp: ' + str(kp) +
+            ' Command Rate: ' + str(self.duration) + ' s')
+        plt.gca().legend(('Actual Down','Desired Down'))
         ax.grid()
 
         # Show results and save the plot
+        fig.savefig("altitudeController.png")
         plt.show()
-
 
     def plotController(self):
         # Import required modules
@@ -279,7 +283,8 @@ class Controller:
                 ylabel='position (m)',
                 title='Position Control\n' +
                 ' Kp: ' + str(self.kp) +
-                ' Kd: ' + str(self.kd))
+                ' Kd: ' + str(self.kd) +
+                ' Command Rate: ' + str(self.duration) + ' s')
 
         plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired'))
         ax.grid()
@@ -297,6 +302,7 @@ def main():
     # Setup simulation class and take off
     sim = Simulate()
     sim.armAndTakeOff(vehicle, 0.4)
+    time.sleep(5)
 
     # Set up controller class
     C = Controller()
@@ -304,14 +310,18 @@ def main():
     C.eastDesired = vehicle.location.local_frame.east - 0.5
     C.startTime = time.time()
 
-    # Run the controller for 50 itterations
-    # for ii in range(50):
+    # Run the controller for 10 seconds
+    # startTime = time.time()
+    # while (time.time() < startTime + 10):
+    #     C.control(vehicle)
+
+    # Run the alititude test
     C.altitudeTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
 
-    # # Plot the results
+    # Plot the results
     # C.plotController()
 
 
