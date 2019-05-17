@@ -19,9 +19,11 @@ class Controller:
         self.thrust = 0.5
         self.duration = 0.1
 
-        # Angle Constraint
-        self.minVal = -3.1415/12
-        self.maxVal = 3.1415/12
+        # Constraints for roll, pitch, and thrust
+        self.minValNE = -3.1415/12
+        self.maxValNE = 3.1415/12
+        self.minValD = -2
+        self.maxValD = 2
 
         # Controller PD Gains
         self.kp = 0.2
@@ -32,7 +34,13 @@ class Controller:
         self.northPreviousPos = None
         self.eastDesired = None
         self.eastPreviousPos = None
+        self.downDesired = None
         self.startTime = None
+
+        # Thrust Control
+        self.kThrottle = 0.5
+        self.two2two = [-2,-1,0,1,2]
+        self.zero2one = [0, 0.25, 0.5, 0.75, 1]
 
     def sendAttitudeTarget(self, vehicle):
         # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
@@ -78,8 +86,9 @@ class Controller:
 
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
-            ' Pitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
-            ' Yaw: ', round(math.degrees(vehicle.attitude.yaw),3)
+            '\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
+            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
+            '\tThrust: ', round(self.thrust,3)
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Euler angles (rad) to quaternion
@@ -97,8 +106,8 @@ class Controller:
 
         return [q0, q1, q2, q3]
 
-    def constrain(self, val):
-        return max(min(self.maxVal, val), self.minVal)
+    def constrain(self, val, minVal, maxVal):
+        return max(min(maxVal, val), minVal)
 
     def PD(self, error, current, previous, deltaT):
         # Run the PD controller
@@ -106,42 +115,73 @@ class Controller:
         D = self.kd * ((current - previous) / deltaT)
         return(P + D)
 
-    def control(self, vehicle):
-        # Get current values
-        northCurrentPos = vehicle.location.local_frame.north
-        eastCurrentPos = vehicle.location.local_frame.east
-        deltaT = time.time() - self.startTime
+    def positionControl(self, vehicle):
+        # Set parameters
+        self.northDesired = 0.5
+        self.eastDesired = 0.5
+        self.downDesired = 0.5
+        self.startTime = time.time()
 
-        # Error caculations
-        errorNorth = northCurrentPos - self.northDesired
-        errorEast = eastCurrentPos - self.eastDesired
+        try:
+            while(True):
+                # Get current values
+                northCurrentPos = s.dataOut[0] * 0.01
+                eastCurrentPos = s.dataOut[1] * 0.01
+                downCurrentPos = s.dataOut[2] * 0.01
+                deltaT = time.time() - self.startTime
 
-        # Update previous position(s) if none
-        if self.northPreviousPos is None:
-            self.northPreviousPos = northCurrentPos
+                # Error caculations
+                errorNorth = northCurrentPos - self.northDesired
+                errorEast = eastCurrentPos - self.eastDesired
+                errorDown = downCurrentPos - self.downDesired
 
-        if self.eastPreviousPos is None:
-            self.eastPreviousPos = eastCurrentPos
+                # Update previous position(s) if none
+                if self.northPreviousPos is None:
+                    self.northPreviousPos = northCurrentPos
 
-        # Run PD control
-        pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
-        rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
+                if self.eastPreviousPos is None:
+                    self.eastPreviousPos = eastCurrentPos
 
-        # Save the previous position
-        self.northPreviousPos = northCurrentPos
-        self.eastPreviousPos = eastCurrentPos
+                # Run some control
+                pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
+                rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
+                thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
-        # Execute the controller and print results
-        self.pitchAngle = self.constrain(pitchControl)
-        self.rollAngle = self.constrain(-rollControl)
-        self.setAttitude(vehicle)
+                # Save the previous position
+                self.northPreviousPos = northCurrentPos
+                self.eastPreviousPos = eastCurrentPos
+
+                # Calculate the controll
+                self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
+                self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
+                self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
+
+                # Command the controller to execute
+                self.setAttitude(vehicle)
+
+                # Print some data
+                print 'S ->\t', \ # Sensor
+                    '\tN: ', round(northCurrentPos,2), \
+                    '\tE: ', round(eastCurrentPos,2), \
+                    '\tD: ', round(downCurrentPos,2)
+                print 'E ->\t', \ # Error
+                    '\tN: ', round(errorNorth,2), \
+                    '\tE: ', round(errorEast,2), \
+                    '\tD: ', round(errorDown,2)
+                print 'C ->\t', \ # Controller
+                    '\tN: ', round(self.pitchAngle,2), \
+                    '\tE: ', round(self.rollAngle,2), \
+                    '\tD: ', round(self.thrust,2)
+                print(" ")
+
+
+
+        except KeyboardInterrupt:
+            s.close()
 
     def altitudeTest(self, vehicle, s):
         # Set parameters
-        goal = 1
-        kp = 0.5
-        self.minVal = -2
-        self.maxVal = 2
+        self.downDesired = 1.0
 
         try:
             while(True):
@@ -149,11 +189,11 @@ class Controller:
                 actual = s.dataOut[0] * 0.01
 
                 # Calculate error and constrain the value
-                error = actual - goal
-                control = -self.constrain(kp * error)
+                error = actual - self.downDesired
+                control = -self.constrain(error * self.kThrottle, self.minValD, self.maxValD)
 
                 # Set the thrust value between 0 and 1 and send command
-                self.thrust = np.interp(control,[-2,-1,0,1,2],[0, 0.25, 0.5, 0.75, 1])
+                self.thrust = np.interp(control, self.two2two, self.zero2one)
                 self.setAttitude(vehicle)
 
                 # Print values to screen
@@ -245,22 +285,18 @@ def main():
     portName = '/dev/ttyACM0'
     baudRate = 9600
     dataNumBytes = 2
-    numSignals = 1
+    numSignals = 3
 
+    # Set up serial port class
     s = DAQ(portName, baudRate, dataNumBytes, numSignals)
     s.readSerialStart()
 
     # Set up controller class
     C = Controller()
 
-    # # Run pitchTest forever
-    # while(True):
-    #     # print str(s.dataOut[0]), ' [cm]'
-    #     C.pitchTest(vehicle)
-    #     time.sleep(4)
-    C.altitudeTest(vehicle, s)
-
-    s.close()
+    # Run a test
+    #C.altitudeTest(vehicle, s)
+    C.positionControl(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
