@@ -168,67 +168,73 @@ class Controller:
         D = self.kd * ((current - previous) / deltaT)
         return(P + D)
 
-    def control(self, vehicle):
-        # Get current values
-        northCurrentPos = vehicle.location.local_frame.north
-        eastCurrentPos = vehicle.location.local_frame.east
-        deltaT = time.time() - self.startTime
+    def northEastTest(self, vehicle):
+        # Run for 10 seconds
+        while (time.time() < self.startTime + 10):
 
-        # Save values for plotting
-        self.northDesiredList.append(self.northDesired)
-        self.northActualList.append(northCurrentPos)
-        self.eastDesiredList.append(self.eastDesired)
-        self.eastActualList.append(eastCurrentPos)
-        self.timeList.append(deltaT)
+            # Get current values
+            northCurrentPos = vehicle.location.local_frame.north
+            eastCurrentPos = vehicle.location.local_frame.east
+            deltaT = time.time() - self.startTime
 
-        # Error caculations
-        errorNorth = northCurrentPos - self.northDesired
-        errorEast = eastCurrentPos - self.eastDesired
+            # Save values for plotting
+            self.northDesiredList.append(self.northDesired)
+            self.northActualList.append(northCurrentPos)
+            self.eastDesiredList.append(self.eastDesired)
+            self.eastActualList.append(eastCurrentPos)
+            self.timeList.append(deltaT)
 
-        # Update previous position(s) if none
-        if self.northPreviousPos is None:
+            # Error caculations
+            errorNorth = northCurrentPos - self.northDesired
+            errorEast = eastCurrentPos - self.eastDesired
+
+            # Update previous position(s) if none
+            if self.northPreviousPos is None:
+                self.northPreviousPos = northCurrentPos
+
+            if self.eastPreviousPos is None:
+                self.eastPreviousPos = eastCurrentPos
+
+            # Run PD control
+            pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
+            rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
+
+            # Save the previous position
             self.northPreviousPos = northCurrentPos
-
-        if self.eastPreviousPos is None:
             self.eastPreviousPos = eastCurrentPos
 
-        # Run PD control
-        pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
-        rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
+            # Execute the controller and print results
+            self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
+            self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
+            self.setAttitude(vehicle)
 
-        # Save the previous position
-        self.northPreviousPos = northCurrentPos
-        self.eastPreviousPos = eastCurrentPos
+            print 'N: ', round(vehicle.location.local_frame.north,3), \
+                '\tE: ', round(vehicle.location.local_frame.east,3), \
+                '\tD: ', round(vehicle.location.local_frame.down,3)
+            print 'N Error: ', round(errorNorth,3), 'E Error: ', round(errorEast,3)
+            print 'Input N: ', round(math.degrees(self.constrain(pitchControl, self.minValNE, self.maxValNE)),3), \
+                'Input E: ', round(math.degrees(self.constrain(rollControl, self.minValNE, self.maxValNE)),3), '[deg]'
+            print(" ")
 
-        # Execute the controller and print results
-        self.pitchAngle = self.constrain(pitchControl)
-        self.rollAngle = self.constrain(-rollControl)
-        self.setAttitude(vehicle)
+        # Make subplot and plot
+        fig, ax = plt.subplots()
+        ax.plot(self.timeList, self.northActualList, self.timeList, self.northDesiredList,
+            self.timeList, self.eastActualList, self.timeList, self.eastDesiredList)
 
-        print 'N: ', round(vehicle.location.local_frame.north,3), \
-            ' E: ', round(vehicle.location.local_frame.east,3), \
-            ' D: ', round(vehicle.location.local_frame.down,3)
-        print 'N Error: ', round(errorNorth,3), 'E Error: ', round(errorEast,3)
-        print 'Input N: ', round(math.degrees(self.constrain(pitchControl)),3), \
-            'Input E: ', round(math.degrees(self.constrain(rollControl)),3), '[deg]'
-        print(" ")
+        # Set labels, titles, info, legend and grid
+        ax.set(xlabel='Time (s)',
+                ylabel='position (m)',
+                title='Position Control\n' +
+                ' Kp: ' + str(self.kp) +
+                ' Kd: ' + str(self.kd) +
+                ' Command Rate: ' + str(self.duration) + ' s')
 
-    def pitchTest(self, vehicle):
-        self.pitchAngle = math.radians(5.0)
-        self.setAttitude(vehicle)
-        time.sleep(1)
+        plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired'))
+        ax.grid()
 
-        self.pitchAngle = 0.0
-        self.setAttitude(vehicle)
-        time.sleep(1)
-
-        self.pitchAngle = math.radians(-5.0)
-        self.setAttitude(vehicle)
-        time.sleep(1)
-
-        self.pitchAngle = 0.0
-        self.setAttitude(vehicle)
-        time.sleep(1)
+        # Show results and save the plot
+        fig.savefig("positionController.png")
+        plt.show()
 
     def altitudeTest(self, vehicle):
         # Set desired parameters
@@ -348,31 +354,6 @@ class Controller:
         fig.savefig('masterController.png')
         plt.show()
 
-    def plotController(self):
-        # Import required modules
-        import matplotlib.pyplot as plt
-        import matplotlib
-
-        # Make subplot and actually plot
-        fig, ax = plt.subplots()
-        ax.plot(self.timeList, self.northActualList, self.timeList, self.northDesiredList,
-            self.timeList, self.eastActualList, self.timeList, self.eastDesiredList)
-
-        # Set labels, titles, info, legend and grid
-        ax.set(xlabel='Time (s)',
-                ylabel='position (m)',
-                title='Position Control\n' +
-                ' Kp: ' + str(self.kp) +
-                ' Kd: ' + str(self.kd) +
-                ' Command Rate: ' + str(self.duration) + ' s')
-
-        plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired'))
-        ax.grid()
-
-        # Show results and save the plot
-        fig.savefig("positionController.png")
-        plt.show()
-
 def main():
     # Connect to the Vehicle
     connection_string = "127.0.0.1:14551"
@@ -390,20 +371,13 @@ def main():
     C.downDesired = -1.5
     C.startTime = time.time()
 
-    # Run the controller for 10 seconds
-    # startTime = time.time()
-    # while (time.time() < startTime + 10):
-    #     C.control(vehicle)
-
-    C.fullTest(vehicle)
-    # Run the alititude test
+    # Simulate testing options
+    C.northEastTest(vehicle)
     # C.altitudeTest(vehicle)
+    # C.fullTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
-
-    # Plot the results
-    # C.plotController()
 
 
 # Main loop
