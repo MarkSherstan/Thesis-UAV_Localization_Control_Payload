@@ -162,25 +162,6 @@ class Controller:
         except KeyboardInterrupt:
             s.close()
 
-    def pitchTest(self, vehicle):
-        print 'start loop'
-        self.pitchAngle = math.radians(3.0)
-        self.setAttitude(vehicle)
-        time.sleep(1)
-
-        self.pitchAngle = 0.0
-        self.setAttitude(vehicle)
-        time.sleep(1)
-
-        self.pitchAngle = math.radians(-3.0)
-        self.setAttitude(vehicle)
-        time.sleep(1)
-
-        self.pitchAngle = 0.0
-        self.setAttitude(vehicle)
-        time.sleep(1)
-        print 'end loop\n'
-
 class DAQ:
     def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
         # Class / object / constructor setup
