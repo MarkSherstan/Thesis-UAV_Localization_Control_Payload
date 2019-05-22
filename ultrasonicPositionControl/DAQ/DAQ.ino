@@ -1,5 +1,5 @@
 // Define variables
-const int pingPin[] = {20, 19, 21}; // North, East, Down
+const int pingPinArray[] = {20, 19, 21}; // North, East, Down
 int sensorCount = 3;
 int distance[3];
 long duration;
@@ -12,53 +12,32 @@ void setup() {
 
 
 void loop() {
-  // Give a short LOW pulse to make sure there is a clean HIGH pulse
-  pingPinOutput();
-
-  pingPinState(0);
-  delayMicroseconds(2);
-
-  pingPinState(1);
-  delayMicroseconds(5);
-
-  pingPinState(0);
-
-    // Read the echoPin, returns the sound wave travel time in microseconds
-    // distance = traveltime x speed of sound [cm/us] x 1/2
-  pingPinInput();
-
+  // Loop through all the ping pins and get a distance
   for(int ii=0; ii<sensorCount; ii++){
-    duration = pulseIn(pingPin[ii], HIGH);
-    distance[ii] = duration * 0.0343 * 0.5;
+     distance[ii] = getDistance(pingPinArray[ii]);
   }
 
   // Write bytes or display info to user
   //writeBytes(&distance[0], &distance[1], &distance[2]);
-  Serial.print(distance[0]); Serial.print(distance[1]); Serial.println(distance[2]);
+  Serial.print(distance[0]); Serial.print(" , "); Serial.print(distance[1]); Serial.print(" , "); Serial.println(distance[2]);
 }
 
 
-void pingPinOutput(){
-  // Setup digital pins as output
-  for(int ii=0; ii<sensorCount; ii++){
-     pinMode(pingPin[ii], OUTPUT);
-  }
-}
+int getDistance(int* pingPin){
+  // Give a short LOW pulse to make sure there is a clean HIGH pulse for trigger
+  pinMode(pingPin, OUTPUT);
+  digitalWrite(pingPin, LOW);
+  delayMicroseconds(2);
+  digitalWrite(pingPin, HIGH);
+  delayMicroseconds(5);
+  digitalWrite(pingPin, LOW);
 
+  // Read the echo
+  pinMode(pingPin, INPUT);
+  duration = pulseIn(pingPin, HIGH);
 
-void pingPinInput(){
-  // Setup digital pins as input
-  for(int ii=0; ii<sensorCount; ii++){
-    pinMode(pingPin[ii], INPUT);
-  }
-}
-
-
-void pingPinState(bool* state){
-  // Set the state of the digital pins
-  for(int ii=0; ii<sensorCount; ii++){
-    digitalWrite(pingPin[ii], state);
-  }
+  // distance = traveltime x speed of sound [cm/us] x 1/2
+  return duration * 0.0343 * 0.5;
 }
 
 
