@@ -87,8 +87,7 @@ class Controller:
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
             '\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
-            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
-            '\tThrust: ', round(self.thrust,3)
+            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3)
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Euler angles (rad) to quaternion
@@ -115,7 +114,7 @@ class Controller:
         D = self.kd * ((current - previous) / deltaT)
         return(P + D)
 
-    def positionControl(self, vehicle):
+    def positionControl(self, vehicle, s):
         # Set parameters
         self.northDesired = 0.5
         self.eastDesired = 0.5
@@ -152,23 +151,26 @@ class Controller:
                 self.eastPreviousPos = eastCurrentPos
 
                 # Calculate the controll
-                self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-                self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
+                self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
+                self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
                 self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
 
                 # Command the controller to execute
                 self.setAttitude(vehicle)
 
                 # Print some data
-                print 'S ->\t', \ # Sensor
+                # Actual
+                print 'Actual ->\t', \
                     '\tN: ', round(northCurrentPos,2), \
                     '\tE: ', round(eastCurrentPos,2), \
                     '\tD: ', round(downCurrentPos,2)
-                print 'E ->\t', \ # Error
+                # Error
+                print 'Error ->\t', \
                     '\tN: ', round(errorNorth,2), \
                     '\tE: ', round(errorEast,2), \
                     '\tD: ', round(errorDown,2)
-                print 'C ->\t', \ # Controller
+                # Controller
+                print 'Controller ->\t', \
                     '\tN: ', round(self.pitchAngle,2), \
                     '\tE: ', round(self.rollAngle,2), \
                     '\tD: ', round(self.thrust,2)
