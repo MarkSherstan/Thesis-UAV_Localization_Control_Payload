@@ -1,5 +1,5 @@
 // Define variables
-const int pingPinArray[] = {20, 19, 21}; // North, East, Down
+const int pingPinArray[] = {22, 26, 23}; // North, East, Down
 int sensorCount = 3;
 int distance[3];
 long duration;
@@ -12,14 +12,14 @@ void setup() {
 
 
 void loop() {
-  // Loop through all the ping pins and get a distance
+  // Loop through all the ping pins and get distances (North, East, Down)
   for(int ii=0; ii<sensorCount; ii++){
      distance[ii] = getDistance(pingPinArray[ii]);
   }
 
   // Write bytes or display info to user
-  //writeBytes(&distance[0], &distance[1], &distance[2]);
-  Serial.print(distance[0]); Serial.print(" , "); Serial.print(distance[1]); Serial.print(" , "); Serial.println(distance[2]);
+  writeBytes(&distance[0], &distance[1], &distance[2]);
+  //Serial.print(distance[0]); Serial.print("\t"); Serial.print(distance[1]); Serial.print("\t"); Serial.println(distance[2]);
 }
 
 
