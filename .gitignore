@@ -1,3 +1,9 @@
+# C++
+*
+!*.*
+!*/
+*.o
+
 # Mac OS ignores
 .DS_Store
 
@@ -9,9 +15,3 @@
 
 # Auto generated videos from simulation
 *.avi
-
-# C++
-*
-!*.*
-!*/
-*.o
