@@ -15,7 +15,7 @@ class Controller:
         self.pitchAngle = 0.0
         self.yawAngle = None
         self.yawRate = 0.0
-        self.useYawRate = True
+        self.useYawRate = False
         self.thrust = 0.5
         self.duration = 0.1
 
@@ -87,7 +87,8 @@ class Controller:
         # Print the angle before resetting
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
             '\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
-            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3)
+            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
+            '\tYaw SP', round(math.degrees(self.yawAngle),3)
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Euler angles (rad) to quaternion
@@ -116,9 +117,9 @@ class Controller:
 
     def positionControl(self, vehicle, s):
         # Set parameters
-        self.northDesired = 0.5
-        self.eastDesired = 0.5
-        self.downDesired = 0.5
+        self.northDesired = 0.4
+        self.eastDesired = 0.4
+        self.downDesired = 0.4
         self.startTime = time.time()
 
         try:
