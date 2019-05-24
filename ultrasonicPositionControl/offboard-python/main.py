@@ -1,7 +1,9 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
 from pymavlink import mavutil
 from threading import Thread
+import pandas as pd
 import numpy as np
+import datetime
 import time
 import math
 import struct
@@ -41,6 +43,9 @@ class Controller:
         self.kThrottle = 0.5
         self.two2two = [-2,-1,0,1,2]
         self.zero2one = [0, 0.25, 0.5, 0.75, 1]
+
+        # Data Logging
+        self.tempData = []
 
     def sendAttitudeTarget(self, vehicle):
         # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
@@ -84,7 +89,7 @@ class Controller:
             self.sendAttitudeTarget(vehicle)
             time.sleep(0.025)
 
-        # Print the angle before resetting
+        # Print the attitude (and set point)
         print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
             '\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
             '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
@@ -159,7 +164,7 @@ class Controller:
                 # Command the controller to execute
                 self.setAttitude(vehicle)
 
-                # Print some data
+                # Display data to user
                 # Actual
                 print 'Actual ->\t', \
                     '\tN: ', round(northCurrentPos,2), \
@@ -177,31 +182,28 @@ class Controller:
                     '\tD: ', round(self.thrust,2)
                 print(" ")
 
+                # Log data
+                self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle, \
+                    vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
+                    northCurrentPos, eastCurrentPos, downCurrentPos, \
+                    errorNorth, errorEast, errorDown, \
+                    self.pitchAngle, self.rollAngle, self.thrust])
+
         except KeyboardInterrupt:
+            # Close thread and serial connection
             s.close()
 
-    def altitudeTest(self, vehicle, s):
-        # Set parameters
-        self.downDesired = 1.0
+            # Create file name
+            now = datetime.datetime.now()
+            fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
 
-        try:
-            while(True):
-                # Get actual altitiude from ultrasonic sensor
-                actual = s.dataOut[0] * 0.01
+            # Write data to CSV and display to user
+            df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'Yaw_SP', 'Roll', 'Pitch', 'Yaw', 'northCurrentPos', 'eastCurrentPos',
+                                       'downCurrentPos', 'errorNorth', 'errorEast', 'errorDown', 'self.pitchAngle', 'self.rollAngle', 'self.thrust'])
 
-                # Calculate error and constrain the value
-                error = actual - self.downDesired
-                control = -self.constrain(error * self.kThrottle, self.minValD, self.maxValD)
-
-                # Set the thrust value between 0 and 1 and send command
-                self.thrust = np.interp(control, self.two2two, self.zero2one)
-                self.setAttitude(vehicle)
-
-                # Print values to screen
-                print 'Actual: ', round(actual,3), 'Error: ', round(error,3), 'Control: ', round(control,3), 'Command: ', round(self.thrust,3)
-                print(" ")
-        except KeyboardInterrupt:
-            s.close()
+            df.to_csv(fileName, index=None, header=True)
+            
+            print('File saved to:\t' + fileName)
 
 class DAQ:
     def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
