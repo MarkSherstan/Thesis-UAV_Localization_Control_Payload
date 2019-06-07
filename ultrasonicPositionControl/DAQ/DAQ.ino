@@ -1,7 +1,7 @@
 // Define variables
-const int pingPinArray[] = {22, 26, 23}; // North, East, Down
-int sensorCount = 3;
-int distance[3];
+const int pingPinArray[] = {22, 28, 26, 23}; // North1, North2, East, Down
+int sensorCount = 4;
+int distance[4];
 long duration;
 
 
@@ -18,8 +18,8 @@ void loop() {
   }
 
   // Write bytes or display info to user
-  writeBytes(&distance[0], &distance[1], &distance[2]);
-  //Serial.print(distance[0]); Serial.print("\t"); Serial.print(distance[1]); Serial.print("\t"); Serial.println(distance[2]);
+  writeBytes(&distance[0], &distance[1], &distance[2], &distance[3]);
+  //Serial.print(distance[0]); Serial.print("\t"); Serial.print(distance[1]); Serial.print("\t"); Serial.println(distance[2]); Serial.print("\t"); Serial.println(distance[3]);
 }
 
 
@@ -41,18 +41,20 @@ int getDistance(int* pingPin){
 }
 
 
-void writeBytes(int* data1, int* data2, int* data3){
+void writeBytes(int* data1, int* data2, int* data3, int* data4){
   // Cast to a byte pointer
   byte* byteData1 = (byte*)(data1);
   byte* byteData2 = (byte*)(data2);
   byte* byteData3 = (byte*)(data3);
+  byte* byteData4 = (byte*)(data4);
 
   // Byte array with header for transmission
-  byte buf[8] = {0x9F, 0x6E,
+  byte buf[10] = {0x9F, 0x6E,
                 byteData1[0], byteData1[1],
                 byteData2[0], byteData2[1],
-                byteData3[0], byteData3[1]};
+                byteData3[0], byteData3[1],
+                byteData4[0], byteData4[1]};
 
   // Write the byte
-  Serial.write(buf, 8);
+  Serial.write(buf, 10);
 }
