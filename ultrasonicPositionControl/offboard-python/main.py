@@ -156,7 +156,7 @@ class Controller:
 				self.northPreviousPos = northCurrentPos
 				self.eastPreviousPos = eastCurrentPos
 
-				# Calculate the controll
+				# Calculate the control
 				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
 				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 				self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
@@ -204,6 +204,42 @@ class Controller:
 			df.to_csv(fileName, index=None, header=True)
 
 			print('File saved to:\t' + fileName)
+
+	def altitudeTest(self, vehicle, s):
+		# Set desired parameters
+		self.downDesired = 0.4
+		self.duration = 0.025
+		self.PWM = [950, 1450, 1550, 2050]
+		self.Angle = [-3.1415/12, 0, 0, 3.1415/12]
+
+		try:
+			while(True):
+				# Get current values
+				rollRC = vehicle.channels['2']
+				pitchRC = vehicle.channels['3']
+				downCurrentPos = s.dataOut[2] * 0.01
+
+				# Run thrust calculations
+				errorDown = downCurrentPos - self.downDesired
+				# rollControl = self.constrain(rollRC, 950, 2050)
+				# pitchControl = self.constrain(pitchRC, 950, 2050)
+				thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+
+				# Set controller input
+				self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
+				self.rollAngle = np.interp(rollRC, self.PWM, self.Angle)
+				self.pitchAngle = np.interp(pitchRC, self.PWM, self.Angle)
+
+				# Command the controller to execute
+				self.setAttitude(vehicle)
+
+				# Print data to the user
+				print 'Roll RC: ', rollRC, ' Angle: ', math.degrees(self.rollAngle)
+				print 'Pitch RC: ', pitchRC, 'Angle: ', math.degrees(self.pitchAngle), '\n'
+
+		except KeyboardInterrupt:
+			# Close thread and serial connection
+			s.close()
 
 class DAQ:
 	def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
@@ -298,8 +334,8 @@ def main():
 	C = Controller()
 
 	# Run a test
-	#C.altitudeTest(vehicle, s)
-	C.positionControl(vehicle, s)
+	C.altitudeTest(vehicle, s)
+	# C.positionControl(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
