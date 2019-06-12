@@ -231,8 +231,9 @@ class Controller:
 				self.sendAttitudeTarget(vehicle)
 
 				# Print data to the user
-				print 'Roll RC: ', rollRC, ' Angle: ', math.degrees(self.rollAngle), math.degrees(vehicle.attitude.roll)
-				print 'Pitch RC: ', pitchRC, 'Angle: ', math.degrees(self.pitchAngle), math.degrees(vehicle.attitude.pitch), '\n'
+				print 'Roll RC: ', rollRC, ' Angle: ', round(math.degrees(self.rollAngle),1), round(math.degrees(vehicle.attitude.roll),1)
+				print 'Pitch RC: ', pitchRC, ' Angle: ', round(math.degrees(self.pitchAngle),1), round(math.degrees(vehicle.attitude.pitch),1)
+				print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust, '\n'
 
 				# Log data
 				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
