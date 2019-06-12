@@ -17,7 +17,7 @@ class Controller:
 		self.pitchAngle = 0.0
 		self.yawAngle = None
 		self.yawRate = 0.0
-		self.useYawRate = False
+		self.useYawRate = True
 		self.thrust = 0.5
 		self.duration = 0.1
 
@@ -58,10 +58,6 @@ class Controller:
 		#             Thrust >  0.5: Ascend
 		#             Thrust == 0.5: Hold the altitude
 		#             Thrust <  0.5: Descend
-
-		# Update the yaw angle
-		if self.yawAngle is None:
-			self.yawAngle = vehicle.attitude.yaw
 
 		# Create the mavlink message
 		msg = vehicle.message_factory.set_attitude_target_encode(
@@ -208,9 +204,9 @@ class Controller:
 	def altitudeTest(self, vehicle, s):
 		# Set desired parameters
 		self.downDesired = 0.4
-		self.duration = 0.025
 		self.PWM = [950, 1450, 1550, 2050]
 		self.Angle = [-3.1415/12, 0, 0, 3.1415/12]
+		self.startTime = time.time()
 
 		try:
 			while(True):
@@ -231,15 +227,33 @@ class Controller:
 				self.pitchAngle = np.interp(pitchRC, self.PWM, self.Angle)
 
 				# Command the controller to execute
-				self.setAttitude(vehicle)
+				self.sendAttitudeTarget(vehicle)
 
 				# Print data to the user
 				print 'Roll RC: ', rollRC, ' Angle: ', math.degrees(self.rollAngle)
 				print 'Pitch RC: ', pitchRC, 'Angle: ', math.degrees(self.pitchAngle), '\n'
 
+				# Log data
+				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
+					rollRC, self.rollAngle, vehicle.attitude.roll,
+					pitchRC, self.pitchAngle, vehicle.attitude.pitch,
+					self.thrust, downCurrentPos])
+
 		except KeyboardInterrupt:
 			# Close thread and serial connection
 			s.close()
+
+			# Create file name
+			now = datetime.datetime.now()
+			fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
+
+			# Write data to CSV and display to user
+			df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'RC Roll', 'Roll Control', 'Roll Actual',
+				'RC Pitch', 'Pitch Control', 'Pitch Actual', 'Thrust', 'Down Pos'])
+
+			df.to_csv(fileName, index=None, header=True)
+
+			print('File saved to:\t' + fileName)
 
 class DAQ:
 	def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
