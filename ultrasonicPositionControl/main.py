@@ -59,6 +59,9 @@ class Controller:
 		#             Thrust == 0.5: Hold the altitude
 		#             Thrust <  0.5: Descend
 
+		# Prevent none type error on yaw
+		self.yawAngle = vehicle.attitude.yaw
+
 		# Create the mavlink message
 		msg = vehicle.message_factory.set_attitude_target_encode(
 			0, # time_boot_ms
@@ -217,21 +220,19 @@ class Controller:
 
 				# Run thrust calculations
 				errorDown = downCurrentPos - self.downDesired
-				# rollControl = self.constrain(rollRC, 950, 2050)
-				# pitchControl = self.constrain(pitchRC, 950, 2050)
 				thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 				# Set controller input
 				self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
-				self.rollAngle = np.interp(rollRC, self.PWM, self.Angle)
-				self.pitchAngle = np.interp(pitchRC, self.PWM, self.Angle)
+				self.rollAngle = -np.interp(rollRC, self.PWM, self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, self.PWM, self.Angle)
 
 				# Command the controller to execute
 				self.sendAttitudeTarget(vehicle)
 
 				# Print data to the user
-				print 'Roll RC: ', rollRC, ' Angle: ', math.degrees(self.rollAngle)
-				print 'Pitch RC: ', pitchRC, 'Angle: ', math.degrees(self.pitchAngle), '\n'
+				print 'Roll RC: ', rollRC, ' Angle: ', math.degrees(self.rollAngle), math.degrees(vehicle.attitude.roll)
+				print 'Pitch RC: ', pitchRC, 'Angle: ', math.degrees(self.pitchAngle), math.degrees(vehicle.attitude.pitch), '\n'
 
 				# Log data
 				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
