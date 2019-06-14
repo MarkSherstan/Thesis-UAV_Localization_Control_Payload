@@ -129,10 +129,45 @@ class Controller:
 		try:
 			while(True):
 				# Get current values
-				northCurrentPos = s.dataOut[0] * 0.01
-				eastCurrentPos = s.dataOut[1] * 0.01
-				downCurrentPos = s.dataOut[2] * 0.01
+				north1 = s.dataOut[0] * 0.01
+				north2 = s.dataOut[1] * 0.01
+				east1 = s.dataOut[2] * 0.01
+				east2 = s.dataOut[3] * 0.01
+				downCurrentPos = s.dataOut[4] * 0.01
 				deltaT = time.time() - self.startTime
+
+				# Average the distances
+				northCurrentPos = (north1 + north2) / 2
+				eastCurrentPos = (east1 + east2) / 2
+
+				# Angle calculations
+				if abs(north1 - north2) < 0.2286:
+					yawNorth = -math.asin((north1 - north2) / 0.2286)
+				else:
+					print 'North Error'
+					print round(north1, 2), round(north2, 2)
+					continue
+
+				if abs(east1 - east2) < 0.2445:
+					yawEast = -math.asin((east1 - east2) / 0.2445)
+				else:
+					print 'East Error'
+					print round(east1, 2), round(east2, 2)
+					continue
+
+				yawAvg = (yawNorth + yawEast) / 2
+
+				# Print data
+				print 'N: ', round(north1, 2), round(north2, 2), round(northCurrentPos, 2)
+				print 'E: ', round(east1, 2), round(east2, 2), round(eastCurrentPos, 2)
+				print 'D: ', round(downCurrentPos, 2)
+				print 'Angle: ', round(math.degrees(yawNorth),2), round(math.degrees(yawEast),2), round(math.degrees(yawAvg),2)
+				print 'Yaw sign: ', math.degrees(vehicle.attitude.yaw), '\n'
+
+				# yaw rate in rad/s
+				time.sleep(0.75)
+
+				continue
 
 				# Error caculations
 				errorNorth = northCurrentPos - self.northDesired
@@ -216,7 +251,7 @@ class Controller:
 				# Get current values
 				rollRC = vehicle.channels['2']
 				pitchRC = vehicle.channels['3']
-				downCurrentPos = s.dataOut[2] * 0.01
+				downCurrentPos = s.dataOut[4] * 0.01
 
 				# Run thrust calculations
 				errorDown = downCurrentPos - self.downDesired
@@ -340,7 +375,7 @@ def main():
 	portName = '/dev/ttyACM0'
 	baudRate = 9600
 	dataNumBytes = 2
-	numSignals = 3
+	numSignals = 5
 
 	# Set up serial port class
 	s = DAQ(portName, baudRate, dataNumBytes, numSignals)
@@ -350,8 +385,8 @@ def main():
 	C = Controller()
 
 	# Run a test
-	C.altitudeTest(vehicle, s)
-	# C.positionControl(vehicle, s)
+	# C.altitudeTest(vehicle, s)
+	C.positionControl(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
