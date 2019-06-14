@@ -58,6 +58,10 @@ class Controller:
 		#             Thrust >  0.5: Ascend
 		#             Thrust == 0.5: Hold the altitude
 		#             Thrust <  0.5: Descend
+		#
+		# Mappings: If any of these bits are set, the corresponding input should be ignored.
+		# bit 1: body roll rate, bit 2: body pitch rate, bit 3: body yaw rate.
+		# bit 4-bit 6: reserved, bit 7: throttle, bit 8: attitude
 
 		# Prevent none type error on yaw
 		self.yawAngle = vehicle.attitude.yaw
@@ -67,10 +71,10 @@ class Controller:
 			0, # time_boot_ms
 			0, # Target system
 			0, # Target component
-			0b00000000 if self.useYawRate else 0b00000100, # If bit is set corresponding input ignored
+			0b00000000, # If bit is set corresponding input ignored (mappings)
 			self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
-			0, # Body roll rate in radian
-			0, # Body pitch rate in radian
+			self.rollAngle * 5, # Body roll rate in radian
+			self.pitchAngle * 5, # Body pitch rate in radian
 			self.yawRate, # Body yaw rate in radian/second
 			self.thrust # Thrust
 		)
@@ -242,7 +246,6 @@ class Controller:
 	def altitudeTest(self, vehicle, s):
 		# Set desired parameters
 		self.downDesired = 0.4
-		self.PWM = [950, 1450, 1550, 2050]
 		self.Angle = [-3.1415/12, 0, 0, 3.1415/12]
 		self.startTime = time.time()
 
@@ -259,8 +262,8 @@ class Controller:
 
 				# Set controller input
 				self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
-				self.rollAngle = -np.interp(rollRC, self.PWM, self.Angle)
-				self.pitchAngle = -np.interp(pitchRC, self.PWM, self.Angle)
+				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
 
 				# Command the controller to execute
 				self.sendAttitudeTarget(vehicle)
@@ -385,8 +388,8 @@ def main():
 	C = Controller()
 
 	# Run a test
-	# C.altitudeTest(vehicle, s)
-	C.positionControl(vehicle, s)
+	C.altitudeTest(vehicle, s)
+	# C.positionControl(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
