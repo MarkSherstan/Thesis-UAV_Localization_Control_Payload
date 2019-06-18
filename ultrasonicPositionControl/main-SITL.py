@@ -93,6 +93,8 @@ class Controller:
         self.eastActualList = []
         self.downDesiredList = []
         self.downActualList = []
+        self.rollList = []
+        self.pitchList = []
         self.timeList = []
 
     def sendAttitudeTarget(self, vehicle):
@@ -129,7 +131,6 @@ class Controller:
 
 		# Send the constructed message
 		vehicle.send_mavlink(msg)
-
 
     def setAttitude(self, vehicle):
         # Send the command
@@ -357,8 +358,8 @@ class Controller:
                 self.sendAttitudeTarget(vehicle)
                 self.northActualList.append(vehicle.location.local_frame.north)
                 self.eastActualList.append(vehicle.location.local_frame.east)
-                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
-                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.rollList.append(math.degrees(vehicle.attitude.roll))
+                self.pitchList.append(math.degrees(vehicle.attitude.pitch))
                 self.timeList.append(time.time() - self.startTime)
                 time.sleep(0.2)
 
@@ -368,8 +369,8 @@ class Controller:
                 self.sendAttitudeTarget(vehicle)
                 self.northActualList.append(vehicle.location.local_frame.north)
                 self.eastActualList.append(vehicle.location.local_frame.east)
-                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
-                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.rollList.append(math.degrees(vehicle.attitude.roll))
+                self.pitchList.append(math.degrees(vehicle.attitude.pitch))
                 self.timeList.append(time.time() - self.startTime)
                 time.sleep(0.2)
 
@@ -379,8 +380,8 @@ class Controller:
                 self.sendAttitudeTarget(vehicle)
                 self.northActualList.append(vehicle.location.local_frame.north)
                 self.eastActualList.append(vehicle.location.local_frame.east)
-                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
-                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.rollList.append(math.degrees(vehicle.attitude.roll))
+                self.pitchList.append(math.degrees(vehicle.attitude.pitch))
                 self.timeList.append(time.time() - self.startTime)
                 time.sleep(0.2)
 
@@ -390,27 +391,27 @@ class Controller:
                 self.sendAttitudeTarget(vehicle)
                 self.northActualList.append(vehicle.location.local_frame.north)
                 self.eastActualList.append(vehicle.location.local_frame.east)
-                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
-                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.rollList.append(math.degrees(vehicle.attitude.roll))
+                self.pitchList.append(math.degrees(vehicle.attitude.pitch))
                 self.timeList.append(time.time() - self.startTime)
                 time.sleep(0.2)
 
-        # Make subplot and plot
-        fig, ax = plt.subplots()
-        ax.plot(self.timeList, self.northActualList, self.timeList, self.eastActualList)
+        # Plot
+        ax1 = plt.subplot(211)
+        plt.title('Attitude Command Test')
+        plt.plot(self.timeList, self.northActualList, self.timeList, self.eastActualList)
+        plt.setp(ax1.get_xticklabels(), fontsize=6)
+        plt.gca().legend(('North','East'))
+        plt.ylabel('Position [m]')
 
-        # Set labels, titles, info, legend and grid
-        ax.set(xlabel='Time (s)',
-                ylabel='position (m)',
-                title='Body Rate Test')
-
-        # plt.gca().legend(('North Actual','East Actual'))
+        ax2 = plt.subplot(212, sharex=ax1)
+        plt.plot(self.timeList, self.rollList, self.timeList, self.pitchList)
+        plt.setp(ax2.get_xticklabels(), visible=False)
         plt.gca().legend(('Roll','Pitch'))
-        ax.grid()
+        plt.ylabel('Angle [deg]')
+        plt.xlabel('time (s)')
 
-        # Show results and save the plot
         plt.show()
-
 
 def main():
     # Connect to the Vehicle
@@ -433,7 +434,7 @@ def main():
     # C.northEastTest(vehicle)
     # C.altitudeTest(vehicle)
     # C.fullTest(vehicle)
-    # C.commandTest(vehicle)
+    C.commandTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
