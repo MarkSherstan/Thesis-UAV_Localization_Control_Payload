@@ -73,8 +73,8 @@ class Controller:
 			0, # Target component
 			0b00000000, # If bit is set corresponding input ignored (mappings)
 			self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
-			self.rollAngle * 5, # Body roll rate in radian
-			self.pitchAngle * 5, # Body pitch rate in radian
+			0, # Body roll rate in radian
+			0, # Body pitch rate in radian
 			self.yawRate, # Body yaw rate in radian/second
 			self.thrust # Thrust
 		)
@@ -295,6 +295,82 @@ class Controller:
 
 			print('File saved to:\t' + fileName)
 
+	def deskTest(self, vehicle):
+		# Set desired parameters
+		self.Angle = [-3.1415/12, 0, 0, 3.1415/12]
+		self.startTime = time.time()
+		printTimer = time.time()
+
+		try:
+			while(True):
+				# Get current values
+				thrustRC = vehicle.channels['1']
+				rollRC = vehicle.channels['2']
+				pitchRC = vehicle.channels['3']
+
+				# Set controller input
+				self.thrust = np.interp(thrustRC, [982, 2006], [0, 1])
+				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
+
+				# Send the command with small buffer
+				self.sendAttitudeTarget(vehicle)
+				time.sleep(0.05)
+
+				# Print data to the user every half second
+				if time.time() > printTimer + 0.5:
+					print 'Thrust RC: ', thrustRC, ' Input: ', round(self.thrust,3)
+					print 'Roll RC: ', rollRC, ' Input: ', round(math.degrees(self.rollAngle),1)
+					print 'Pitch RC: ', pitchRC, ' Input: ', round(math.degrees(self.pitchAngle),1), '\n'
+					printTimer = time.time()
+
+		except KeyboardInterrupt:
+			# Close thread and serial connection
+			print 'Closing...\n'
+
+	def commandTest(self, vehicle):
+		# Wait to be in the correct mode
+		while (vehicle.mode.name != 'GUIDED_NOGPS'):
+			print('Waiting for mode')
+			time.sleep(1)
+
+		# Set thrust to a hover
+		self.thrust = 0.5
+
+		# Run twice
+		for ii in range(2):
+			# 15 Degrees
+			self.rollAngle = math.radians(15)
+			print('Starting: ',math.degrees(self.rollAngle))
+			for ii in range(5):
+				self.sendAttitudeTarget(vehicle)
+				print('\t',math.degrees(self.rollAngle))
+				time.sleep(0.2)
+
+			# 0 Degrees
+			self.rollAngle = 0
+			print('Starting: ',math.degrees(self.rollAngle))
+			for ii in range(5):
+				self.sendAttitudeTarget(vehicle)
+				print('\t',math.degrees(self.rollAngle))
+				time.sleep(0.2)
+
+			# -15 Degrees
+			self.rollAngle = math.radians(-15)
+			print('Starting: ',math.degrees(self.rollAngle))
+			for ii in range(5):
+				self.sendAttitudeTarget(vehicle)
+				print('\t',math.degrees(self.rollAngle))
+				time.sleep(0.2)
+
+			# 0 Degrees
+			self.rollAngle = 0
+			print('Starting: ',math.degrees(self.rollAngle))
+			for ii in range(5):
+				self.sendAttitudeTarget(vehicle)
+				print('\t',math.degrees(self.rollAngle))
+				time.sleep(0.2)
+
 class DAQ:
 	def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
 		# Class / object / constructor setup
@@ -381,15 +457,17 @@ def main():
 	numSignals = 5
 
 	# Set up serial port class
-	s = DAQ(portName, baudRate, dataNumBytes, numSignals)
-	s.readSerialStart()
+	# s = DAQ(portName, baudRate, dataNumBytes, numSignals)
+	# s.readSerialStart()
 
 	# Set up controller class
 	C = Controller()
 
 	# Run a test
-	C.altitudeTest(vehicle, s)
+	# C.altitudeTest(vehicle, s)
 	# C.positionControl(vehicle, s)
+	# C.commandTest(vehicle)
+	C.deskTest(vehicle)
 
 # Main loop
 if __name__ == '__main__':
