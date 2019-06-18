@@ -96,36 +96,40 @@ class Controller:
         self.timeList = []
 
     def sendAttitudeTarget(self, vehicle):
-        # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
-        #
-        # useYawRate: the yaw can be controlled using yawAngle OR yawRate.
-        #
-        # thrust: 0 <= thrust <= 1, as a fraction of maximum vertical thrust.
-        #         Note that as of Copter 3.5, thrust = 0.5 triggers a special case in
-        #         the code for maintaining current altitude.
-        #             Thrust >  0.5: Ascend
-        #             Thrust == 0.5: Hold the altitude
-        #             Thrust <  0.5: Descend
+		# https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
+		#
+		# useYawRate: the yaw can be controlled using yawAngle OR yawRate.
+		#
+		# thrust: 0 <= thrust <= 1, as a fraction of maximum vertical thrust.
+		#         Note that as of Copter 3.5, thrust = 0.5 triggers a special case in
+		#         the code for maintaining current altitude.
+		#             Thrust >  0.5: Ascend
+		#             Thrust == 0.5: Hold the altitude
+		#             Thrust <  0.5: Descend
+		#
+		# Mappings: If any of these bits are set, the corresponding input should be ignored.
+		# bit 1: body roll rate, bit 2: body pitch rate, bit 3: body yaw rate.
+		# bit 4-bit 6: reserved, bit 7: throttle, bit 8: attitude
 
-        # Update the yaw angle
-        # if self.yawAngle is None:
-        self.yawAngle = vehicle.attitude.yaw
+		# Prevent none type error on yaw
+		self.yawAngle = vehicle.attitude.yaw
 
-        # Create the mavlink message
-        msg = vehicle.message_factory.set_attitude_target_encode(
-            0, # time_boot_ms
-            0, # Target system
-            0, # Target component
-            0b00000000 if self.useYawRate else 0b00000100, # If bit is set corresponding input ignored
-            self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
-            0, # Body roll rate in radian
-            0, # Body pitch rate in radian
-            self.yawRate, # Body yaw rate in radian/second
-            self.thrust # Thrust
-        )
+		# Create the mavlink message
+		msg = vehicle.message_factory.set_attitude_target_encode(
+			0, # time_boot_ms
+			0, # Target system
+			0, # Target component
+			0b00000000, # If bit is set corresponding input ignored (mappings)
+			self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
+			0, # Body roll rate in radian
+			0, # Body pitch rate in radian
+			self.yawRate, # Body yaw rate in radian/second
+			self.thrust # Thrust
+		)
 
-        # Send the constructed message
-        vehicle.send_mavlink(msg)
+		# Send the constructed message
+		vehicle.send_mavlink(msg)
+
 
     def setAttitude(self, vehicle):
         # Send the command
@@ -344,6 +348,70 @@ class Controller:
         fig.savefig('masterController.png')
         plt.show()
 
+    def commandTest(self, vehicle):
+        # Run for 10 seconds
+        while (time.time() < self.startTime + 13):
+            # 15 Degrees
+            self.rollAngle = math.radians(15)
+            for ii in range(5):
+                self.sendAttitudeTarget(vehicle)
+                self.northActualList.append(vehicle.location.local_frame.north)
+                self.eastActualList.append(vehicle.location.local_frame.east)
+                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
+                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.timeList.append(time.time() - self.startTime)
+                time.sleep(0.2)
+
+            # 0 Degrees
+            self.rollAngle = 0
+            for ii in range(5):
+                self.sendAttitudeTarget(vehicle)
+                self.northActualList.append(vehicle.location.local_frame.north)
+                self.eastActualList.append(vehicle.location.local_frame.east)
+                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
+                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.timeList.append(time.time() - self.startTime)
+                time.sleep(0.2)
+
+            # -15 Degrees
+            self.rollAngle = math.radians(-15)
+            for ii in range(5):
+                self.sendAttitudeTarget(vehicle)
+                self.northActualList.append(vehicle.location.local_frame.north)
+                self.eastActualList.append(vehicle.location.local_frame.east)
+                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
+                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.timeList.append(time.time() - self.startTime)
+                time.sleep(0.2)
+
+            # 0 Degrees
+            self.rollAngle = 0
+            for ii in range(5):
+                self.sendAttitudeTarget(vehicle)
+                self.northActualList.append(vehicle.location.local_frame.north)
+                self.eastActualList.append(vehicle.location.local_frame.east)
+                # self.northActualList.append(math.degrees(vehicle.attitude.roll))
+                # self.eastActualList.append(math.degrees(vehicle.attitude.pitch))
+                self.timeList.append(time.time() - self.startTime)
+                time.sleep(0.2)
+
+        # Make subplot and plot
+        fig, ax = plt.subplots()
+        ax.plot(self.timeList, self.northActualList, self.timeList, self.eastActualList)
+
+        # Set labels, titles, info, legend and grid
+        ax.set(xlabel='Time (s)',
+                ylabel='position (m)',
+                title='Body Rate Test')
+
+        # plt.gca().legend(('North Actual','East Actual'))
+        plt.gca().legend(('Roll','Pitch'))
+        ax.grid()
+
+        # Show results and save the plot
+        plt.show()
+
+
 def main():
     # Connect to the Vehicle
     connection_string = "127.0.0.1:14551"
@@ -362,9 +430,10 @@ def main():
     C.startTime = time.time()
 
     # Simulate testing options
-    C.northEastTest(vehicle)
-    C.altitudeTest(vehicle)
-    C.fullTest(vehicle)
+    # C.northEastTest(vehicle)
+    # C.altitudeTest(vehicle)
+    # C.fullTest(vehicle)
+    # C.commandTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
