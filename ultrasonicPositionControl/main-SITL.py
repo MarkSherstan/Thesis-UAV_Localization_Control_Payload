@@ -413,6 +413,63 @@ class Controller:
 
         plt.show()
 
+    def trajectoryGen(self, t, A, B, C, D, E, F):
+    	# Declare position, velocity, and acceleration 5th order trajectory
+    	s = A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F
+    	v = 5*A*np.power(t,4) + 4*B*np.power(t,3) + 3*C*np.power(t,2) + 2*D*t + E
+    	a = 20*A*np.power(t,3) + 12*B*np.power(t,2) + 6*C*t + 2*D
+
+    	return s, v, a
+
+    def trajectory(self):
+        # Define variables
+        T = 2
+        t = np.linspace(0, T, 100, endpoint=True)
+        IC = [0, 1, 0, 0, 0, 0] # start/end -> pos vel acc
+        pos = []
+        vel = []
+        acc = []
+
+        # Find coeffcients of 5th order polynomial using matrix operations
+    	A = np.array([[0, 0, 0, 0, 0, 1],
+    				[np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
+    				[0, 0, 0, 0, 1, 0],
+    				[5*np.power(T,4), 4*np.power(T,3), 3*np.power(T,2), 2*T, 1, 0],
+    				[0, 0, 0, 2, 0, 0],
+    				[20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
+
+    	b = np.array([IC[0], IC[1], IC[2], IC[3], IC[4], IC[5]])
+
+    	x = np.linalg.solve(A, b)
+
+        # Calculate the trajectory for each time period and store
+        for ii in t:
+        	s, v, a = self.trajectoryGen(ii, x[0], x[1], x[2], x[3], x[4], x[5])
+        	pos.append(s)
+        	vel.append(v)
+        	acc.append(a)
+
+        # Plot the results
+        ax1 = plt.subplot(311)
+        plt.title('Position | Velocity | Acceleration')
+        plt.plot(t, pos)
+        plt.setp(ax1.get_xticklabels(), visible=False)
+        plt.ylabel('Pos [m]')
+
+        ax2 = plt.subplot(312, sharex=ax1)
+        plt.plot(t, vel)
+        plt.setp(ax2.get_xticklabels(), visible=False)
+        plt.ylabel('Vel [m/s]')
+
+        ax3 = plt.subplot(313, sharex=ax1)
+        plt.plot(t, acc)
+        plt.setp(ax3.get_xticklabels(), fontsize=10)
+        plt.ylabel('Acc [m/s^2]')
+
+
+        plt.xlabel('time (s)')
+        plt.show()
+
 def main():
     # Connect to the Vehicle
     connection_string = "127.0.0.1:14551"
