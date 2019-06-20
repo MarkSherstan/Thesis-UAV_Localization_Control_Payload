@@ -283,7 +283,7 @@ class Controller:
 
 			print('File saved to:\t' + fileName)
 
-	def deskTest(self, vehicle):
+	def deskTest(self, vehicle, s):
 		# Set desired parameters
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
 		self.angleRate = [-3.1415, 0, 0, 3.1415]
@@ -301,7 +301,7 @@ class Controller:
 				self.thrust = np.interp(thrustRC, [982, 2006], [0, 1])
 				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
 				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
-				self.yawRate = np.interp(yawRC, [1000, 1450, 1550, 2000], self.angleRate)
+				self.yawRate = np.interp(yawRC, [1000, 1445, 1505, 2000], self.angleRate)
 
 				# Send the command with small buffer
 				self.sendAttitudeTarget(vehicle)
@@ -312,10 +312,14 @@ class Controller:
 					print 'Thrust RC: ', thrustRC, ' Input: ', round(self.thrust,3)
 					print 'Roll RC: ', rollRC, ' Input: ', round(math.degrees(self.rollAngle),1)
 					print 'Pitch RC: ', pitchRC, ' Input: ', round(math.degrees(self.pitchAngle),1)
-					print 'Yaw RC: ', pitchRC, ' Input: ', round(math.degrees(self.yawRate),1), '\n'
+					print 'Yaw RC: ', pitchRC, ' Input: ', round(math.degrees(self.yawRate),1)
+					print s.dataOut, '\n'
 					printTimer = time.time()
 
 		except KeyboardInterrupt:
+			# Close thread and serial connection
+			s.close()
+
 			# Display close message
 			print 'Closing...\n'
 
@@ -340,6 +344,8 @@ class DAQ:
 			print('Connected to ' + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
 		except:
 			print("Failed to connect with " + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
+			print("Terminating program now...")
+			quit()
 
 	def readSerialStart(self):
 		# Create a thread
@@ -405,8 +411,8 @@ def main():
 	numSignals = 5
 
 	# Set up serial port class
-	# s = DAQ(portName, baudRate, dataNumBytes, numSignals)
-	# s.readSerialStart()
+	s = DAQ(portName, baudRate, dataNumBytes, numSignals)
+	s.readSerialStart()
 
 	# Set up controller class
 	C = Controller()
@@ -415,7 +421,7 @@ def main():
 	# C.altitudeTest(vehicle, s)
 	# C.positionControl(vehicle, s)
 	# C.commandTest(vehicle)
-	C.deskTest(vehicle)
+	C.deskTest(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
