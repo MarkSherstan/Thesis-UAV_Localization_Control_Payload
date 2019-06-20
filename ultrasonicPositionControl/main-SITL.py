@@ -399,29 +399,39 @@ class Controller:
 
     def trajControl(self, vehicle):
         # Generate a trajectory that should take T seconds
-        p = self.trajectory(3, self.duration, False)
+        IC = [vehicle.location.local_frame.north, vehicle.location.local_frame.north+0.3, 0, 0, 0, 0]
+        pN = self.trajectory(IC, 4, self.duration, False)
+        IC = [vehicle.location.local_frame.east, vehicle.location.local_frame.east-0.6, 0, 0, 0, 0]
+        pE = self.trajectory(IC, 4, self.duration, False)
+        counter = 0
 
-        # Run for 10 seconds
-        while (time.time() < self.startTime + 10):
-
+        # Run for 7 seconds
+        while (time.time() < self.startTime + 8):
             # Get current values
             northCurrentPos = vehicle.location.local_frame.north
             eastCurrentPos = vehicle.location.local_frame.east
             downCurrentPos = vehicle.location.local_frame.down
             deltaT = time.time() - self.startTime
 
+            if counter < len(pN):
+                desiredN = pN[counter]
+                desiredE = pE[counter]
+            else:
+                desiredN = self.northDesired
+                desiredE = self.eastDesired
+
             # Save values for plotting
-            self.northDesiredList.append(self.northDesired)
+            self.northDesiredList.append(desiredN)
             self.northActualList.append(northCurrentPos)
-            self.eastDesiredList.append(self.eastDesired)
+            self.eastDesiredList.append(desiredE)
             self.eastActualList.append(eastCurrentPos)
             self.downDesiredList.append(self.downDesired)
             self.downActualList.append(downCurrentPos)
             self.timeList.append(deltaT)
 
             # Error caculations
-            errorNorth = northCurrentPos - self.northDesired
-            errorEast = eastCurrentPos - self.eastDesired
+            errorNorth = northCurrentPos - desiredN
+            errorEast = eastCurrentPos - desiredE
             errorDown = downCurrentPos - self.downDesired
 
             # Update previous position(s) if none
@@ -440,12 +450,15 @@ class Controller:
             self.northPreviousPos = northCurrentPos
             self.eastPreviousPos = eastCurrentPos
 
-            # Execute the controller
+            # Set the controller values
             self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
             self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
             self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+
+            # Send the command, puase, and increase counter
             self.sendAttitudeTarget(vehicle)
             time.sleep(self.duration)
+            counter += 1
 
         # Plot the results
         fig, ax = plt.subplots()
@@ -454,7 +467,7 @@ class Controller:
             self.timeList, self.downActualList, self.timeList, self.downDesiredList)
 
         # Set labels and titles
-        fig.suptitle('NED Attitude Control', fontsize=14, fontweight='bold')
+        fig.suptitle('NED Attitude Control w/ Trajectory Generation', fontsize=14, fontweight='bold')
         ax.set_title('$K_p:$ ' + str(self.kp) + '\t$K_d:$ ' + str(self.kd) +
             '\t$k_T:$ ' + str(self.kThrottle) + '\t$Cmd Rate:$ ' + str(self.duration) + '$s$')
         ax.set_xlabel('Time (s)', fontweight='bold')
@@ -462,14 +475,13 @@ class Controller:
 
         # Set ylim, legend, and grid
         bottom, top = ax.get_ylim()
-        ax.set_ylim(bottom=bottom-1)
+        ax.set_ylim(bottom=bottom-0.5)
         plt.gca().legend(('North Actual','North Desired',
             'East Actual', 'East Desired',
             'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
         ax.grid()
 
-        # Show the plot and save
-        fig.savefig('masterController.png')
+        # Show the plot
         plt.show()
 
     def trajectoryGen(self, t, A, B, C, D, E, F):
@@ -480,10 +492,9 @@ class Controller:
 
     	return s, v, a
 
-    def trajectory(self, T, sampleRate, plotFlag):
-        # Define time array, initial conditions, and storage variables
+    def trajectory(self, IC, T, sampleRate, plotFlag):
+        # Define time array and storage variables
         t = np.linspace(0, T, round(T/sampleRate), endpoint=True)
-        IC = [0, 1, 0, 0, 0, 0]
         pos = []; vel = []; acc = [];
 
         # Find coeffcients of 5th order polynomial using matrix operations
@@ -541,9 +552,9 @@ def main():
 
     # Set up controller class
     C = Controller()
-    C.northDesired = vehicle.location.local_frame.north + 1.0
-    C.eastDesired = vehicle.location.local_frame.east - 0.5
-    C.downDesired = -1.5
+    C.northDesired = vehicle.location.local_frame.north + 0.3
+    C.eastDesired = vehicle.location.local_frame.east - 0.6
+    C.downDesired = -0.7
     C.startTime = time.time()
 
     # Simulate testing options
