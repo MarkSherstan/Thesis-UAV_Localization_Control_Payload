@@ -82,22 +82,6 @@ class Controller:
 		# Send the constructed message
 		vehicle.send_mavlink(msg)
 
-	def setAttitude(self, vehicle):
-		# Send the command
-		self.sendAttitudeTarget(vehicle)
-
-		# SET_ATTITUDE_TARGET has a timeout of 1s for Arducopter 3.3 and higher so keep it running
-		start = time.time()
-		while time.time() - start < self.duration:
-			self.sendAttitudeTarget(vehicle)
-			time.sleep(0.025)
-
-		# Print the attitude (and set point)
-		print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
-			'\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
-			'\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
-			'\tYaw SP', round(math.degrees(self.yawAngle),3)
-
 	def euler2quaternion(self, roll, pitch, yaw):
 		# Euler angles (rad) to quaternion
 		yc = math.cos(yaw * 0.5)
@@ -199,8 +183,9 @@ class Controller:
 				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
-				# Command the controller to execute
-				self.setAttitude(vehicle)
+				# Send the command with small buffer
+				self.sendAttitudeTarget(vehicle)
+				time.sleep(0.08)
 
 				# Display data to user
 				# Actual
@@ -218,7 +203,9 @@ class Controller:
 					'\tN: ', round(self.pitchAngle,2), \
 					'\tE: ', round(self.rollAngle,2), \
 					'\tD: ', round(self.thrust,2)
-				print(" ")
+				# Print actual roll and pitch
+				print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
+					'Pitch: ', round(math.degrees(vehicle.attitude.pitch),3), '\n'
 
 				# Log data
 				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle, \
