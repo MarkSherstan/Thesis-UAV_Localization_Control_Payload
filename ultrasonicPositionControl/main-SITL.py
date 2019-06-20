@@ -262,8 +262,9 @@ class Controller:
         plt.show()
 
     def fullTest(self, vehicle):
-        # Run for 10 seconds
-        while (time.time() < self.startTime + 10):
+        # Run for 8 seconds. Old values before trajectory:
+        # self.kp = 0.2       self.kd = 5.4       self.kThrottle = 0.5
+        while (time.time() < self.startTime + 8):
 
             # Get current values
             northCurrentPos = vehicle.location.local_frame.north
@@ -397,22 +398,33 @@ class Controller:
 
         plt.show()
 
-    def trajControl(self, vehicle):
-        # Generate a trajectory that should take T seconds
-        IC = [vehicle.location.local_frame.north, vehicle.location.local_frame.north+0.3, 0, 0, 0, 0]
-        pN = self.trajectory(IC, 4, self.duration, False)
-        IC = [vehicle.location.local_frame.east, vehicle.location.local_frame.east-0.6, 0, 0, 0, 0]
-        pE = self.trajectory(IC, 4, self.duration, False)
+    def trajectoryControl(self, vehicle):
+        # Initialize variables
         counter = 0
+        T = 3
 
-        # Run for 7 seconds
-        while (time.time() < self.startTime + 8):
+        # Generate a trajectory that should take T seconds
+        northCurrentPos = vehicle.location.local_frame.north
+        eastCurrentPos = vehicle.location.local_frame.east
+
+        northIC = [northCurrentPos, self.northDesired, 0, 0, 0, 0]
+        eastIC = [eastCurrentPos, self.eastDesired, 0, 0, 0, 0]
+
+        pN = self.trajectoryGen(northIC, T, self.duration, False)
+        pE = self.trajectoryGen(eastIC, T, self.duration, False)
+
+        # Start a timer
+        self.startTime = time.time()
+
+        # Run for 2*T seconds
+        while (time.time() < self.startTime + 2*T):
             # Get current values
             northCurrentPos = vehicle.location.local_frame.north
             eastCurrentPos = vehicle.location.local_frame.east
             downCurrentPos = vehicle.location.local_frame.down
             deltaT = time.time() - self.startTime
 
+            # Set the desired position based on time counter index
             if counter < len(pN):
                 desiredN = pN[counter]
                 desiredE = pE[counter]
@@ -455,7 +467,7 @@ class Controller:
             self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
             self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
-            # Send the command, puase, and increase counter
+            # Send the command, sleep, and increase counter
             self.sendAttitudeTarget(vehicle)
             time.sleep(self.duration)
             counter += 1
@@ -476,25 +488,16 @@ class Controller:
         # Set ylim, legend, and grid
         bottom, top = ax.get_ylim()
         ax.set_ylim(bottom=bottom-0.5)
-        plt.gca().legend(('North Actual','North Desired',
-            'East Actual', 'East Desired',
+        plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired',
             'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
         ax.grid()
 
         # Show the plot
         plt.show()
 
-    def trajectoryGen(self, t, A, B, C, D, E, F):
-    	# Declare position, velocity, and acceleration 5th order trajectory
-    	s = A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F
-    	v = 5*A*np.power(t,4) + 4*B*np.power(t,3) + 3*C*np.power(t,2) + 2*D*t + E
-    	a = 20*A*np.power(t,3) + 12*B*np.power(t,2) + 6*C*t + 2*D
-
-    	return s, v, a
-
-    def trajectory(self, IC, T, sampleRate, plotFlag):
+    def trajectoryGen(self, IC, T, sampleRate, plotFlag):
         # Define time array and storage variables
-        t = np.linspace(0, T, round(T/sampleRate), endpoint=True)
+        tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
         pos = []; vel = []; acc = [];
 
         # Find coeffcients of 5th order polynomial using matrix operations
@@ -509,28 +512,30 @@ class Controller:
 
     	x = np.linalg.solve(A, b)
 
-        # Calculate the trajectory for each time step and store
-        for ii in t:
-        	s, v, a = self.trajectoryGen(ii, x[0], x[1], x[2], x[3], x[4], x[5])
-        	pos.append(s)
-        	vel.append(v)
-        	acc.append(a)
+        # Unpack coeffcients
+        A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5];
 
-        # Plot the results if promt
+        # Calculate the trajectory properties for each time step and store
+        for t in tt:
+        	pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
+        	vel.append(5*A*np.power(t,4) + 4*B*np.power(t,3) + 3*C*np.power(t,2) + 2*D*t + E)
+        	acc.append(20*A*np.power(t,3) + 12*B*np.power(t,2) + 6*C*t + 2*D)
+
+        # Plot the results if prompt
         if plotFlag is True:
             ax1 = plt.subplot(311)
             plt.title('Position | Velocity | Acceleration')
-            plt.plot(t, pos)
+            plt.plot(tt, pos)
             plt.setp(ax1.get_xticklabels(), visible=False)
             plt.ylabel('Pos [m]')
 
             ax2 = plt.subplot(312, sharex=ax1)
-            plt.plot(t, vel)
+            plt.plot(tt, vel)
             plt.setp(ax2.get_xticklabels(), visible=False)
             plt.ylabel('Vel [m/s]')
 
             ax3 = plt.subplot(313, sharex=ax1)
-            plt.plot(t, acc)
+            plt.plot(tt, acc)
             plt.setp(ax3.get_xticklabels(), fontsize=10)
             plt.ylabel('Acc [m/s^2]')
 
@@ -548,13 +553,13 @@ def main():
 
     # Setup simulation class and take off
     sim = Simulate()
-    sim.armAndTakeOff(vehicle, 0.4)
+    sim.armAndTakeOff(vehicle, 0.2)
 
     # Set up controller class
     C = Controller()
     C.northDesired = vehicle.location.local_frame.north + 0.3
     C.eastDesired = vehicle.location.local_frame.east - 0.6
-    C.downDesired = -0.7
+    C.downDesired = -0.5
     C.startTime = time.time()
 
     # Simulate testing options
@@ -562,7 +567,7 @@ def main():
     # C.altitudeTest(vehicle)
     # C.fullTest(vehicle)
     # C.commandTest(vehicle)
-    C.trajControl(vehicle)
+    C.trajectoryControl(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
