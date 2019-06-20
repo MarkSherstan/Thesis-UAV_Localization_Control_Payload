@@ -61,7 +61,7 @@ class Controller:
         self.yawRate = 0.0
         self.useYawRate = True
         self.thrust = 0.5
-        self.duration = 0.1
+        self.duration = 0.08
 
         # Constraints for roll, pitch, and thrust
         self.minValNE = -3.1415/12
@@ -131,22 +131,6 @@ class Controller:
 
 		# Send the constructed message
 		vehicle.send_mavlink(msg)
-
-    def setAttitude(self, vehicle):
-        # Send the command
-        self.sendAttitudeTarget(vehicle)
-
-        # SET_ATTITUDE_TARGET has a timeout of 1s for Arducopter 3.3 and higher so keep it running
-        start = time.time()
-        while time.time() - start < self.duration:
-            self.sendAttitudeTarget(vehicle)
-            time.sleep(0.025)
-
-        # Print the angle before resetting
-        print 'Roll: ', round(math.degrees(vehicle.attitude.roll),3), \
-            '\tPitch: ', round(math.degrees(vehicle.attitude.pitch),3), \
-            '\tYaw: ', round(math.degrees(vehicle.attitude.yaw),3), \
-            '\tThrust: ', round(self.thrust,3)
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Euler angles (rad) to quaternion
@@ -322,7 +306,8 @@ class Controller:
             self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
             self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
             self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
-            self.setAttitude(vehicle)
+            self.sendAttitudeTarget(vehicle)
+            time.sleep(self.duration)
 
         # Plot the results
         fig, ax = plt.subplots()
@@ -490,8 +475,8 @@ def main():
     # Simulate testing options
     # C.northEastTest(vehicle)
     # C.altitudeTest(vehicle)
-    # C.fullTest(vehicle)
-    C.commandTest(vehicle)
+    C.fullTest(vehicle)
+    # C.commandTest(vehicle)
 
     # Land the UAV and close connection
     sim.disarmAndLand(vehicle)
