@@ -286,7 +286,7 @@ class Controller:
 	def deskTest(self, vehicle):
 		# Set desired parameters
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
-		self.startTime = time.time()
+		self.angleRate = [-3.1415, 0, 0, 3.1415]
 		printTimer = time.time()
 
 		try:
@@ -295,11 +295,13 @@ class Controller:
 				thrustRC = vehicle.channels['1']
 				rollRC = vehicle.channels['2']
 				pitchRC = vehicle.channels['3']
+				yawRC = vehicle.channels['4']
 
 				# Set controller input
 				self.thrust = np.interp(thrustRC, [982, 2006], [0, 1])
 				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
 				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
+				self.yawRate = np.interp(yawRC, [1000, 1450, 1550, 2000], self.angleRate)
 
 				# Send the command with small buffer
 				self.sendAttitudeTarget(vehicle)
@@ -309,55 +311,13 @@ class Controller:
 				if time.time() > printTimer + 0.5:
 					print 'Thrust RC: ', thrustRC, ' Input: ', round(self.thrust,3)
 					print 'Roll RC: ', rollRC, ' Input: ', round(math.degrees(self.rollAngle),1)
-					print 'Pitch RC: ', pitchRC, ' Input: ', round(math.degrees(self.pitchAngle),1), '\n'
+					print 'Pitch RC: ', pitchRC, ' Input: ', round(math.degrees(self.pitchAngle),1)
+					print 'Yaw RC: ', pitchRC, ' Input: ', round(math.degrees(self.yawRate),1), '\n'
 					printTimer = time.time()
 
 		except KeyboardInterrupt:
-			# Close thread and serial connection
+			# Display close message
 			print 'Closing...\n'
-
-	def commandTest(self, vehicle):
-		# Wait to be in the correct mode
-		while (vehicle.mode.name != 'GUIDED_NOGPS'):
-			print('Waiting for mode')
-			time.sleep(1)
-
-		# Set thrust to a hover
-		self.thrust = 0.5
-
-		# Run twice
-		for ii in range(2):
-			# 15 Degrees
-			self.rollAngle = math.radians(15)
-			print('Starting: ',math.degrees(self.rollAngle))
-			for ii in range(5):
-				self.sendAttitudeTarget(vehicle)
-				print('\t',math.degrees(self.rollAngle))
-				time.sleep(0.2)
-
-			# 0 Degrees
-			self.rollAngle = 0
-			print('Starting: ',math.degrees(self.rollAngle))
-			for ii in range(5):
-				self.sendAttitudeTarget(vehicle)
-				print('\t',math.degrees(self.rollAngle))
-				time.sleep(0.2)
-
-			# -15 Degrees
-			self.rollAngle = math.radians(-15)
-			print('Starting: ',math.degrees(self.rollAngle))
-			for ii in range(5):
-				self.sendAttitudeTarget(vehicle)
-				print('\t',math.degrees(self.rollAngle))
-				time.sleep(0.2)
-
-			# 0 Degrees
-			self.rollAngle = 0
-			print('Starting: ',math.degrees(self.rollAngle))
-			for ii in range(5):
-				self.sendAttitudeTarget(vehicle)
-				print('\t',math.degrees(self.rollAngle))
-				time.sleep(0.2)
 
 class DAQ:
 	def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
