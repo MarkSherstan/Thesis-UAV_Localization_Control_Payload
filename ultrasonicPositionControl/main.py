@@ -24,8 +24,8 @@ class Controller:
 		# Constraints for roll, pitch, and thrust
 		self.minValNE = -3.1415/12
 		self.maxValNE = 3.1415/12
-		self.minValD = -2
-		self.maxValD = 2
+		self.minValD = -1
+		self.maxValD = 1
 
 		# Controller PD Gains
 		self.kp = 0.2
@@ -41,7 +41,7 @@ class Controller:
 
 		# Thrust Control
 		self.kThrottle = 0.5
-		self.two2two = [-2,-1,0,1,2]
+		self.one2one = [-1,0,1]
 		self.zero2one = [0, 0.25, 0.5, 0.75, 1]
 
 		# Data Logging
@@ -197,7 +197,7 @@ class Controller:
 				# Calculate the control
 				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
 				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
-				self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
+				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
 				# Command the controller to execute
 				self.setAttitude(vehicle)
@@ -246,7 +246,7 @@ class Controller:
 	def altitudeTest(self, vehicle, s):
 		# Set desired parameters
 		self.downDesired = 0.4
-		self.Angle = [-3.1415/12, 0, 0, 3.1415/12]
+		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
 		self.startTime = time.time()
 
 		try:
@@ -261,12 +261,13 @@ class Controller:
 				thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 				# Set controller input
-				self.thrust = np.interp(thrustControl, self.two2two, self.zero2one)
+				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
 				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
 
-				# Command the controller to execute
+				# Send the command with small buffer
 				self.sendAttitudeTarget(vehicle)
+				time.sleep(0.08)
 
 				# Print data to the user
 				print 'Roll RC: ', rollRC, ' Angle: ', round(math.degrees(self.rollAngle),1), round(math.degrees(vehicle.attitude.roll),1)
@@ -297,7 +298,7 @@ class Controller:
 
 	def deskTest(self, vehicle):
 		# Set desired parameters
-		self.Angle = [-3.1415/12, 0, 0, 3.1415/12]
+		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
 		self.startTime = time.time()
 		printTimer = time.time()
 
@@ -315,7 +316,7 @@ class Controller:
 
 				# Send the command with small buffer
 				self.sendAttitudeTarget(vehicle)
-				time.sleep(0.05)
+				time.sleep(0.08)
 
 				# Print data to the user every half second
 				if time.time() > printTimer + 0.5:
