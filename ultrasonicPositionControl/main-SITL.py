@@ -398,6 +398,9 @@ class Controller:
         plt.show()
 
     def trajControl(self, vehicle):
+        # Generate a trajectory that should take T seconds
+        p = self.trajectory(3, self.duration, False)
+
         # Run for 10 seconds
         while (time.time() < self.startTime + 10):
 
@@ -477,14 +480,11 @@ class Controller:
 
     	return s, v, a
 
-    def trajectory(self):
-        # Define variables
-        T = 2
-        t = np.linspace(0, T, 100, endpoint=True)
-        IC = [0, 1, 0, 0, 0, 0] # start/end -> pos vel acc
-        pos = []
-        vel = []
-        acc = []
+    def trajectory(self, T, sampleRate, plotFlag):
+        # Define time array, initial conditions, and storage variables
+        t = np.linspace(0, T, round(T/sampleRate), endpoint=True)
+        IC = [0, 1, 0, 0, 0, 0]
+        pos = []; vel = []; acc = [];
 
         # Find coeffcients of 5th order polynomial using matrix operations
     	A = np.array([[0, 0, 0, 0, 0, 1],
@@ -498,33 +498,36 @@ class Controller:
 
     	x = np.linalg.solve(A, b)
 
-        # Calculate the trajectory for each time period and store
+        # Calculate the trajectory for each time step and store
         for ii in t:
         	s, v, a = self.trajectoryGen(ii, x[0], x[1], x[2], x[3], x[4], x[5])
         	pos.append(s)
         	vel.append(v)
         	acc.append(a)
 
-        # Plot the results
-        ax1 = plt.subplot(311)
-        plt.title('Position | Velocity | Acceleration')
-        plt.plot(t, pos)
-        plt.setp(ax1.get_xticklabels(), visible=False)
-        plt.ylabel('Pos [m]')
+        # Plot the results if promt
+        if plotFlag is True:
+            ax1 = plt.subplot(311)
+            plt.title('Position | Velocity | Acceleration')
+            plt.plot(t, pos)
+            plt.setp(ax1.get_xticklabels(), visible=False)
+            plt.ylabel('Pos [m]')
 
-        ax2 = plt.subplot(312, sharex=ax1)
-        plt.plot(t, vel)
-        plt.setp(ax2.get_xticklabels(), visible=False)
-        plt.ylabel('Vel [m/s]')
+            ax2 = plt.subplot(312, sharex=ax1)
+            plt.plot(t, vel)
+            plt.setp(ax2.get_xticklabels(), visible=False)
+            plt.ylabel('Vel [m/s]')
 
-        ax3 = plt.subplot(313, sharex=ax1)
-        plt.plot(t, acc)
-        plt.setp(ax3.get_xticklabels(), fontsize=10)
-        plt.ylabel('Acc [m/s^2]')
+            ax3 = plt.subplot(313, sharex=ax1)
+            plt.plot(t, acc)
+            plt.setp(ax3.get_xticklabels(), fontsize=10)
+            plt.ylabel('Acc [m/s^2]')
 
+            plt.xlabel('time (s)')
+            plt.show()
 
-        plt.xlabel('time (s)')
-        plt.show()
+        # Return the resulting position
+        return pos
 
 def main():
     # Connect to the Vehicle
