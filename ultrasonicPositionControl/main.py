@@ -42,7 +42,7 @@ class Controller:
 		# Thrust Control
 		self.kThrottle = 0.5
 		self.one2one = [-1,0,1]
-		self.zero2one = [0, 0.25, 0.5, 0.75, 1]
+		self.zero2one = [0, 0.5, 1]
 
 		# Data Logging
 		self.tempData = []
@@ -234,6 +234,7 @@ class Controller:
 		# Set desired parameters
 		self.downDesired = 0.4
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
+		printTimer = time.time()
 		self.startTime = time.time()
 
 		try:
@@ -256,10 +257,12 @@ class Controller:
 				self.sendAttitudeTarget(vehicle)
 				time.sleep(0.08)
 
-				# Print data to the user
-				print 'Roll RC: ', rollRC, ' Angle: ', round(math.degrees(self.rollAngle),1), round(math.degrees(vehicle.attitude.roll),1)
-				print 'Pitch RC: ', pitchRC, ' Angle: ', round(math.degrees(self.pitchAngle),1), round(math.degrees(vehicle.attitude.pitch),1)
-				print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust, '\n'
+				# Print data to the user every half second
+				if time.time() > printTimer + 0.5:
+					print 'Roll RC: ', rollRC, ' Angle: ', round(math.degrees(self.rollAngle),1), round(math.degrees(vehicle.attitude.roll),1)
+					print 'Pitch RC: ', pitchRC, ' Angle: ', round(math.degrees(self.pitchAngle),1), round(math.degrees(vehicle.attitude.pitch),1)
+					print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust, '\n'
+					printTimer = time.time()
 
 				# Log data
 				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
@@ -418,10 +421,10 @@ def main():
 	C = Controller()
 
 	# Run a test
-	# C.altitudeTest(vehicle, s)
+	C.altitudeTest(vehicle, s)
 	# C.positionControl(vehicle, s)
 	# C.commandTest(vehicle)
-	C.deskTest(vehicle, s)
+	# C.deskTest(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
