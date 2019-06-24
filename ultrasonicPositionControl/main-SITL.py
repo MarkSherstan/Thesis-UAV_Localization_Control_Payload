@@ -62,17 +62,6 @@ class Simulate:
         time.sleep(0.5)
         print '\nYaw achieved\n'
 
-    def disarmAndLand(self, vehicle):
-        # Land the drone
-        self.vehicleMode = "RTL"
-        print("\nSetting RTL mode...")
-        vehicle.mode = VehicleMode(self.vehicleMode)
-        time.sleep(4)
-
-        # Close vehicle object
-        print("Closing vehicle connection\n")
-        vehicle.close()
-
 class Controller:
     def __init__(self):
         # Initial conditions (rads)
@@ -600,8 +589,9 @@ def main():
     C.trajectoryControl(vehicle)
 
     # Land the UAV and close connection
-    sim.disarmAndLand(vehicle)
-
+    print("Closing vehicle connection\n")
+    vehicle.mode = VehicleMode("LAND")
+    vehicle.close()
 
 # Main loop
 if __name__ == '__main__':
