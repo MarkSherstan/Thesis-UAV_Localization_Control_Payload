@@ -422,10 +422,16 @@ class Controller:
         counter = 0
         T = 3
 
-        # Generate a trajectory that should take T seconds
+        # Get the current postition
         northCurrentPos = vehicle.location.local_frame.north
         eastCurrentPos = vehicle.location.local_frame.east
 
+        # Set the desired NED locations
+        self.northDesired = vehicle.location.local_frame.north + 0.5
+        self.eastDesired = vehicle.location.local_frame.east - 0.5
+        self.downDesired = -0.4
+
+        # Generate a trajectory that should take T seconds
         northIC = [northCurrentPos, self.northDesired, 0, 0, 0, 0]
         eastIC = [eastCurrentPos, self.eastDesired, 0, 0, 0, 0]
 
@@ -435,12 +441,12 @@ class Controller:
         # Start a timer
         self.startTime = time.time()
 
-        # Run for 2*T seconds
-        while (time.time() < self.startTime + 2*T):
+        # Run for 3*T seconds
+        while (time.time() < self.startTime + 3*T):
             # Get current values
             northCurrentPos = vehicle.location.local_frame.north
             eastCurrentPos = vehicle.location.local_frame.east
-            downCurrentPos = vehicle.location.local_frame.down
+            downCurrentPos = vehicle.location.local_frame.down #+ (random.random()-0.5)*0.1
             deltaT = time.time() - self.startTime
 
             # Set the desired position based on time counter index
@@ -570,16 +576,12 @@ def main():
     print('Connecting to vehicle on: %s\n' % connection_string)
     vehicle = connect(connection_string, wait_ready=True)
 
-    # Setup simulation class and take off
-    sim = Simulate()
-    sim.armAndTakeOff(vehicle, 0.2)
-
     # Set up controller class
     C = Controller()
-    C.northDesired = vehicle.location.local_frame.north + 0.3
-    C.eastDesired = vehicle.location.local_frame.east - 0.6
-    C.downDesired = -0.5
-    C.startTime = time.time()
+
+    # Setup simulation class and take off
+    sim = Simulate()
+    sim.armAndTakeOff(C, vehicle, 0.5)
 
     # Simulate testing options
     # C.northEastTest(vehicle)
