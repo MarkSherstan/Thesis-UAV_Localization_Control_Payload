@@ -130,15 +130,12 @@ class Controller:
 		# bit 1: body roll rate, bit 2: body pitch rate, bit 3: body yaw rate.
 		# bit 4-bit 6: reserved, bit 7: throttle, bit 8: attitude
 
-		# Prevent none type error on yaw
-		self.yawAngle = vehicle.attitude.yaw
-
 		# Create the mavlink message
 		msg = vehicle.message_factory.set_attitude_target_encode(
 			0, # time_boot_ms
 			0, # Target system
 			0, # Target component
-			0b00000000, # If bit is set corresponding input ignored (mappings)
+			0b00000100, # If bit is set corresponding input ignored (mappings)
 			self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
 			0, # Body roll rate in radian
 			0, # Body pitch rate in radian
@@ -496,6 +493,9 @@ class Controller:
             self.sendAttitudeTarget(vehicle)
             time.sleep(self.duration)
             counter += 1
+
+        # Send the land command before plotting to decrease downtime
+        vehicle.mode = VehicleMode("LAND")
 
         # Plot the results
         fig, ax = plt.subplots()
