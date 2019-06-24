@@ -89,15 +89,23 @@ class Controller:
         self.minValD = -1
         self.maxValD = 1
 
-        # PD Controller Gains
-        self.kp = 0.2
-        self.kd = 5.4
+        # PID Controller Gains
+        self.kp = 0.34 #0.1 #0.4
+        self.ki = 0
+        self.kd = 11#4.5 #15
+
+        # PID variables
+        self.northPreviousError = 0
+        self.eastPreviousError = 0
+        self.northI = 0
+        self.eastI = 0
+
+        # 0.2 and 8 is decent
+        # 0.25 and 8
 
         # Controller
         self.northDesired = None
-        self.northPreviousPos = None
         self.eastDesired = None
-        self.eastPreviousPos = None
         self.downDesired = None
         self.startTime = None
 
@@ -171,11 +179,12 @@ class Controller:
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
 
-    def PD(self, error, current, previous, deltaT):
+    def PID(self, error, errorPrev, I, deltaT):
         # Run the PD controller
         P = self.kp * error
-        D = self.kd * ((current - previous) / deltaT)
-        return(P + D)
+        I = self.ki * (I + error * deltaT)
+        D = self.kd * ((error - errorPrev) / deltaT)
+        return (P + I + D), I
 
     def northEastTest(self, vehicle):
         # Run for 10 seconds
