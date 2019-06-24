@@ -2,24 +2,26 @@ from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelativ
 from pymavlink import mavutil
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
 import matplotlib
+import datetime
 import time
 import math
-
+import random
 
 class Simulate:
     def __init__(self):
         self.vehicleArmed = True
         self.vehicleMode = "GUIDED" #GUIDED_NOGPS wont display position for simulating
 
-    def armAndTakeOff(self, vehicle, targetAltitude):
+    def armAndTakeOff(self, C, vehicle, targetAltitude):
         # Give the user some info
         print("Basic pre-arm checks")
         print("--------------------------------------------------")
 
         # Wait till vehicle is ready
         while not vehicle.is_armable:
-            print(" Waiting for vehicle to initialise...")
+            print(" Waiting for vehicle to initialize...")
             time.sleep(1)
 
         print("Arming motors")
@@ -38,8 +40,27 @@ class Simulate:
         print("Taking off!")
         print("--------------------------------------------------")
 
+        # Send take off command
         vehicle.simple_takeoff(targetAltitude)
-        time.sleep(5)
+
+        # Wait until actual altitude is achieved
+        while abs(vehicle.location.local_frame.down) <= targetAltitude:
+            print '  ', round(vehicle.location.local_frame.down,3)
+            time.sleep(0.2)
+
+        # Small pause and display message
+        time.sleep(0.5)
+        print '\nAltitude achieved\n'
+
+        # double check the yaw is aligned
+        while not ((358 <= vehicle.heading <= 360) or (0 <= vehicle.heading <= 2)):
+            C.sendAttitudeTarget(vehicle)
+            print '  ', round(vehicle.location.local_frame.down,3), vehicle.heading
+            time.sleep(0.1)
+
+        # Small pause and display message
+        time.sleep(0.5)
+        print '\nYaw achieved\n'
 
     def disarmAndLand(self, vehicle):
         # Land the drone
