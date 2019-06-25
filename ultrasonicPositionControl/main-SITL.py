@@ -165,11 +165,11 @@ class Controller:
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
 
-    def PID(self, error, errorPrev, I, deltaT):
+    def PID(self, error, errorPrev, I, dt):
         # Run the PD controller
         P = self.kp * error
-        I = self.ki * (I + error * deltaT)
-        D = self.kd * ((error - errorPrev) / deltaT)
+        I = self.ki * (I + error * dt)
+        D = self.kd * ((error - errorPrev) / dt)
         return (P + I + D), I
 
     def northEastTest(self, vehicle):
@@ -435,8 +435,9 @@ class Controller:
         pN = self.trajectoryGen(northIC, T, self.duration, False)
         pE = self.trajectoryGen(eastIC, T, self.duration, False)
 
-        # Start a timer
+        # Start timers
         self.startTime = time.time()
+        prevTime = time.time()
 
         # Run for 3*T seconds
         while (time.time() < self.startTime + 3*T):
@@ -444,7 +445,7 @@ class Controller:
             northCurrentPos = vehicle.location.local_frame.north
             eastCurrentPos = vehicle.location.local_frame.east
             downCurrentPos = vehicle.location.local_frame.down #+ (random.random()-0.5)*0.1
-            deltaT = time.time() - self.startTime
+            timeStamp = time.time() - self.startTime
 
             # Set the desired position based on time counter index
             if counter < len(pN):
@@ -461,16 +462,20 @@ class Controller:
             self.eastActualList.append(eastCurrentPos)
             self.downDesiredList.append(self.downDesired)
             self.downActualList.append(downCurrentPos)
-            self.timeList.append(deltaT)
+            self.timeList.append(timeStamp)
 
             # Error caculations
             errorNorth = desiredN - northCurrentPos
             errorEast = desiredE - eastCurrentPos
             errorDown = self.downDesired - downCurrentPos
 
+            # Time elapsed
+            dt = time.time() - prevTime
+            prevTime = time.time()
+
             # Run some control
-            pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, deltaT)
-            rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, deltaT)
+            pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
+            rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
             thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
             # Update previous errror
