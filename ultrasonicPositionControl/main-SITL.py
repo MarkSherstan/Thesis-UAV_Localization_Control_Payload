@@ -414,34 +414,38 @@ class Controller:
     def trajectoryControl(self, vehicle):
         # Initialize variables
         counter = 0
-        T = 3
+        T = 5
 
-        # Get the current postition
-        northCurrentPos = vehicle.location.local_frame.north
-        eastCurrentPos = vehicle.location.local_frame.east
+        # Set the start position
+        northStart = 1
+        eastStart = 1
 
         # Set the desired NED locations
-        self.northDesired = vehicle.location.local_frame.north + 0.5
-        self.eastDesired = vehicle.location.local_frame.east - 0.5
+        self.northDesired = 0.4
+        self.eastDesired = 0.4
         self.downDesired = -0.4
 
         # Generate a trajectory that should take T seconds
-        northIC = [northCurrentPos, self.northDesired, 0, 0, 0, 0]
-        eastIC = [eastCurrentPos, self.eastDesired, 0, 0, 0, 0]
+        northIC = [northStart, self.northDesired, 0, 0, 0, 0]
+        eastIC = [eastStart, self.eastDesired, 0, 0, 0, 0]
 
         pN = self.trajectoryGen(northIC, T, self.duration, False)
         pE = self.trajectoryGen(eastIC, T, self.duration, False)
+
+        # Combined local frame with actual initial position
+        northStart -= vehicle.location.local_frame.north
+        eastStart -= vehicle.location.local_frame.east
 
         # Start timers
         self.startTime = time.time()
         prevTime = time.time()
 
-        # Run for 3*T seconds
-        while (time.time() < self.startTime + 3*T):
-            # Get current values
-            northCurrentPos = vehicle.location.local_frame.north
-            eastCurrentPos = vehicle.location.local_frame.east
-            downCurrentPos = vehicle.location.local_frame.down #+ (random.random()-0.5)*0.1
+        # Run for 2.5*T seconds
+        while (time.time() < self.startTime + 2.5*T):
+            # Get current values and transform to trajectory defined start location
+            northCurrentPos = vehicle.location.local_frame.north + northStart
+            eastCurrentPos = vehicle.location.local_frame.east + eastStart
+            downCurrentPos = vehicle.location.local_frame.down + (random.random()-0.5)*0.1
             timeStamp = time.time() - self.startTime
 
             # Set the desired position based on time counter index
@@ -501,7 +505,7 @@ class Controller:
         # Set labels and titles
         fig.suptitle('NED Attitude Control w/ Trajectory Generation', fontsize=14, fontweight='bold')
         ax.set_title('$K_p:$ ' + str(self.kp) + '\t$K_i:$ ' + str(self.ki) +
-            '\t$k_d:$ ' + str(self.kd) + '\t$Refresh Rate:$ ' + str(self.duration) + '$s$')
+            '\t$k_d:$ ' + str(self.kd) + '\t$Refresh \ Rate:$ ' + str(self.duration) + '$s$')
         ax.set_xlabel('Time (s)', fontweight='bold')
         ax.set_ylabel('Position (m)', fontweight='bold')
 
@@ -511,6 +515,10 @@ class Controller:
         plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired',
             'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
         ax.grid()
+
+        # Generate a figure name and save
+        fileName = 'kp' + str(self.kp) + '_ki' + str(self.ki) + '_kd' + str(self.kd) + '.png'
+        plt.savefig(fileName)
 
         # Show the plot
         plt.show()
