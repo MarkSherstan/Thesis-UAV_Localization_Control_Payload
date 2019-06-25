@@ -17,25 +17,29 @@ class Controller:
 		self.pitchAngle = 0.0
 		self.yawAngle = None
 		self.yawRate = 0.0
-		self.useYawRate = True
 		self.thrust = 0.5
-		self.duration = 0.1
+		self.duration = 0.08
 
 		# Constraints for roll, pitch, and thrust
-		self.minValNE = -3.1415/12
-		self.maxValNE = 3.1415/12
+		self.minValNE = -3.1415/8
+		self.maxValNE = 3.1415/8
 		self.minValD = -1
 		self.maxValD = 1
 
 		# Controller PD Gains
-		self.kp = 0.2
-		self.kd = 5.4
+		self.kp = 0.3
+		self.ki = 0
+		self.kd = 0.2
+
+		# PID variables
+		self.northPreviousError = 0
+		self.eastPreviousError = 0
+		self.northI = 0
+		self.eastI = 0
 
 		# Controller
 		self.northDesired = None
-		self.northPreviousPos = None
 		self.eastDesired = None
-		self.eastPreviousPos = None
 		self.downDesired = None
 		self.startTime = None
 
@@ -49,8 +53,6 @@ class Controller:
 
 	def sendAttitudeTarget(self, vehicle):
 		# https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
-		#
-		# useYawRate: the yaw can be controlled using yawAngle OR yawRate.
 		#
 		# thrust: 0 <= thrust <= 1, as a fraction of maximum vertical thrust.
 		#         Note that as of Copter 3.5, thrust = 0.5 triggers a special case in
@@ -101,11 +103,12 @@ class Controller:
 	def constrain(self, val, minVal, maxVal):
 		return max(min(maxVal, val), minVal)
 
-	def PD(self, error, current, previous, deltaT):
+	def PID(self, error, errorPrev, I, dt):
 		# Run the PD controller
 		P = self.kp * error
-		D = self.kd * ((current - previous) / deltaT)
-		return(P + D)
+		I = self.ki * (I + error * dt)
+		D = self.kd * ((error - errorPrev) / dt)
+		return (P + I + D), I
 
 	def positionControl(self, vehicle, s):
 		# Set parameters
@@ -421,10 +424,10 @@ def main():
 	C = Controller()
 
 	# Run a test
-	C.altitudeTest(vehicle, s)
+	# C.altitudeTest(vehicle, s)
 	# C.positionControl(vehicle, s)
-	# C.commandTest(vehicle)
 	# C.deskTest(vehicle, s)
+	C.trajectoryControl(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
