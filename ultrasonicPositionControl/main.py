@@ -331,40 +331,77 @@ class Controller:
 
 	def trajectoryControl(self, vehicle, s):
 		# Initialize variables
-		counter = 0
-		T = 5
-
-		# Set the start position
-		northStart = 1.1
-		eastStart = 0.8
+		T = 5			# Trajectory time
+		N = 50			# Total data points for initial position
+		counter = 0		# Counter to track trajectory location
+		northCurrentPos = 0
+		eastCurrentPos = 0
 
 		# Set the desired NED locations
-		self.northDesired = 0.5
-		self.eastDesired = 0.3
-		self.downDesired = -0.4
+		self.northDesired = 0.4
+		self.eastDesired = 0.4
+		self.downDesired = 0.4
+
+		# Wait until mode has changed
+		while not vehicle.mode.name=='GUIDED_NOGPS':
+			data = [ii * 0.01 for ii in s.dataOut]
+		    print ' Waiting for GUIDED_NOGPS', data
+			self.logData(vehicle, data, 0, 0)
+		    time.sleep(0.2)
+
+		# Take N readings of data at 100 Hz once GUIDED_NOGPS mode is active
+		for ii in range(N):
+			data = [ii * 0.01 for ii in s.dataOut]
+			northCurrentPos += (data[0] + data[1]) / 2
+			eastCurrentPos += (data[2] + data[3]) / 2
+			self.logData(vehicle, data, 0, 0)
+			time.sleep(0.01)
+
+		# Find the average position
+		northCurrentPos /= N
+		eastCurrentPos /= N
 
 		# Generate a trajectory that should take T seconds
-		northIC = [northStart, self.northDesired, 0, 0, 0, 0]
-		eastIC = [eastStart, self.eastDesired, 0, 0, 0, 0]
+		northIC = [northCurrentPos, self.northDesired, 0, 0, 0, 0]
+		eastIC = [eastCurrentPos, self.eastDesired, 0, 0, 0, 0]
 
-		pN = self.trajectoryGen(northIC, T, self.duration, False)
-		pE = self.trajectoryGen(eastIC, T, self.duration, False)
+		pN = self.trajectoryGen(northIC, T, self.duration)
+		pE = self.trajectoryGen(eastIC, T, self.duration)
 
-		# Combined local frame with actual initial position
-		northStart -= vehicle.location.local_frame.north
-		eastStart -= vehicle.location.local_frame.east
-
-		# Start timers
+		# Start timer
 		self.startTime = time.time()
 		prevTime = time.time()
 
-		# Run for 2.5*T seconds
-		while (time.time() < self.startTime + 2.5*T):
-			# Get current values and transform to trajectory defined start location
-			northCurrentPos = vehicle.location.local_frame.north + northStart # + (random.random()-0.5)*0.1
-			eastCurrentPos = vehicle.location.local_frame.east + eastStart # + (random.random()-0.5)*0.1
-			downCurrentPos = vehicle.location.local_frame.down # + (random.random()-0.5)*0.1
+		# Run until stopped
+		while (True):
+			# Get current values
+			data = [ii * 0.01 for ii in s.dataOut]
+			north1 = data[0]; north2 = data[1];
+			east1 = data[2];  east2 = data[3];
+			downCurrentPos = data[4]
+
 			timeStamp = time.time() - self.startTime
+
+			# Average the distances
+			northCurrentPos = (north1 + north2) / 2
+			eastCurrentPos = (east1 + east2) / 2
+
+			# Angle calculations
+			if abs(north1 - north2) < 0.2286:
+				yawNorth = -math.asin((north1 - north2) / 0.2286)
+			else:
+				print 'North Error'
+				print round(north1, 2), round(north2, 2)
+				continue
+
+			if abs(east1 - east2) < 0.2445:
+				yawEast = -math.asin((east1 - east2) / 0.2445)
+			else:
+				print 'East Error'
+				print round(east1, 2), round(east2, 2)
+				continue
+
+			yawAvg = (yawNorth + yawEast) / 2
 
 			# Set the desired position based on time counter index
 			if counter < len(pN):
@@ -373,15 +410,6 @@ class Controller:
 			else:
 				desiredN = self.northDesired
 				desiredE = self.eastDesired
-
-			# Save values for plotting
-			self.northDesiredList.append(desiredN)
-			self.northActualList.append(northCurrentPos)
-			self.eastDesiredList.append(desiredE)
-			self.eastActualList.append(eastCurrentPos)
-			self.downDesiredList.append(self.downDesired)
-			self.downActualList.append(downCurrentPos)
-			self.timeList.append(timeStamp)
 
 			# Error caculations
 			errorNorth = desiredN - northCurrentPos
@@ -408,6 +436,7 @@ class Controller:
 
 			# Send the command, sleep, and increase counter
 			self.sendAttitudeTarget(vehicle)
+			self.logData(vehicle, data, desiredN, desiredE)
 			time.sleep(self.duration)
 			counter += 1
 
@@ -439,6 +468,14 @@ class Controller:
 
 		# Return the resulting position
 		return pos
+
+	def logData(self, vehicle, data, desiredN, desiredE):
+		self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle, \
+			vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
+			data[0], data[1], data[2], data[3], data[4], \
+			(data[0] + data[1]) / 2 * 0.01, (data[2] + data[3]) / 2, data[4], \
+			desiredN, desiredE,
+			self.rollAngle, self.pitchAngle, self.yawRate, self.thrust])
 
 class DAQ:
 	def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
