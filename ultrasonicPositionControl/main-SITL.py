@@ -55,7 +55,7 @@ class Simulate:
         # double check the yaw is aligned
         while not ((358 <= vehicle.heading <= 360) or (0 <= vehicle.heading <= 2)):
             C.sendAttitudeTarget(vehicle)
-            print '  ', round(vehicle.location.local_frame.down,3), vehicle.heading
+            print '  ', vehicle.heading
             time.sleep(0.1)
 
         # Small pause and display message
@@ -464,29 +464,22 @@ class Controller:
             self.timeList.append(deltaT)
 
             # Error caculations
-            errorNorth = northCurrentPos - desiredN
-            errorEast = eastCurrentPos - desiredE
-            errorDown = downCurrentPos - self.downDesired
-
-            # Update previous position(s) if none
-            if self.northPreviousPos is None:
-                self.northPreviousPos = northCurrentPos
-
-            if self.eastPreviousPos is None:
-                self.eastPreviousPos = eastCurrentPos
+            errorNorth = desiredN - northCurrentPos
+            errorEast = desiredE - eastCurrentPos
+            errorDown = self.downDesired - downCurrentPos
 
             # Run some control
-            pitchControl = self.PD(errorNorth, northCurrentPos, self.northPreviousPos, deltaT)
-            rollControl = self.PD(errorEast, eastCurrentPos, self.eastPreviousPos, deltaT)
-            thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+            pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, deltaT)
+            rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, deltaT)
+            thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
-            # Save the previous position
-            self.northPreviousPos = northCurrentPos
-            self.eastPreviousPos = eastCurrentPos
+            # Update previous errror
+            self.northPreviousError = errorNorth
+            self.eastPreviousError = errorEast
 
             # Set the controller values
-            self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-            self.rollAngle = self.constrain(-rollControl, self.minValNE, self.maxValNE)
+            self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
+            self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
             self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
             # Send the command, sleep, and increase counter
@@ -505,8 +498,8 @@ class Controller:
 
         # Set labels and titles
         fig.suptitle('NED Attitude Control w/ Trajectory Generation', fontsize=14, fontweight='bold')
-        ax.set_title('$K_p:$ ' + str(self.kp) + '\t$K_d:$ ' + str(self.kd) +
-            '\t$k_T:$ ' + str(self.kThrottle) + '\t$Cmd Rate:$ ' + str(self.duration) + '$s$')
+        ax.set_title('$K_p:$ ' + str(self.kp) + '\t$K_i:$ ' + str(self.ki) +
+            '\t$k_d:$ ' + str(self.kd) + '\t$Refresh Rate:$ ' + str(self.duration) + '$s$')
         ax.set_xlabel('Time (s)', fontweight='bold')
         ax.set_ylabel('Position (m)', fontweight='bold')
 
