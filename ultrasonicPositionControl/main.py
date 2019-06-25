@@ -12,13 +12,14 @@ import serial
 
 class Controller:
 	def __init__(self):
-		# Initial conditions (rads)
+		# Initial conditions
 		self.rollAngle = 0.0
 		self.pitchAngle = 0.0
 		self.yawAngle = None
 		self.yawRate = 0.0
 		self.thrust = 0.5
 		self.duration = 0.08
+		self.heading = 0
 
 		# Constraints for roll, pitch, and thrust
 		self.minValNE = -3.1415/8
@@ -385,29 +386,17 @@ class Controller:
 				northCurrentPos = (north1 + north2) / 2
 				eastCurrentPos = (east1 + east2) / 2
 
-				# Angle calculations
-				if abs(north1 - north2) < 0.2286:
+				# Heading calculations
+				if ((abs(north1 - north2) < 0.2286) and (abs(east1 - east2) < 0.2445)):
 					yawNorth = -math.asin((north1 - north2) / 0.2286)
-				else:
-					print 'North Error'
-					print round(north1, 2), round(north2, 2)
-					continue
-
-				if abs(east1 - east2) < 0.2445:
 					yawEast = -math.asin((east1 - east2) / 0.2445)
-				else:
-					print 'East Error'
-					print round(east1, 2), round(east2, 2)
-					continue
-
-				yawAvg = (yawNorth + yawEast) / 2
-
-				# # Print data
-				# print 'N: ', round(north1, 2), round(north2, 2), round(northCurrentPos, 2)
-				# print 'E: ', round(east1, 2), round(east2, 2), round(eastCurrentPos, 2)
-				# print 'D: ', round(downCurrentPos, 2)
-				# print 'Angle: ', round(math.degrees(yawNorth),2), round(math.degrees(yawEast),2), round(math.degrees(yawAvg),2)
-				# print 'Yaw sign: ', math.degrees(vehicle.attitude.yaw), '\n'
+					self.heading = (yawNorth + yawEast) / 2
+				elif abs(north1 - north2) < 0.2286:
+					self.heading = -math.asin((north1 - north2) / 0.2286)
+				elif abs(east1 - east2) < 0.2445:
+					self.heading = -math.asin((east1 - east2) / 0.2445)
+				else
+					pass
 
 				# Set the desired position based on time counter index
 				if counter < len(pN):
@@ -427,8 +416,8 @@ class Controller:
 				prevTime = time.time()
 
 				# Run some control
-				pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
 				rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
+				pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
 				thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 				# Update previous error
@@ -436,8 +425,8 @@ class Controller:
 				self.eastPreviousError = errorEast
 
 				# Set the controller values
-				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
 				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
+				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
 				# Send the command, sleep, and increase counter
@@ -455,9 +444,9 @@ class Controller:
 			fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
 
 			# Write data to CSV and display to user
-			df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'Yaw_SP', 'Roll', 'Pitch', 'Yaw',
-				'N1', 'N2', 'E1', 'E2', 'D', 'northCurrentPos', 'eastCurrentPos', 'downCurrentPos',
-				'desiredN', 'desiredE', 'rollInput', 'pitchInput', 'yawInput', 'thrustInput'])
+			df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'YawSP', 'Roll', 'Pitch', 'Yaw', 'Heading',
+				'N1', 'N2', 'E1', 'E2', 'D', 'northCurrentPos', 'eastCurrentPos', 'calcHeading',
+				'desiredN', 'desiredE', 'desiredD', 'rollInput', 'pitchInput', 'yawInput', 'thrustInput'])
 
 			df.to_csv(fileName, index=None, header=True)
 
@@ -495,10 +484,10 @@ class Controller:
 
 	def logData(self, vehicle, data, desiredN, desiredE):
 		self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle, \
-			math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
+			math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), vehicle.heading, \
 			data[0], data[1], data[2], data[3], data[4], \
-			(data[0] + data[1]) / 2, (data[2] + data[3]) / 2, data[4], \
-			desiredN, desiredE,
+			(data[0] + data[1]) / 2, (data[2] + data[3]) / 2, math.degrees(self.heading), \
+			desiredN, desiredE, self.downDesired,
 			math.degrees(self.rollAngle), math.degrees(self.pitchAngle), math.degrees(self.yawRate), self.thrust])
 
 class DAQ:
