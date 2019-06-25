@@ -417,12 +417,12 @@ class Controller:
         T = 5
 
         # Set the start position
-        northStart = 1
-        eastStart = 1
+        northStart = 1.1
+        eastStart = 0.8
 
         # Set the desired NED locations
-        self.northDesired = 0.4
-        self.eastDesired = 0.4
+        self.northDesired = 0.5
+        self.eastDesired = 0.3
         self.downDesired = -0.4
 
         # Generate a trajectory that should take T seconds
@@ -443,9 +443,9 @@ class Controller:
         # Run for 2.5*T seconds
         while (time.time() < self.startTime + 2.5*T):
             # Get current values and transform to trajectory defined start location
-            northCurrentPos = vehicle.location.local_frame.north + northStart
-            eastCurrentPos = vehicle.location.local_frame.east + eastStart
-            downCurrentPos = vehicle.location.local_frame.down + (random.random()-0.5)*0.1
+            northCurrentPos = vehicle.location.local_frame.north + northStart # + (random.random()-0.5)*0.1
+            eastCurrentPos = vehicle.location.local_frame.east + eastStart # + (random.random()-0.5)*0.1
+            downCurrentPos = vehicle.location.local_frame.down # + (random.random()-0.5)*0.1
             timeStamp = time.time() - self.startTime
 
             # Set the desired position based on time counter index
