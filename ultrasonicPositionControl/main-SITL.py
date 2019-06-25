@@ -79,18 +79,15 @@ class Controller:
         self.maxValD = 1
 
         # PID Controller Gains
-        self.kp = 0.34 #0.1 #0.4
+        self.kp = 0.3
         self.ki = 0
-        self.kd = 11#4.5 #15
+        self.kd = 0.2
 
         # PID variables
         self.northPreviousError = 0
         self.eastPreviousError = 0
         self.northI = 0
         self.eastI = 0
-
-        # 0.2 and 8 is decent
-        # 0.25 and 8
 
         # Controller
         self.northDesired = None
