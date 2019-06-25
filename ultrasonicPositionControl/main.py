@@ -342,103 +342,127 @@ class Controller:
 		self.eastDesired = 0.4
 		self.downDesired = 0.4
 
-		# Wait until mode has changed
-		while not vehicle.mode.name=='GUIDED_NOGPS':
-			data = [ii * 0.01 for ii in s.dataOut]
-		    print ' Waiting for GUIDED_NOGPS', data
-			self.logData(vehicle, data, 0, 0)
-		    time.sleep(0.2)
+		try:
+			# Wait until mode has changed
+			while not vehicle.mode.name=='GUIDED_NOGPS':
+				data = [ii * 0.01 for ii in s.dataOut]
+			    print ' Waiting for GUIDED_NOGPS', data
+				self.logData(vehicle, data, 0, 0)
+			    time.sleep(0.2)
 
-		# Take N readings of data at 100 Hz once GUIDED_NOGPS mode is active
-		for ii in range(N):
-			data = [ii * 0.01 for ii in s.dataOut]
-			northCurrentPos += (data[0] + data[1]) / 2
-			eastCurrentPos += (data[2] + data[3]) / 2
-			self.logData(vehicle, data, 0, 0)
-			time.sleep(0.01)
+			# Take N readings of data at 100 Hz once GUIDED_NOGPS mode is active
+			for ii in range(N):
+				data = [ii * 0.01 for ii in s.dataOut]
+				northCurrentPos += (data[0] + data[1]) / 2
+				eastCurrentPos += (data[2] + data[3]) / 2
+				self.logData(vehicle, data, 0, 0)
+				time.sleep(0.01)
 
-		# Find the average position
-		northCurrentPos /= N
-		eastCurrentPos /= N
+			# Find the average position
+			northCurrentPos /= N
+			eastCurrentPos /= N
 
-		# Generate a trajectory that should take T seconds
-		northIC = [northCurrentPos, self.northDesired, 0, 0, 0, 0]
-		eastIC = [eastCurrentPos, self.eastDesired, 0, 0, 0, 0]
+			# Generate a trajectory that should take T seconds
+			northIC = [northCurrentPos, self.northDesired, 0, 0, 0, 0]
+			eastIC = [eastCurrentPos, self.eastDesired, 0, 0, 0, 0]
 
-		pN = self.trajectoryGen(northIC, T, self.duration)
-		pE = self.trajectoryGen(eastIC, T, self.duration)
+			pN = self.trajectoryGen(northIC, T, self.duration)
+			pE = self.trajectoryGen(eastIC, T, self.duration)
 
-		# Start timer
-		self.startTime = time.time()
-		prevTime = time.time()
-
-		# Run until stopped
-		while (True):
-			# Get current values
-			data = [ii * 0.01 for ii in s.dataOut]
-			north1 = data[0]; north2 = data[1];
-			east1 = data[2];  east2 = data[3];
-			downCurrentPos = data[4]
-
-			timeStamp = time.time() - self.startTime
-
-			# Average the distances
-			northCurrentPos = (north1 + north2) / 2
-			eastCurrentPos = (east1 + east2) / 2
-
-			# Angle calculations
-			if abs(north1 - north2) < 0.2286:
-				yawNorth = -math.asin((north1 - north2) / 0.2286)
-			else:
-				print 'North Error'
-				print round(north1, 2), round(north2, 2)
-				continue
-
-			if abs(east1 - east2) < 0.2445:
-				yawEast = -math.asin((east1 - east2) / 0.2445)
-			else:
-				print 'East Error'
-				print round(east1, 2), round(east2, 2)
-				continue
-
-			yawAvg = (yawNorth + yawEast) / 2
-
-			# Set the desired position based on time counter index
-			if counter < len(pN):
-				desiredN = pN[counter]
-				desiredE = pE[counter]
-			else:
-				desiredN = self.northDesired
-				desiredE = self.eastDesired
-
-			# Error caculations
-			errorNorth = desiredN - northCurrentPos
-			errorEast = desiredE - eastCurrentPos
-			errorDown = self.downDesired - downCurrentPos
-
-			# Time elapsed
-			dt = time.time() - prevTime
+			# Start timer
+			self.startTime = time.time()
 			prevTime = time.time()
 
-			# Run some control
-			pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
-			rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
-			thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+			# Run until stopped
+			while (True):
+				# Get current values
+				data = [ii * 0.01 for ii in s.dataOut]
+				north1 = data[0]; north2 = data[1];
+				east1 = data[2];  east2 = data[3];
+				downCurrentPos = data[4]
 
-			# Update previous errror
-			self.northPreviousError = errorNorth
-			self.eastPreviousError = errorEast
+				# Average the distances
+				northCurrentPos = (north1 + north2) / 2
+				eastCurrentPos = (east1 + east2) / 2
 
-			# Set the controller values
-			self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
-			self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
-			self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+				# Angle calculations
+				if abs(north1 - north2) < 0.2286:
+					yawNorth = -math.asin((north1 - north2) / 0.2286)
+				else:
+					print 'North Error'
+					print round(north1, 2), round(north2, 2)
+					continue
 
-			# Send the command, sleep, and increase counter
-			self.sendAttitudeTarget(vehicle)
-			self.logData(vehicle, data, desiredN, desiredE)
-			time.sleep(self.duration)
-			counter += 1
+				if abs(east1 - east2) < 0.2445:
+					yawEast = -math.asin((east1 - east2) / 0.2445)
+				else:
+					print 'East Error'
+					print round(east1, 2), round(east2, 2)
+					continue
+
+				yawAvg = (yawNorth + yawEast) / 2
+
+				# # Print data
+				# print 'N: ', round(north1, 2), round(north2, 2), round(northCurrentPos, 2)
+				# print 'E: ', round(east1, 2), round(east2, 2), round(eastCurrentPos, 2)
+				# print 'D: ', round(downCurrentPos, 2)
+				# print 'Angle: ', round(math.degrees(yawNorth),2), round(math.degrees(yawEast),2), round(math.degrees(yawAvg),2)
+				# print 'Yaw sign: ', math.degrees(vehicle.attitude.yaw), '\n'
+
+				# Set the desired position based on time counter index
+				if counter < len(pN):
+					desiredN = pN[counter]
+					desiredE = pE[counter]
+				else:
+					desiredN = self.northDesired
+					desiredE = self.eastDesired
+
+				# Error caculations
+				errorNorth = desiredN - northCurrentPos
+				errorEast = desiredE - eastCurrentPos
+				errorDown = self.downDesired - downCurrentPos
+
+				# Time elapsed
+				dt = time.time() - prevTime
+				prevTime = time.time()
+
+				# Run some control
+				pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
+				rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
+				thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+
+				# Update previous error
+				self.northPreviousError = errorNorth
+				self.eastPreviousError = errorEast
+
+				# Set the controller values
+				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
+				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
+				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+
+				# Send the command, sleep, and increase counter
+				self.sendAttitudeTarget(vehicle)
+				self.logData(vehicle, data, desiredN, desiredE)
+				time.sleep(self.duration)
+				counter += 1
+
+		except KeyboardInterrupt:
+			# Close thread and serial connection
+			s.close()
+
+			# Create file name
+			now = datetime.datetime.now()
+			fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
+
+			# Write data to CSV and display to user
+			df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'Yaw_SP', 'Roll', 'Pitch', 'Yaw',
+				'N1', 'N2', 'E1', 'E2', 'D', 'northCurrentPos', 'eastCurrentPos', 'downCurrentPos',
+				'desiredN', 'desiredE', 'rollInput', 'pitchInput', 'yawInput', 'thrustInput'])
+
+			df.to_csv(fileName, index=None, header=True)
+
+			print('File saved to:\t' + fileName)
+
 
 	def trajectoryGen(self, IC, T, sampleRate):
 		# Define time array and storage variables
@@ -471,11 +495,11 @@ class Controller:
 
 	def logData(self, vehicle, data, desiredN, desiredE):
 		self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle, \
-			vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
+			math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
 			data[0], data[1], data[2], data[3], data[4], \
-			(data[0] + data[1]) / 2 * 0.01, (data[2] + data[3]) / 2, data[4], \
+			(data[0] + data[1]) / 2, (data[2] + data[3]) / 2, data[4], \
 			desiredN, desiredE,
-			self.rollAngle, self.pitchAngle, self.yawRate, self.thrust])
+			math.degrees(self.rollAngle), math.degrees(self.pitchAngle), math.degrees(self.yawRate), self.thrust])
 
 class DAQ:
 	def __init__(self, serialPort, serialBaud, dataNumBytes, numSignals):
