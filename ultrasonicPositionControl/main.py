@@ -15,7 +15,7 @@ class Controller:
 		# Initial conditions
 		self.rollAngle = 0.0
 		self.pitchAngle = 0.0
-		self.yawAngle = None
+		self.yawAngle = 0.0
 		self.yawRate = 0.0
 		self.thrust = 0.5
 		self.duration = 0.08
@@ -342,6 +342,7 @@ class Controller:
 		T = 5			# Trajectory time
 		N = 50			# Total data points for initial position
 		counter = 0		# Counter to track trajectory location
+		self.startTime = time.time()
 		northCurrentPos = 0
 		eastCurrentPos = 0
 
@@ -354,9 +355,9 @@ class Controller:
 			# Wait until mode has changed
 			while not vehicle.mode.name=='GUIDED_NOGPS':
 				data = [ii * 0.01 for ii in s.dataOut]
-			    print ' Waiting for GUIDED_NOGPS', data
+				print ' Waiting for GUIDED_NOGPS', data
 				self.logData(vehicle, data, 0, 0)
-			    time.sleep(0.2)
+				time.sleep(0.2)
 
 			# Take N readings of data at 100 Hz once GUIDED_NOGPS mode is active
 			for ii in range(N):
@@ -403,7 +404,7 @@ class Controller:
 					self.heading = -math.asin((north1 - north2) / 0.2286)
 				elif abs(east1 - east2) < 0.2445:
 					self.heading = -math.asin((east1 - east2) / 0.2445)
-				else
+				else:
 					pass
 
 				# Set the desired position based on time counter index
@@ -434,9 +435,9 @@ class Controller:
 				self.eastPreviousError = errorEast
 
 				# Set the controller values
-				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
-				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
-				self.yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
+				self.rollAngle = -self.constrain(rollControl, self.minValNE, self.maxValNE)
+				self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
+				self.yawRate = -np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
 				# Print data every 0.75 seconds
@@ -507,10 +508,10 @@ class Controller:
 		return pos
 
 	def logData(self, vehicle, data, desiredN, desiredE):
-		self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle, \
-			math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), vehicle.heading, \
-			data[0], data[1], data[2], data[3], data[4], \
-			(data[0] + data[1]) / 2, (data[2] + data[3]) / 2, math.degrees(self.heading), \
+		self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), self.yawAngle,
+			math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), vehicle.heading,
+			data[0], data[1], data[2], data[3], data[4],
+			(data[0] + data[1]) / 2, (data[2] + data[3]) / 2, math.degrees(self.heading),
 			desiredN, desiredE, self.downDesired,
 			math.degrees(self.rollAngle), math.degrees(self.pitchAngle), math.degrees(self.yawRate), self.thrust])
 
