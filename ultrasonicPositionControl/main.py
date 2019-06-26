@@ -297,6 +297,71 @@ class Controller:
 
 			print('File saved to:\t' + fileName)
 
+	def headingTest(self, vehicle, s):
+		# Set desired parameters
+		self.downDesired = 0.6
+		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
+		printTimer = time.time()
+		self.startTime = time.time()
+		headingDesired = 90
+
+		try:
+			while(True):
+				# Get current values
+				rollRC = vehicle.channels['2']
+				pitchRC = vehicle.channels['3']
+				downCurrentPos = s.dataOut[4] * 0.01
+
+				# Run some control
+				errorDown = self.downDesired - downCurrentPos
+				thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+				errorHeading = headingDesired - vehicle.heading
+				headingControl = self.constrain(errorHeading * self.kYaw, -45, 45)
+
+				# Set controller input
+				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
+				self.yawRate = math.radians(np.interp(headingControl, [-45, -2, 2, 45], [-90, 0, 0, 90]))
+
+				# Send the command with small time buffer
+				self.sendAttitudeTarget(vehicle)
+				time.sleep(0.08)
+
+				# Print data to the user every half second
+				if time.time() > printTimer + 0.5:
+					print 'Roll RC: ', rollRC, ' Angle: ', round(math.degrees(self.rollAngle),1), round(math.degrees(vehicle.attitude.roll),1)
+					print 'Pitch RC: ', pitchRC, ' Angle: ', round(math.degrees(self.pitchAngle),1), round(math.degrees(vehicle.attitude.pitch),1)
+					print 'Yaw: ', round(math.degrees(vehicle.attitude.yaw),1), ' Heading: ', vehicle.heading
+					print 'Control: ', round(math.degrees(self.yawRate),1)
+					print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust, '\n'
+					printTimer = time.time()
+
+				# Log data
+				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime),
+					rollRC, self.rollAngle, vehicle.attitude.roll,
+					pitchRC, self.pitchAngle, vehicle.attitude.pitch,
+					vehicle.attitude.yaw, vehicle.heading,
+					errorHeading, headingControl, self.yawRate,
+					self.thrust, downCurrentPos])
+
+		except KeyboardInterrupt:
+			# Close thread and serial connection
+			s.close()
+
+			# Create file name
+			now = datetime.datetime.now()
+			fileName = now.strftime("HeadingTest_%Y-%m-%d %H:%M:%S") + ".csv"
+
+			# Write data to CSV and display to user
+			df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'RC Roll', 'Roll Control', 'Roll Actual',
+				'RC Pitch', 'Pitch Control', 'Pitch Actual', 'Yaw', 'Heading', 'Heading Error', 'Heading Control',
+				'Yaw Rate', 'Thrust', 'Down Pos'])
+
+			df.to_csv(fileName, index=None, header=True)
+
+			print('File saved to:\t' + fileName)
+
 	def deskTest(self, vehicle, s):
 		# Set desired parameters
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
@@ -477,7 +542,6 @@ class Controller:
 
 			print('File saved to:\t' + fileName)
 
-
 	def trajectoryGen(self, IC, T, sampleRate):
 		# Define time array and storage variables
 		tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
@@ -613,7 +677,8 @@ def main():
 	# C.altitudeTest(vehicle, s)
 	# C.positionControl(vehicle, s)
 	# C.deskTest(vehicle, s)
-	C.trajectoryControl(vehicle, s)
+	# C.trajectoryControl(vehicle, s)
+	C.headingTest(vehicle, s)
 
 # Main loop
 if __name__ == '__main__':
