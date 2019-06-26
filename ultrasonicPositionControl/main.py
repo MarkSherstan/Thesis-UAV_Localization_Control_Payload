@@ -21,11 +21,13 @@ class Controller:
 		self.duration = 0.08
 		self.heading = 0
 
-		# Constraints for roll, pitch, and thrust
+		# Constraints for roll, pitch, yaw and thrust
 		self.minValNE = -3.1415/8
 		self.maxValNE = 3.1415/8
 		self.minValD = -1
 		self.maxValD = 1
+		self.minValYaw = -3.1415/4
+		self.maxValYaw = 3.1415/4
 
 		# Controller PD Gains
 		self.kp = 0.3
@@ -48,6 +50,11 @@ class Controller:
 		self.kThrottle = 0.5
 		self.one2one = [-1,0,1]
 		self.zero2one = [0, 0.5, 1]
+
+		# Yaw control
+		self.kYaw = 2
+		self.yawConstrained = [-3.1415/4, -3.1415/90, 3.1415/90, 3.1415/4]
+		self.yawRateInterp = [-3.1415/2, 0, 0, 3.1415/2]
 
 		# Data Logging
 		self.tempData = []
@@ -418,6 +425,7 @@ class Controller:
 				# Run some control
 				rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
 				pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
+				yawControl = self.constrain(self.heading * self.kYaw, self.minValYaw, self.maxValYaw)
 				thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 				# Update previous error
@@ -427,6 +435,7 @@ class Controller:
 				# Set the controller values
 				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
+				self.yawAngle = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
 				# Send the command, sleep, and increase counter
