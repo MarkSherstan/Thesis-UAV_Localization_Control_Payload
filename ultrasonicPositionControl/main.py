@@ -379,6 +379,7 @@ class Controller:
 
 			# Start timer
 			self.startTime = time.time()
+			printTimer = time.time()
 			prevTime = time.time()
 
 			# Run until stopped
@@ -435,8 +436,22 @@ class Controller:
 				# Set the controller values
 				self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 				self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
-				self.yawAngle = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
+				self.yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+
+				# Print data every 0.75 seconds
+				if (time.time() > printTimer + 0.75):
+					print 'N: ', round(north1, 2), round(north2, 2), round(northCurrentPos, 2)
+					print 'E: ', round(east1, 2), round(east2, 2), round(eastCurrentPos, 2)
+					print 'D: ', round(downCurrentPos, 2)
+					print 'Heading: ', round(math.degrees(self.heading), 2)
+
+					print 'Roll: ', round(math.degrees(self.rollAngle), 2), round(math.degrees(vehicle.attitude.roll), 2)
+					print 'Pitch: ', round(math.degrees(self.pitchAngle), 2), round(math.degrees(vehicle.attitude.pitch), 2)
+					print 'Yaw: ', round(math.degrees(self.yawRate), 2), round(math.degrees(vehicle.attitude.yaw), 2), vehicle.heading
+					print 'Thrust: ', round(self.thrust, 2), '\n'
+
+					printTimer = time.time()
 
 				# Send the command, sleep, and increase counter
 				self.sendAttitudeTarget(vehicle)
