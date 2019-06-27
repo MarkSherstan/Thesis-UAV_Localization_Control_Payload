@@ -298,8 +298,48 @@ class Controller:
 			print('File saved to:\t' + fileName)
 
 	def yawControlTest(self, vehicle, s):
+		# Set desired parameters
+		self.downDesired = 0.4
+		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
+		printTimer = time.time()
+		self.startTime = time.time()
+
 		try:
 			while(True):
+				# Get current values
+				rollRC = vehicle.channels['2']
+				pitchRC = vehicle.channels['3']
+				downCurrentPos = s.dataOut[4] * 0.01
+
+				# Run thrust calculations
+				errorDown = downCurrentPos - self.downDesired
+				thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+
+				# Yaw calcs
+				east1 = data[2];  east2 = data[3];
+				eastCurrentPos = (east1 + east2) / 2
+
+				if abs(east1 - east2) < 0.2445:
+					self.heading = -math.asin((east1 - east2) / 0.2445)
+
+				# Set controller input
+				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
+				self.yawRate = math.radians(np.interp(math.degrees(self.heading), [-30, -4, 4, 30], [-45, 0, 0, 45]))
+
+				# Send the command with small buffer
+				self.sendAttitudeTarget(vehicle)
+				time.sleep(0.08)
+
+				# Print data to the user every half second
+				if time.time() > printTimer + 0.5:
+					print 'Roll RC: ', rollRC, ' Angle: ', round(math.degrees(self.rollAngle),1), round(math.degrees(vehicle.attitude.roll),1)
+					print 'Pitch RC: ', pitchRC, ' Angle: ', round(math.degrees(self.pitchAngle),1), round(math.degrees(vehicle.attitude.pitch),1)
+					print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust
+					print 'East: ', east1, east2, eastCurrentPos
+					print 'Heading: ', self.heading, 'Rate: ', self.yawRate, '\n'
+					printTimer = time.time()
 
 		except KeyboardInterrupt:
 			# Close thread and serial connection
