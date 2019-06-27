@@ -316,6 +316,7 @@ class Controller:
 				thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 				# Yaw calcs
+				data = [ii * 0.01 for ii in s.dataOut]
 				east1 = data[2];  east2 = data[3];
 				eastCurrentPos = (east1 + east2) / 2
 
@@ -326,7 +327,7 @@ class Controller:
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
 				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
-				self.yawRate = math.radians(np.interp(math.degrees(self.heading), [-30, -4, 4, 30], [-45, 0, 0, 45]))
+				self.yawRate = math.radians(np.interp(math.degrees(self.heading), [-30, -4, 4, 30], [-90, 0, 0, 90]))
 
 				# Send the command with small buffer
 				self.sendAttitudeTarget(vehicle)
@@ -338,25 +339,34 @@ class Controller:
 					print 'Pitch RC: ', pitchRC, ' Angle: ', round(math.degrees(self.pitchAngle),1), round(math.degrees(vehicle.attitude.pitch),1)
 					print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust
 					print 'East: ', east1, east2, eastCurrentPos
-					print 'Heading: ', self.heading, 'Rate: ', self.yawRate, '\n'
+					print 'Heading: ', round(math.degrees(self.heading),2), 'Rate: ', round(math.degrees(self.yawRate),2), '\n'
 					printTimer = time.time()
+
+				# Log data
+				self.tempData.append([(time.time() - self.startTime), vehicle.mode.name,
+					east1, east2, eastCurrentPos, math.degrees(self.heading), math.degrees(self.yawRate),
+					rollRC, math.degrees(self.rollAngle), math.degrees(vehicle.attitude.roll),
+					pitchRC, math.degrees(self.pitchAngle), math.degrees(vehicle.attitude.pitch),
+					self.thrust, downCurrentPos,
+					math.degrees(vehicle.attitude.yaw), vehicle.heading])
 
 		except KeyboardInterrupt:
 			# Close thread and serial connection
 			s.close()
 
-			# # Create file name
-			# now = datetime.datetime.now()
-			# fileName = now.strftime("YawControlTest_%Y-%m-%d %H:%M:%S") + ".csv"
-			#
-			# # Write data to CSV and display to user
-			# df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'RC Roll', 'Roll Control', 'Roll Actual',
-			# 	'RC Pitch', 'Pitch Control', 'Pitch Actual', 'Yaw', 'Heading', 'Heading Error', 'Heading Control',
-			# 	'Yaw Rate', 'Thrust', 'Down Pos'])
-			#
-			# df.to_csv(fileName, index=None, header=True)
-			#
-			# print('File saved to:\t' + fileName)
+			# Create file name
+			now = datetime.datetime.now()
+			fileName = now.strftime("YawControlTest_%Y-%m-%d %H:%M:%S") + ".csv"
+
+			# Write data to CSV and display to user
+			df = pd.DataFrame(self.tempData, columns=['Time', 'Mode', 'East1', 'East2', 'EastAvg',
+				'Heading', 'yawRate', 'RC Roll', 'Roll Control', 'Roll Actual',
+				'RC Pitch', 'Pitch Control', 'Pitch Actual', 'Thrust', 'Down Pos',
+				'vehicle.yaw', 'vehicle.heading'])
+
+			df.to_csv(fileName, index=None, header=True)
+
+			print('File saved to:\t' + fileName)
 
 	def headingTest(self, vehicle, s):
 		# Set desired parameters
@@ -739,7 +749,9 @@ def main():
 	# C.positionControl(vehicle, s)
 	# C.deskTest(vehicle, s)
 	# C.trajectoryControl(vehicle, s)
-	C.headingTest(vehicle, s)
+	# C.headingTest(vehicle, s)
+	C.yawControlTest(vehicle,s)
+
 
 # Main loop
 if __name__ == '__main__':
