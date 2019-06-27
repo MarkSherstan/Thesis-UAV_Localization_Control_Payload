@@ -297,9 +297,30 @@ class Controller:
 
 			print('File saved to:\t' + fileName)
 
+	def yawControlTest(self, vehicle, s):
+		try:
+			while(True):
+
+		except KeyboardInterrupt:
+			# Close thread and serial connection
+			s.close()
+
+			# # Create file name
+			# now = datetime.datetime.now()
+			# fileName = now.strftime("YawControlTest_%Y-%m-%d %H:%M:%S") + ".csv"
+			#
+			# # Write data to CSV and display to user
+			# df = pd.DataFrame(self.tempData, columns=['Mode', 'Time', 'RC Roll', 'Roll Control', 'Roll Actual',
+			# 	'RC Pitch', 'Pitch Control', 'Pitch Actual', 'Yaw', 'Heading', 'Heading Error', 'Heading Control',
+			# 	'Yaw Rate', 'Thrust', 'Down Pos'])
+			#
+			# df.to_csv(fileName, index=None, header=True)
+			#
+			# print('File saved to:\t' + fileName)
+
 	def headingTest(self, vehicle, s):
 		# Set desired parameters
-		self.downDesired = 0.6
+		self.downDesired = 0.8
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
 		printTimer = time.time()
 		self.startTime = time.time()
@@ -316,7 +337,7 @@ class Controller:
 				errorDown = self.downDesired - downCurrentPos
 				thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 				errorHeading = headingDesired - vehicle.heading
-				headingControl = self.constrain(errorHeading * self.kYaw, -45, 45)
+				headingControl = self.constrain(errorHeading, -45, 45)
 
 				# Set controller input
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
