@@ -325,8 +325,8 @@ class Controller:
 
 				# Set controller input
 				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
-				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
-				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
+				self.rollAngle = -np.interp(rollRC, [1018, 1534, 1536, 2006], self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, [982, 1451, 1453, 1986], self.Angle)
 				self.yawRate = math.radians(np.interp(math.degrees(self.heading), [-30, -4, 4, 30], [-90, 0, 0, 90]))
 
 				# Send the command with small buffer
@@ -433,10 +433,45 @@ class Controller:
 
 			print('File saved to:\t' + fileName)
 
-	def deskTest(self, vehicle, s):
+	def printData(self, vehicle, s):
+		# Timer Initialize
+		self.startTime = time.time()
+
+		try:
+			while(True):
+			# Get Data
+			data = s.dataOut
+
+			# Print Data
+			print 'N: ', data[0], data[1]
+			print 'E: ', data[2], data[3]
+			print 'D: ', data[4]
+
+			# Log data
+			self.tempData.append([(time.time()-self.startTime), data[0], data[1], data[2], data[3], data[4]])
+
+			# 100 Hz rate
+			time.sleep(0.01)
+
+		except KeyboardInterrupt:
+			# Close thread and serial connection
+			s.close()
+
+			# Create file name
+			now = datetime.datetime.now()
+			fileName = now.strftime("Sensor_%m-%d_%H-%M-%S") + ".csv"
+
+			# Write data to CSV and display to user
+			df = pd.DataFrame(self.tempData, columns=['Time', 'N1', 'N2', 'E1', 'E2', 'D'])
+			df.to_csv(fileName, index=None, header=True)
+
+			# Display close message
+			print('File saved to:\t' + fileName)
+
+	def flightTest(self, vehicle, s):
 		# Set desired parameters
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
-		self.angleRate = [-3.1415, 0, 0, 3.1415]
+		self.angleRate = [-3.1415/2, 0, 0, 3.1415/2]
 		printTimer = time.time()
 
 		try:
