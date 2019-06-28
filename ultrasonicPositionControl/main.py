@@ -48,8 +48,8 @@ class Controller:
 
 		# Thrust Control
 		self.kThrottle = 0.5
-		self.one2one = [-1,0,1]
-		self.zero2one = [0, 0.5, 1]
+		self.one2one = [-1, -0.04, 0.04, 1]
+		self.zero2one = [0, 0.5, 0.5, 1]
 
 		# Yaw control
 		self.kYaw = 2
@@ -403,37 +403,46 @@ class Controller:
 			# Display close message
 			print('File saved to:\t' + fileName)
 
-	def flightTest(self, vehicle, s):
+	def RCcontrol(self, vehicle, s):
 		# Set desired parameters
+		self.downDesired = 0.7
 		self.Angle = [-3.1415/8, 0, 0, 3.1415/8]
 		self.angleRate = [-3.1415/2, 0, 0, 3.1415/2]
 		printTimer = time.time()
 
+		# RC Mappings
+		rollPWM = [1018, 2006]; rollMid = rollPWM[0] + (rollPWM[1] - rollPWM[0])/2
+		pitchPWM = [982, 1986]; pitchMid = pitchPWM[0] + (pitchPWM[1] - pitchPWM[0])/2
+		yawPWM =  [1000, 2000]; yawMid = yawPWM[0] + (yawPWM[1] - yawPWM[0])/2
+
 		try:
 			while(True):
 				# Get current values
-				thrustRC = vehicle.channels['1']
 				rollRC = vehicle.channels['2']
 				pitchRC = vehicle.channels['3']
 				yawRC = vehicle.channels['4']
+				downCurrentPos = s.dataOut[4] * 0.01
 
-				# Set controller input
-				self.thrust = np.interp(thrustRC, [982, 2006], [0, 1])
-				self.rollAngle = -np.interp(rollRC, [1018, 1500, 1560, 2006], self.Angle)
-				self.pitchAngle = -np.interp(pitchRC, [982, 1440, 1500, 1986], self.Angle)
-				self.yawRate = np.interp(yawRC, [1000, 1445, 1505, 2000], self.angleRate)
+				# Run thrust calculations
+				errorDown = downCurrentPos - self.downDesired
+				thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+
+				# Set roll, pitch, and yaw inputs
+				self.rollAngle = -np.interp(rollRC, [rollPWM[0], rollMid-2, rollMid+2, rollPWM[1]], self.Angle)
+				self.pitchAngle = -np.interp(pitchRC, [pitchPWM[0], pitchMid-2, pitchMid+2, pitchPWM[1]], self.Angle)
+				self.yawRate = np.interp(yawRC, [yawPWM[0], yawMid-2, yawMid+2, yawPWM[1]], self.angleRate)
 
 				# Send the command with small buffer
 				self.sendAttitudeTarget(vehicle)
-				time.sleep(0.08)
+				time.sleep(0.05)
 
 				# Print data to the user every half second
 				if time.time() > printTimer + 0.5:
-					print 'Thrust RC: ', thrustRC, ' Input: ', round(self.thrust,3)
-					print 'Roll RC: ', rollRC, ' Input: ', round(math.degrees(self.rollAngle),1)
-					print 'Pitch RC: ', pitchRC, ' Input: ', round(math.degrees(self.pitchAngle),1)
-					print 'Yaw RC: ', pitchRC, ' Input: ', round(math.degrees(self.yawRate),1)
-					print s.dataOut, '\n'
+					print 'Roll RC: ', round(math.degrees(self.rollAngle),1)
+					print 'Pitch RC: ', round(math.degrees(self.pitchAngle),1)
+					print 'Yaw RC: ', round(math.degrees(self.yawRate),1)
+					print 'Down: ', downCurrentPos, ' Thrust: ', self.thrust, '\n'
 					printTimer = time.time()
 
 		except KeyboardInterrupt:
