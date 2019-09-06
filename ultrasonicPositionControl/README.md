@@ -33,7 +33,7 @@ Navigate to the following directory through the command line and run the simulat
 
 ```
 cd ardupilot/Tools/autotest
-python sim_vehicle.py -v ArduCopter
+python sim_vehicle.py -v ArduCopter -L UChicago
 ```
 
 Once the simulator is running. Open another command line and navigate to the following directory and run the program to test your control scheme.
