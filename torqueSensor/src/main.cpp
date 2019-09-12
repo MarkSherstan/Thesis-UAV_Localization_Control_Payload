@@ -7,7 +7,7 @@
 #define SCK_PIN 3
 
 // Calibration (0) or measuring (1)
-#define task 0
+#define mode 0
 
 // Define variables
 float calibrationFactor = 0;
@@ -25,7 +25,7 @@ void setup(){
   Serial.begin(57600);
 
   // Display message to user depending what program is running
-  if (task == 0){
+  if (mode == 0){
     // Calibration usage notes
     Serial.println("Remove any load from apparatus.");
     Serial.println("---------------------------------------------------");
@@ -34,14 +34,14 @@ void setup(){
     Serial.println("Use q to exit current calibration factor tuning");
     Serial.println("---------------------------------------------------");
     delay(2000);
-  } else if (task == 1) {
+  } else if (mode == 1) {
     // Measuring usage notes
     Serial.println("Remove any load from apparatus.");
     Serial.println("All readings are in Newton meters [Nm]");
     delay(4000);
   } else {
     // Error usage notes
-    Serial.println("Task selection error");
+    Serial.println("mode selection error");
   }
 
   // Initialize library (default gain is 128 on channel A)
@@ -49,15 +49,15 @@ void setup(){
 }
 
 void loop(){
-  if (task == 0){
+  if (mode == 0){
     // Run the calibration continously for different calibration masses
     calibration();
-  } else if (task == 1){
+  } else if (mode == 1){
     // Log data to serial continously
     measureTorque();
   } else {
     // Dislay error to user
-    Serial.println("Task selection error");
+    Serial.println("mode selection error");
     delay(1000);
   }
 }
@@ -109,6 +109,10 @@ void calibration(){
   // Get the user to remove the mass in prep for the next cycle
   Serial.println("\nRemove calibration mass!");
   delay(3000);
+
+  // Post baseline reading
+  Serial.print("Baseline reading: ");
+  Serial.println(loadCell.read_average(10));
 }
 
 void measureTorque(){
