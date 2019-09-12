@@ -10,7 +10,7 @@
 #define mode 0
 
 // Define variables
-float calibrationFactor = 0;
+float calibrationFactor = 6200;
 
 // Custom functions
 void calibration();
@@ -33,15 +33,15 @@ void setup(){
     Serial.println("Use - to decrease calibration factor");
     Serial.println("Use q to exit current calibration factor tuning");
     Serial.println("---------------------------------------------------");
-    delay(2000);
+    delay(4000);
   } else if (mode == 1) {
     // Measuring usage notes
-    Serial.println("Remove any load from apparatus.");
-    Serial.println("All readings are in Newton meters [Nm]");
+    Serial.println("Remove load from apparatus if applicable.");
+    Serial.println("All readings are in kg-cm");
     delay(4000);
   } else {
     // Error usage notes
-    Serial.println("mode selection error");
+    Serial.println("Mode selection error.");
   }
 
   // Initialize library (default gain is 128 on channel A)
@@ -57,7 +57,7 @@ void loop(){
     measureTorque();
   } else {
     // Dislay error to user
-    Serial.println("mode selection error");
+    Serial.println("Mode selection error.");
     delay(1000);
   }
 }
@@ -71,26 +71,19 @@ void calibration(){
   Serial.print("Baseline reading: ");
   Serial.println(loadCell.read_average(10));
 
-  // Signal to user to place mass (they have 5s)
-  Serial.println("Place calibration mass...");
+  // Signal to user to place mass
+  Serial.print("Place calibration mass.");
+  delay(5000);
 
-  for (int ii = 0; ii <= 10; ii++) {
-    Serial.print(".");
-    delay(500);
-  }
-
-  // Run until broken by user
+  // Run until quit by user
   while(true){
     // Adjust the calibration factor
     loadCell.set_scale(calibrationFactor);
 
     // Display the average of 3 readings, minus tare weight, divided by scale
-	  Serial.print("Reading: ");
-    Serial.print(loadCell.get_units(3), 1);
-    Serial.println(" Nm");
+    Serial.print(loadCell.get_units(3), 1); Serial.print("\t");
 
     // Display the current calibration factor
-    Serial.print("Calibration factor: ");
     Serial.println(calibrationFactor);
 
     // Get input from the user (+, -, q) to adjust calibrationFactor
@@ -98,21 +91,28 @@ void calibration(){
       char temp = Serial.read();
 
       if (temp == '+')
-        calibrationFactor += 10;
+        calibrationFactor += 100;
       else if (temp == '-')
-        calibrationFactor -= 10;
+        calibrationFactor -= 100;
       else if (temp == 'q')
         break;
     }
+
+    // Short delay
+    delay(100);
   }
 
   // Get the user to remove the mass in prep for the next cycle
   Serial.println("\nRemove calibration mass!");
-  delay(3000);
+  delay(5000);
 
   // Post baseline reading
   Serial.print("Baseline reading: ");
   Serial.println(loadCell.read_average(10));
+
+  // Run empty loop forever
+  Serial.println("Load next calibration and restart program.");
+  while(true);
 }
 
 void measureTorque(){
