@@ -1,17 +1,17 @@
 #include <Servo.h>
 
-//Declaring Variables
+// Current sensor
 int scale = 185;    // mV/A
 int offSet = 2500;  // mV
 int currentSensor;
 double milliAmps;
+
+// Transmitter/receiver
 byte lastChannel;
 int receiverInputChannel;
 unsigned long timer;
-Servo myservo;
 
-
-// For the force sensative resistors
+// Force senstative resistors
 const int FSR_PIN[] = {2, 3};
 const float VCC = 4.98;
 const float R_DIV = 5100.0;
@@ -19,14 +19,17 @@ const float R_DIV = 5100.0;
 int fsrADC;
 float fsrV, fsrR, fsrG;
 float force[2];
+float avgForce;
 
+// Use servo class
+Servo myservo;
 
 
 void setup(){
   // Serial coms
   Serial.begin(9600);
 
-  // Set Atmega pin default to input. Scan and set PCINT0 (D53) interrupt.
+  // Set Atmega pin default to input. Scan and set PCINT0 (D53 Mega | D8 uno) interrupt.
   PCICR |= (1 << PCIE0);
   PCMSK0 |= (1 << PCINT0);
 
@@ -44,28 +47,39 @@ void loop(){
   // Read current sensor and calculate a value
   currentSensor = analogRead(A0);
   milliAmps = (((currentSensor / 1024.0) * 5000) - offSet) / scale;
-  Serial.print(milliAmps);
+  Serial.print(milliAmps, 1); Serial.print(" ");
 
-  // If current high flash LED
-  if (milliAmps >= 0.2){
-    for (int i = 0; i <= 15; i++) {
-      digitalWrite(10, HIGH);
-      delay(100);
-      digitalWrite(10, LOW);
-      delay(100);
-    }
-  }
+  // Read FSR's and calculate an average value
+  readFSR();
+  avgForce = (force[0] + force[1]) / 2.0;
+  Serial.print(force[0], 1); Serial.print(" ");
+  Serial.print(force[1], 1); Serial.print(" ");
+  Serial.print(avgForce, 1); Serial.print(" ");
+
+  // If current high flash LED --> This should be changed to force
+  // if (milliAmps >= 0.2){
+  //   for (int i = 0; i <= 15; i++) {
+  //     digitalWrite(10, HIGH);
+  //     delay(100);
+  //     digitalWrite(10, LOW);
+  //     delay(100);
+  //   }
+  // }
 
   // Reading RC signal and sending signal to servo
   if (receiverInputChannel - 1480 < 0){
+    // Open or close ??????
     myservo.writeMicroseconds(1000);
   } else if (receiverInputChannel - 1520 > 0){
+    // Open or close ??????
     myservo.writeMicroseconds(2000);
   } else {
+    // Stationary
     myservo.writeMicroseconds(1520);
   }
 
-  Serial.print("\t"); Serial.println(receiverInputChannel);
+  // Print new line and display current RC controller
+  Serial.println(receiverInputChannel);
 }
 
 void readFSR(){
@@ -92,7 +106,7 @@ void readFSR(){
 
 ISR(PCINT0_vect){
   // Input changed from 0 to 1
-  if(lastChannel == 0 && PINB & B00000001 ){
+  if(lastChannel == 0 && PINB & B00000001){
     lastChannel = 1;
     timer = micros();
   }
