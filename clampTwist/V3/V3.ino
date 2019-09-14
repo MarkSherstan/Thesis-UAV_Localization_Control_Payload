@@ -21,6 +21,10 @@ float fsrV, fsrR, fsrG;
 float force[2];
 float avgForce;
 
+// Limit switch
+const int SWITCH_PIN[] = {5, 6};
+bool switchA, switchB;
+
 // Use servo class
 Servo myservo;
 
@@ -32,6 +36,10 @@ void setup(){
   // Set Atmega pin default to input. Scan and set PCINT0 (D53 Mega | D8 uno) interrupt.
   PCICR |= (1 << PCIE0);
   PCMSK0 |= (1 << PCINT0);
+
+  // Limit Switches
+  pinMode(SWITCH_PIN[0], INPUT_PULLUP);
+  pinMode(SWITCH_PIN[1], INPUT_PULLUP);
 
   // Servo
   myservo.attach(9);
@@ -102,6 +110,11 @@ void readFSR(){
     else
       force[ii] =  fsrG / 0.000000642857;
     }
+}
+
+void readLimitSwitch(){
+  switchA = digitalRead(SWITCH_PIN[0]);
+  switchB = digitalRead(SWITCH_PIN[1]);
 }
 
 ISR(PCINT0_vect){
