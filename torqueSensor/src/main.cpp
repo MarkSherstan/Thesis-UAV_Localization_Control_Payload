@@ -7,10 +7,11 @@
 #define SCK_PIN 3
 
 // Calibration (0) or measuring (1)
-#define mode 0
+#define mode 1
 
 // Define variables
-float calibrationFactor = 6200;
+float calibrationFactor = 460;
+unsigned long time;
 
 // Custom functions
 void calibration();
@@ -18,7 +19,6 @@ void measureTorque();
 
 // Make a class to use
 HX711 loadCell;
-
 
 void setup(){
   // Start serial port
@@ -37,7 +37,7 @@ void setup(){
   } else if (mode == 1) {
     // Measuring usage notes
     Serial.println("Remove load from apparatus if applicable.");
-    Serial.println("All readings are in kg-cm");
+    Serial.println("All readings are in grams");
     delay(4000);
   } else {
     // Error usage notes
@@ -72,7 +72,7 @@ void calibration(){
   Serial.println(loadCell.read_average(10));
 
   // Signal to user to place mass
-  Serial.print("Place calibration mass.");
+  Serial.println("Place calibration mass.");
   delay(5000);
 
   // Run until quit by user
@@ -91,9 +91,9 @@ void calibration(){
       char temp = Serial.read();
 
       if (temp == '+')
-        calibrationFactor += 100;
+        calibrationFactor += 5;
       else if (temp == '-')
-        calibrationFactor -= 100;
+        calibrationFactor -= 5;
       else if (temp == 'q')
         break;
     }
@@ -117,12 +117,20 @@ void calibration(){
 
 void measureTorque(){
   // Set calibration factor and then zero readings
+  Serial.println("Zeroing...");
+  delay(2000);
   loadCell.set_scale(calibrationFactor);
   loadCell.tare();
+  Serial.println("Wait...");
+  delay(3000);
+  Serial.println("Start!");
+
+  // Start a timer
+  time = millis();
 
   // Acquire data forever
   while(true){
-    Serial.println(loadCell.get_units(), 1);
-    delay(100);
+    Serial.print(millis()); Serial.print(",");
+    Serial.println(loadCell.get_units());
   }
 }
