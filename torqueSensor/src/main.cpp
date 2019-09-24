@@ -1,5 +1,6 @@
 // Required libraries
 #include <Arduino.h>
+#include <Servo.h>
 #include "HX711.h"
 
 // Pin selection
@@ -9,13 +10,20 @@
 // Calibration (0) or measuring (1)
 #define mode 1
 
+// ESC definition
+#define MOTOR_PIN_1 9
+#define MOTOR_PIN_2 10
+Servo motor1;
+Servo motor2;
+int pulse = 1000;
+
 // Define variables
-float calibrationFactor = 460;
+float calibrationFactor = 457;
 unsigned long time;
 
 // Custom functions
 void calibration();
-void measureTorque();
+void measureTorqueLive();
 
 // Make a class to use
 HX711 loadCell;
@@ -54,7 +62,7 @@ void loop(){
     calibration();
   } else if (mode == 1){
     // Log data to serial continously
-    measureTorque();
+    measureTorqueLive();
   } else {
     // Dislay error to user
     Serial.println("Mode selection error.");
@@ -115,22 +123,45 @@ void calibration(){
   while(true);
 }
 
-void measureTorque(){
+void measureTorqueLive(){
+
+    // Initialize PWM pins
+    motor1.attach(MOTOR_PIN_1);
+    motor2.attach(MOTOR_PIN_2);
+
+    // Write initial signal
+    motor1.writeMicroseconds(pulse);
+    motor2.writeMicroseconds(pulse);
+
+
   // Set calibration factor and then zero readings
   Serial.println("Zeroing...");
-  delay(2000);
-  loadCell.set_scale(calibrationFactor);
+
+  loadCell.set_scale();
   loadCell.tare();
-  Serial.println("Wait...");
-  delay(3000);
-  Serial.println("Start!");
+  delay(2000);
+
+  loadCell.set_scale(calibrationFactor);
+  delay(2000);
+
+  Serial.println("Starting in 10 secounds");
+  delay(10000);
 
   // Start a timer
   time = millis();
 
   // Acquire data forever
   while(true){
+    // Print data
     Serial.print(millis()); Serial.print(",");
+    Serial.print(pulse); Serial.print(",");
     Serial.println(loadCell.get_units());
+
+    motor1.writeMicroseconds(pulse);
+    motor2.writeMicroseconds(pulse);
+
+    // Delay and incrament pulse
+    pulse += 2;
+    delay(100);
   }
 }
