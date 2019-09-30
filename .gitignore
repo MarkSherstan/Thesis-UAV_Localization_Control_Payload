@@ -1,17 +1,2 @@
-# C++
-*
-!*.*
-!*/
-*.o
-
 # Mac OS ignores
 .DS_Store
-
-# Simulink cache and other
-*.slxc
-*.mat
-*.xml
-*.autosave
-
-# Auto generated videos from simulation
-*.avi
