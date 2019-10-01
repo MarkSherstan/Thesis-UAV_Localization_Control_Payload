@@ -1,11 +1,8 @@
 # UAV-Sampling-Control-System
-Control and DAQ system for autonomous UAV oil sampler. Refer to sub directories which hold specific README documents relevent to the material in that folder.  
-
+Control, data acquisition, and actuation system for autonomous UAV sampler.
 
 ## Manipulator Actuation
-
-pio lib install "Servo"
-
+Open the `ManipulatorActuation` PlatformIO project and build the project (current settings are for an Arduino Uno). All pinout is labeled in `src\main.cpp`. The servo library may need to be re-installed with the following command: `pio lib install "Servo"` in the PlatformIO command line.
 
 ## Off Board (Guided No GPS) Control Python
 Python 2.7 is required. Python 3 and higher is not fully supported. The following packages should be installed (additional may be required, follow any errors generated).
@@ -45,7 +42,7 @@ cd ardupilot/Tools/autotest
 python sim_vehicle.py -v ArduCopter -L UChicago
 ```
 
-Once the simulator is running. Open another command line and navigate to the following directory and run the program to test your control scheme.
+Once the simulator is running. Open another command line and navigate to the following directory and run the program to test the control scheme.
 
 ```
 cd UAV-Sampling-Control-System/ultrasonicPositionControl/offboard-python/
