@@ -1,0 +1,47 @@
+{
+    "name": "Servo", 
+    "version": "1.1.5", 
+    "keywords": [
+        "device", 
+        "control"
+    ], 
+    "description": "Allows Arduino/Genuino boards to control a variety of servo motors.", 
+    "frameworks": [
+        "arduino"
+    ], 
+    "platforms": [
+        "atmelavr", 
+        "atmelsam"
+    ], 
+    "authors": [
+        {
+            "email": null, 
+            "url": null, 
+            "maintainer": false, 
+            "name": "Michael Margolis"
+        }, 
+        {
+            "email": "info@arduino.cc", 
+            "url": null, 
+            "maintainer": true, 
+            "name": "Arduino"
+        }
+    ], 
+    "repository": {
+        "type": "git", 
+        "url": "https://github.com/arduino-libraries/Servo"
+    }, 
+    "homepage": "http://www.arduino.cc/en/Reference/Servo", 
+    "export": {
+        "include": null, 
+        "exclude": [
+            "extras", 
+            "docs", 
+            "tests", 
+            "test", 
+            "*.doxyfile", 
+            "*.pdf"
+        ]
+    }, 
+    "id": 883
+}
