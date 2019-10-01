@@ -11,16 +11,11 @@ void controlAndSense::setUpDigitalPins(int limitSwitchA, int limitSwitchB, int L
   digitalWrite(LED, LOW);
 }
 
-void controlAndSense::startTimeSync(long loopTimeMicroSec){
-  // Save sampling rate and start timer
-  _loopTimeMicroSec = loopTimeMicroSec;
-  micros();
-}
-
 float controlAndSense::readCurrent(int analogPin){
   // Read analog pin and process value
   currentADC = analogRead(analogPin);
-  milliAmps = (((currentADC / 1024.0) * 5000.0) - offSet) / scale;
+  amps = ((((float)currentADC / 1024.0) * 5000.0) - offSet) / scale;
+  milliAmps = amps * 1000;
 
   // Return the result
   return milliAmps;
@@ -61,25 +56,11 @@ void controlAndSense::LED_OFF(int LED){
   digitalWrite(LED, LOW);
 }
 
-void controlAndSense::printData(float force, float current, int receiverInputChannel){
+void controlAndSense::printData(float force, float current, bool switchStateA, bool switchStateB, int receiverInputChannel){
+  Serial.print(micros());                   Serial.print(",");
   Serial.print(force,1);                    Serial.print(",");
   Serial.print(current,1);                  Serial.print(",");
+  Serial.print(switchStateA);               Serial.print(",");
+  Serial.print(switchStateB);               Serial.print(",");
   Serial.println(receiverInputChannel);
-}
-
-void controlAndSense::timeSync(){
-  // Calculate required delay
-  currentTime = micros();
-  timeToDelay = _loopTimeMicroSec - (currentTime - _trackedTime);
-
-  // Execute the delay
-  if (timeToDelay > 5000){
-    delay(timeToDelay / 1000);
-    delayMicroseconds(timeToDelay % 1000);
-  } else if (timeToDelay > 0){
-    delayMicroseconds(timeToDelay);
-  } else {}
-
-  // Update the tracked time
-  _trackedTime = currentTime + timeToDelay;
 }

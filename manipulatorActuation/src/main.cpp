@@ -3,8 +3,8 @@
 #include "controlAndSense.h"
 
 // Pinout
-#define currentAnalog   0
-#define forceAnalog     2
+#define forceAnalog     0
+#define currentAnalog   2
 #define blueLED         3
 #define limitSwitchA    5
 #define limitSwitchB    6
@@ -12,16 +12,19 @@
 #define clampServo      9
 
 // Variables
-float force;
-float current;
+long loopTimeMicroSec = 10000;
+float force, current;
 byte lastChannel;
 int receiverInputChannel;
 bool switchStateA, switchStateB;
-unsigned long timer;
-long loopTimeMicroSec = 10000;
+unsigned long timer, currentTime, trackedTime;
+long timeToDelay;
+
+// Functions
+void timeSync();
 
 // Setup classes
-controlAndSense *CaS;
+controlAndSense CaS;
 Servo clamp;
 
 // Run once
@@ -30,7 +33,7 @@ void setup(){
   Serial.begin(115200);
 
   // Configure digital pins
-  CaS->setUpDigitalPins(limitSwitchA, limitSwitchB, blueLED);
+  CaS.setUpDigitalPins(limitSwitchA, limitSwitchB, blueLED);
 
   // Set Atmega for interupt (condifugred for D8)
   PCICR |= (1 << PCIE0);
@@ -40,25 +43,43 @@ void setup(){
   clamp.attach(clampServo);
   clamp.writeMicroseconds(1520);
 
-  // Start time sync (10000->100Hz, 5000->200Hz)
-  CaS->startTimeSync(loopTimeMicroSec);
+  // Start time sync timer
+  micros();
 }
 
 // Run forever
 void loop(){
   // Acquire new data
-  force = CaS->readFSR(forceAnalog);
-  current = CaS->readCurrent(currentAnalog);
-  switchStateA = CaS->readSwitch(limitSwitchA);
-  switchStateB = CaS->readSwitch(limitSwitchB);
+  force = CaS.readFSR(forceAnalog);
+  current = CaS.readCurrent(currentAnalog);
+  switchStateA = CaS.readSwitch(limitSwitchA);
+  switchStateB = CaS.readSwitch(limitSwitchB);
 
   // Print data
-  CaS->printData(force, current, receiverInputChannel);
+  CaS.printData(force, current, switchStateA, switchStateB, receiverInputChannel);
 
   // Stabilize sampling rate and flicker LED
-  CaS->LED_ON(blueLED);
-  CaS->timeSync();
-  CaS->LED_OFF(blueLED);
+  CaS.LED_ON(blueLED);
+  timeSync();
+  CaS.LED_OFF(blueLED);
+}
+
+// Time stabilization
+void timeSync(){
+  // Calculate required delay
+  currentTime = micros();
+  timeToDelay = loopTimeMicroSec - (currentTime - trackedTime);
+
+  // Execute the delay
+  if (timeToDelay > 5000){
+    delay(timeToDelay / 1000);
+    delayMicroseconds(timeToDelay % 1000);
+  } else if (timeToDelay > 0){
+    delayMicroseconds(timeToDelay);
+  } else {}
+
+  // Update the tracked time
+  trackedTime = currentTime + timeToDelay;
 }
 
 // Inturpt function for receiver
