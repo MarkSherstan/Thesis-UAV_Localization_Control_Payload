@@ -17,11 +17,7 @@ float force, current;
 byte lastChannel;
 int receiverInputChannel;
 bool switchStateA, switchStateB;
-unsigned long timer, currentTime, trackedTime;
-long timeToDelay;
-
-// Functions
-void timeSync();
+unsigned long timer;
 
 // Setup classes
 controlAndSense CaS;
@@ -43,8 +39,8 @@ void setup(){
   clamp.attach(clampServo);
   clamp.writeMicroseconds(1520);
 
-  // Start time sync timer
-  micros();
+  // Start time sync (10000->100Hz, 5000->200Hz)
+  CaS.startTimeSync(loopTimeMicroSec);
 }
 
 // Run forever
@@ -60,26 +56,8 @@ void loop(){
 
   // Stabilize sampling rate and flicker LED
   CaS.LED_ON(blueLED);
-  timeSync();
+  CaS.timeSync();
   CaS.LED_OFF(blueLED);
-}
-
-// Time stabilization
-void timeSync(){
-  // Calculate required delay
-  currentTime = micros();
-  timeToDelay = loopTimeMicroSec - (currentTime - trackedTime);
-
-  // Execute the delay
-  if (timeToDelay > 5000){
-    delay(timeToDelay / 1000);
-    delayMicroseconds(timeToDelay % 1000);
-  } else if (timeToDelay > 0){
-    delayMicroseconds(timeToDelay);
-  } else {}
-
-  // Update the tracked time
-  trackedTime = currentTime + timeToDelay;
 }
 
 // Inturpt function for receiver
