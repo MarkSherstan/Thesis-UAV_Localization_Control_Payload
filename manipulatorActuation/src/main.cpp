@@ -20,7 +20,7 @@ bool switchStateA, switchStateB;
 unsigned long timer;
 
 // Setup classes
-controlAndSense CaS;
+ControlAndSense CaS;
 Servo clamp;
 
 // Run once

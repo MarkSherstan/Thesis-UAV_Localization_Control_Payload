@@ -2,11 +2,11 @@
 #ifndef CONTROLANDSENSE_H
 #define CONTROLANDSENSE_H
 
-class controlAndSense {
+class ControlAndSense {
 
 private:
   // FSR variables
-  int dummyVar;
+  // int dummyVar;
   int fsrADC;
   float fsrV, fsrR, fsrG;
   float VCC = 4.98;       // volts
@@ -26,7 +26,7 @@ private:
 
 public:
   // Constructor
-  controlAndSense() = default;
+  ControlAndSense() = default;
 
   // Functions
   void setUpDigitalPins(int limitSwitchA, int limitSwitchB, int LED);
