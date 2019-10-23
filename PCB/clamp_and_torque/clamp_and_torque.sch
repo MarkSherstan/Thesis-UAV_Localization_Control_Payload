@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:clamp_and_torque-cache
 EELAYER 30 0
 EELAYER END
 $Descr A4 11693 8268
@@ -30,7 +31,7 @@ U 1 1 5DAE42D2
 P 6450 3550
 F 0 "R1" V 6243 3550 50  0000 C CNN
 F 1 "10k" V 6334 3550 50  0000 C CNN
-F 2 "" H 6520 3459 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 6520 3459 50  0001 L CNN
 F 3 "~" H 6450 3550 50  0001 C CNN
 	1    6450 3550
 	0    1    1    0   
@@ -67,7 +68,7 @@ U 1 1 5DAE38D8
 P 2700 4100
 F 0 "J1" H 2728 4126 50  0000 L CNN
 F 1 "Servo1" H 2728 4035 50  0000 L CNN
-F 2 "" H 2700 4100 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P5.04mm_Vertical" H 2700 4100 50  0001 C CNN
 F 3 "~" H 2700 4100 50  0001 C CNN
 	1    2700 4100
 	1    0    0    -1  
@@ -101,7 +102,7 @@ U 1 1 5DAF68B1
 P 7450 3000
 F 0 "J4" H 7478 2976 50  0000 L CNN
 F 1 "Conn_01x02_Female" H 7478 2885 50  0000 L CNN
-F 2 "" H 7450 3000 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_V2" H 7450 3000 50  0001 C CNN
 F 3 "~" H 7450 3000 50  0001 C CNN
 	1    7450 3000
 	1    0    0    -1  
@@ -127,12 +128,12 @@ $EndComp
 $Comp
 L Connector:Conn_01x02_Female J3
 U 1 1 5DAFAF0D
-P 4150 3250
-F 0 "J3" H 4042 2925 50  0000 C CNN
-F 1 "LimitSwitches" H 4042 3016 50  0000 C CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 4150 3250 50  0001 C CNN
-F 3 "~" H 4150 3250 50  0001 C CNN
-	1    4150 3250
+P 2300 2000
+F 0 "J3" H 2192 1675 50  0000 C CNN
+F 1 "LimitSwitchA" H 2192 1766 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 2300 2000 50  0001 C CNN
+F 3 "~" H 2300 2000 50  0001 C CNN
+	1    2300 2000
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
@@ -157,7 +158,7 @@ U 1 1 5DB09907
 P 1850 3800
 F 0 "J2" H 1878 3826 50  0000 L CNN
 F 1 "Servo2" H 1878 3735 50  0000 L CNN
-F 2 "" H 1850 3800 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P5.04mm_Vertical" H 1850 3800 50  0001 C CNN
 F 3 "~" H 1850 3800 50  0001 C CNN
 	1    1850 3800
 	1    0    0    -1  
@@ -273,7 +274,7 @@ U 1 1 5DB21842
 P 7600 4950
 F 0 "J5" H 7628 4926 50  0000 L CNN
 F 1 "Conn_01x02_Female" H 7628 4835 50  0000 L CNN
-F 2 "" H 7600 4950 50  0001 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical_V2" H 7600 4950 50  0001 C CNN
 F 3 "~" H 7600 4950 50  0001 C CNN
 	1    7600 4950
 	1    0    0    -1  
@@ -312,7 +313,7 @@ U 1 1 5DB25A67
 P 6400 4350
 F 0 "R4" V 6193 4350 50  0000 C CNN
 F 1 "10k" V 6284 4350 50  0000 C CNN
-F 2 "" H 6470 4259 50  0000 L CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 6470 4259 50  0001 L CNN
 F 3 "~" H 6400 4350 50  0001 C CNN
 	1    6400 4350
 	0    1    1    0   
@@ -360,4 +361,68 @@ Wire Wire Line
 	6550 4350 6900 4350
 Wire Wire Line
 	6150 5050 7400 5050
+$Comp
+L Connector:Conn_01x02_Female J6
+U 1 1 5DB0E066
+P 2300 2700
+F 0 "J6" H 2192 2375 50  0000 C CNN
+F 1 "LimitSwitchB" H 2192 2466 50  0000 C CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 2300 2700 50  0001 C CNN
+F 3 "~" H 2300 2700 50  0001 C CNN
+	1    2300 2700
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0112
+U 1 1 5DB0EAAF
+P 2700 2000
+F 0 "#PWR0112" H 2700 1750 50  0001 C CNN
+F 1 "GND" H 2705 1827 50  0000 C CNN
+F 2 "" H 2700 2000 50  0001 C CNN
+F 3 "" H 2700 2000 50  0001 C CNN
+	1    2700 2000
+	1    0    0    -1  
+$EndComp
+Text GLabel 4350 3150 0    50   Input ~ 0
+D2
+Text GLabel 4350 3250 0    50   Input ~ 0
+D3
+Text GLabel 2950 2600 2    50   Input ~ 0
+D2
+Text GLabel 2900 1900 2    50   Input ~ 0
+D3
+$Comp
+L power:GND #PWR0113
+U 1 1 5DB1DE6D
+P 2750 2700
+F 0 "#PWR0113" H 2750 2450 50  0001 C CNN
+F 1 "GND" H 2755 2527 50  0000 C CNN
+F 2 "" H 2750 2700 50  0001 C CNN
+F 3 "" H 2750 2700 50  0001 C CNN
+	1    2750 2700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	2500 2000 2700 2000
+Wire Wire Line
+	2500 1900 2900 1900
+Wire Wire Line
+	2500 2600 2950 2600
+Wire Wire Line
+	2500 2700 2750 2700
+$Comp
+L power:GND #PWR?
+U 1 1 5DB261B3
+P 5600 4600
+F 0 "#PWR?" H 5600 4350 50  0001 C CNN
+F 1 "GND" H 5605 4427 50  0000 C CNN
+F 2 "" H 5600 4600 50  0001 C CNN
+F 3 "" H 5600 4600 50  0001 C CNN
+	1    5600 4600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5200 4550 5600 4550
+Wire Wire Line
+	5600 4550 5600 4600
 $EndSCHEMATC
