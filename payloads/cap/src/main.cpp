@@ -3,7 +3,7 @@
 #include <SPI.h>
 #include <nRF24L01.h>
 #include <RF24.h>
-#include "controlAndSense.h"
+#include "capPayload.h"
 
 // Pinout
 #define forceAnalog     0
@@ -28,7 +28,7 @@ unsigned long timer;
 void radioSetup(const byte address[6]);
 
 // Setup classes
-ControlAndSense CaS;
+CapPayload CP;
 Servo clamp;
 RF24 radio(radioCE, radioCSN);
 
@@ -38,7 +38,7 @@ void setup(){
   Serial.begin(115200);
 
   // Configure digital pins
-  CaS.setUpDigitalPins(limitSwitchA, limitSwitchB, blueLED);
+  CP.setUpDigitalPins(limitSwitchA, limitSwitchB, blueLED);
 
   // Set Atmega for interupt (condifugred for D8)
   PCICR |= (1 << PCIE0);
@@ -52,24 +52,24 @@ void setup(){
   radioSetup("00001");
 
   // Start time sync (10000->100Hz, 5000->200Hz)
-  CaS.startTimeSync(loopTimeMicroSec);
+  CP.startTimeSync(loopTimeMicroSec);
 }
 
 // Run forever
 void loop(){
   // Acquire new data
-  force = CaS.readFSR(forceAnalog);
-  current = CaS.readCurrent(currentAnalog);
-  switchStateA = CaS.readSwitch(limitSwitchA);
-  switchStateB = CaS.readSwitch(limitSwitchB);
+  force = CP.readFSR(forceAnalog);
+  current = CP.readCurrent(currentAnalog);
+  switchStateA = CP.readSwitch(limitSwitchA);
+  switchStateB = CP.readSwitch(limitSwitchB);
 
   // Print data
-  CaS.printData(force, current, switchStateA, switchStateB, receiverInputChannel);
+  CP.printData(force, current, switchStateA, switchStateB, receiverInputChannel);
 
   // Stabilize sampling rate and flicker LED
-  CaS.LED_ON(blueLED);
-  CaS.timeSync();
-  CaS.LED_OFF(blueLED);
+  CP.LED_ON(blueLED);
+  CP.timeSync();
+  CP.LED_OFF(blueLED);
 }
 
 // Radio Setup

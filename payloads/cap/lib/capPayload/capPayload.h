@@ -1,8 +1,8 @@
 // Include gaurd
-#ifndef CONTROLANDSENSE_H
-#define CONTROLANDSENSE_H
+#ifndef CAPPAYLOAD_H
+#define CAPPAYLOAD_H
 
-class ControlAndSense {
+class CapPayload {
 
 private:
   // FSR variables
@@ -26,7 +26,7 @@ private:
 
 public:
   // Constructor
-  ControlAndSense() = default;
+  CapPayload() = default;
 
   // Functions
   void setUpDigitalPins(int limitSwitchA, int limitSwitchB, int LED);
@@ -44,4 +44,4 @@ public:
   float milliAmps;
 };
 
-#endif //MPUXX50_H
+#endif //CAPPAYLOAD_H
