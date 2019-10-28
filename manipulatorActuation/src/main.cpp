@@ -1,5 +1,8 @@
 #include <Arduino.h>
 #include <Servo.h>
+#include <SPI.h>
+#include <nRF24L01.h>
+#include <RF24.h>
 #include "controlAndSense.h"
 
 // Pinout
@@ -10,6 +13,8 @@
 #define limitSwitchB    6
 #define receiver        8
 #define clampServo      9
+#define radioCE         7
+#define radioCSN        8
 
 // Variables
 long loopTimeMicroSec = 10000;
@@ -19,9 +24,13 @@ int receiverInputChannel;
 bool switchStateA, switchStateB;
 unsigned long timer;
 
+// Functions
+void radioSetup(const byte address[6]);
+
 // Setup classes
 ControlAndSense CaS;
 Servo clamp;
+RF24 radio(radioCE, radioCSN);
 
 // Run once
 void setup(){
@@ -38,6 +47,9 @@ void setup(){
   // Set up clamping servo and set to off
   clamp.attach(clampServo);
   clamp.writeMicroseconds(1520);
+
+  // Set up radio on specified address
+  radioSetup("00001");
 
   // Start time sync (10000->100Hz, 5000->200Hz)
   CaS.startTimeSync(loopTimeMicroSec);
@@ -58,6 +70,14 @@ void loop(){
   CaS.LED_ON(blueLED);
   CaS.timeSync();
   CaS.LED_OFF(blueLED);
+}
+
+// Radio Setup
+void radioSetup(const byte address[6]){
+  radio.begin();
+  radio.openWritingPipe(address);
+  radio.setPALevel(RF24_PA_MIN);
+  radio.stopListening();
 }
 
 // Inturpt function for receiver
