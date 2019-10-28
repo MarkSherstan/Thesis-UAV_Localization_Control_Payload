@@ -217,9 +217,9 @@ F 3 "" H 1350 1350 50  0001 C CNN
 	1    1350 1350
 	1    0    0    -1  
 $EndComp
-Text GLabel 4600 3150 0    50   Input ~ 0
+Text GLabel 4900 3150 0    50   Input ~ 0
 D2
-Text GLabel 4600 3250 0    50   Input ~ 0
+Text GLabel 4900 3250 0    50   Input ~ 0
 D3
 Text GLabel 1600 1250 2    50   Input ~ 0
 D2
@@ -317,18 +317,6 @@ F 3 "" H 5450 2050 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	5450 2550 5450 2050
-Text GLabel 4900 2950 0    50   Input ~ 0
-RX
-Wire Wire Line
-	4600 3250 5050 3250
-Wire Wire Line
-	4600 3150 5050 3150
-Wire Wire Line
-	4900 2950 5050 2950
-Text GLabel 4900 3050 0    50   Input ~ 0
-TX
-Wire Wire Line
-	5050 3050 4900 3050
 $Comp
 L power:+5V #PWR0111
 U 1 1 5DB2D518
@@ -361,18 +349,14 @@ Wire Wire Line
 	900  5000 900  5150
 Wire Wire Line
 	900  5000 1350 5000
-Text GLabel 4850 3850 0    50   Input ~ 0
-D9
-Text GLabel 4850 3750 0    50   Input ~ 0
-D8
-Wire Wire Line
-	4850 3750 5050 3750
-Wire Wire Line
-	4850 3850 5050 3850
+Text GLabel 4900 3450 0    50   Input ~ 0
+D5
+Text GLabel 4900 3350 0    50   Input ~ 0
+D4
 Text GLabel 1200 3650 0    50   Input ~ 0
-D8
+D4
 Text GLabel 1200 4800 0    50   Input ~ 0
-D9
+D5
 Wire Wire Line
 	1200 4800 1350 4800
 Wire Wire Line
@@ -486,18 +470,14 @@ F 3 "" H 2450 6650 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2450 6650 2450 6550
-Text GLabel 4600 4150 0    50   Input ~ 0
-D12
-Text GLabel 4600 4250 0    50   Input ~ 0
+Text GLabel 4900 3850 0    50   Input ~ 0
+D9
+Text GLabel 4900 3950 0    50   Input ~ 0
 D13
-Wire Wire Line
-	4600 4150 5050 4150
-Wire Wire Line
-	4600 4250 5050 4250
 Text GLabel 1050 6550 0    50   Input ~ 0
-D12
+D9
 Text GLabel 1050 7000 0    50   Input ~ 0
-D13
+D10
 Wire Wire Line
 	1050 6550 1350 6550
 Wire Wire Line
@@ -505,5 +485,50 @@ Wire Wire Line
 Text Notes 800  6150 0    50   ~ 10
 Indicator LEDs
 Text Notes 4300 6400 0    50   ~ 0
-Larger surface mounted components\nResistor values for LEDs\nMounting holes on board\nCorrect foot prints?\n   - 90 degree -> Servo\n   - Screw terminal -> FSR\n
+Larger surface mounted components\nResistor values for LEDs\nMounting holes on board\nDoes the RC need capacitor across power?\nCorrect foot prints?\n   - 90 degree -> Servo\n   - Screw terminal -> FSR\n
+$Comp
+L power:+3.3V #PWR?
+U 1 1 5DB748D2
+P 5650 2300
+F 0 "#PWR?" H 5650 2150 50  0001 C CNN
+F 1 "+3.3V" H 5665 2473 50  0000 C CNN
+F 2 "" H 5650 2300 50  0001 C CNN
+F 3 "" H 5650 2300 50  0001 C CNN
+	1    5650 2300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5650 2550 5650 2300
+Wire Wire Line
+	4900 3350 5050 3350
+Wire Wire Line
+	4900 3450 5050 3450
+Text GLabel 4900 3650 0    50   Input ~ 0
+CE
+Text GLabel 4900 3750 0    50   Input ~ 0
+CSN
+Text GLabel 4900 4250 0    50   Input ~ 0
+SCK
+Text GLabel 4900 4050 0    50   Input ~ 0
+MOSI
+Text GLabel 4900 4150 0    50   Input ~ 0
+MISO
+Wire Wire Line
+	4900 3250 5050 3250
+Wire Wire Line
+	4900 3150 5050 3150
+Wire Wire Line
+	4900 3650 5050 3650
+Wire Wire Line
+	4900 3750 5050 3750
+Wire Wire Line
+	4900 4050 5050 4050
+Wire Wire Line
+	4900 4150 5050 4150
+Wire Wire Line
+	4900 4250 5050 4250
+Wire Wire Line
+	4900 3850 5050 3850
+Wire Wire Line
+	4900 3950 5050 3950
 $EndSCHEMATC

@@ -4,6 +4,7 @@
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/manipulatorActuation/lib/controlAndSense
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/cores/arduino
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/variants/standard
+-I/Users/MarkSherstan/.platformio/lib/Servo_ID883/src
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/EEPROM/src
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/HID/src
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src
