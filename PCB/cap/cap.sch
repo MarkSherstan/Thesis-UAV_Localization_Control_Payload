@@ -17,12 +17,12 @@ $EndDescr
 $Comp
 L MCU_Module:Arduino_Nano_v3.x A1
 U 1 1 5DAE21E4
-P 5550 3550
-F 0 "A1" H 5550 2461 50  0000 C CNN
-F 1 "Arduino_Nano_v3.x" H 5550 2370 50  0000 C CNN
-F 2 "Module:Arduino_Nano" H 5700 2600 50  0001 L CNN
-F 3 "http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf" H 5550 2550 50  0001 C CNN
-	1    5550 3550
+P 7100 5000
+F 0 "A1" H 7100 3911 50  0000 C CNN
+F 1 "Arduino_Nano_v3.x" H 7100 3820 50  0000 C CNN
+F 2 "Module:Arduino_Nano" H 7250 4050 50  0001 L CNN
+F 3 "http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf" H 7100 4000 50  0001 C CNN
+	1    7100 5000
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -72,7 +72,7 @@ F 3 "" H 900 4050 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	6050 3550 6450 3550
+	7600 5000 8000 5000
 $Comp
 L Connector:Conn_01x02_Female J4
 U 1 1 5DAF68B1
@@ -217,9 +217,9 @@ F 3 "" H 1350 1350 50  0001 C CNN
 	1    1350 1350
 	1    0    0    -1  
 $EndComp
-Text GLabel 4900 3150 0    50   Input ~ 0
+Text GLabel 6450 4600 0    50   Input ~ 0
 D2
-Text GLabel 4900 3250 0    50   Input ~ 0
+Text GLabel 6450 4700 0    50   Input ~ 0
 D3
 Text GLabel 1600 1250 2    50   Input ~ 0
 D2
@@ -247,18 +247,18 @@ Wire Wire Line
 $Comp
 L power:GND #PWR0102
 U 1 1 5DB261B3
-P 6050 4600
-F 0 "#PWR0102" H 6050 4350 50  0001 C CNN
-F 1 "GND" H 6055 4427 50  0000 C CNN
-F 2 "" H 6050 4600 50  0001 C CNN
-F 3 "" H 6050 4600 50  0001 C CNN
-	1    6050 4600
+P 7600 6050
+F 0 "#PWR0102" H 7600 5800 50  0001 C CNN
+F 1 "GND" H 7605 5877 50  0000 C CNN
+F 2 "" H 7600 6050 50  0001 C CNN
+F 3 "" H 7600 6050 50  0001 C CNN
+	1    7600 6050
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5650 4550 6050 4550
+	7200 6000 7600 6000
 Wire Wire Line
-	6050 4550 6050 4600
+	7600 6000 7600 6050
 $Comp
 L Connector:Conn_01x02_Female J5
 U 1 1 5DB101DE
@@ -307,40 +307,16 @@ Text Notes 9400 750  0    50   ~ 0
 $Comp
 L power:+5V #PWR0110
 U 1 1 5DB1ED3B
-P 5450 2050
-F 0 "#PWR0110" H 5450 1900 50  0001 C CNN
-F 1 "+5V" H 5465 2223 50  0000 C CNN
-F 2 "" H 5450 2050 50  0001 C CNN
-F 3 "" H 5450 2050 50  0001 C CNN
-	1    5450 2050
+P 7000 3500
+F 0 "#PWR0110" H 7000 3350 50  0001 C CNN
+F 1 "+5V" H 7015 3673 50  0000 C CNN
+F 2 "" H 7000 3500 50  0001 C CNN
+F 3 "" H 7000 3500 50  0001 C CNN
+	1    7000 3500
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5450 2550 5450 2050
-$Comp
-L power:+5V #PWR0111
-U 1 1 5DB2D518
-P 900 4750
-F 0 "#PWR0111" H 900 4600 50  0001 C CNN
-F 1 "+5V" H 915 4923 50  0000 C CNN
-F 2 "" H 900 4750 50  0001 C CNN
-F 3 "" H 900 4750 50  0001 C CNN
-	1    900  4750
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:+5V #PWR0114
-U 1 1 5DB2E1EE
-P 900 3450
-F 0 "#PWR0114" H 900 3300 50  0001 C CNN
-F 1 "+5V" H 915 3623 50  0000 C CNN
-F 2 "" H 900 3450 50  0001 C CNN
-F 3 "" H 900 3450 50  0001 C CNN
-	1    900  3450
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	900  4900 900  4750
+	7000 4000 7000 3500
 Text Notes 850  800  0    50   ~ 10
 Limit Switches
 Text Notes 850  3150 0    50   ~ 10
@@ -349,9 +325,9 @@ Wire Wire Line
 	900  5000 900  5150
 Wire Wire Line
 	900  5000 1350 5000
-Text GLabel 4900 3450 0    50   Input ~ 0
+Text GLabel 6450 4900 0    50   Input ~ 0
 D5
-Text GLabel 4900 3350 0    50   Input ~ 0
+Text GLabel 6450 4800 0    50   Input ~ 0
 D4
 Text GLabel 1200 3650 0    50   Input ~ 0
 D4
@@ -379,7 +355,7 @@ Wire Wire Line
 	9300 3700 9550 3700
 Wire Wire Line
 	9300 4050 9550 4050
-Text GLabel 6450 3550 2    50   Input ~ 0
+Text GLabel 8000 5000 2    50   Input ~ 0
 A0
 Text GLabel 9050 3700 0    50   Input ~ 0
 A0
@@ -451,10 +427,10 @@ Wire Wire Line
 Wire Wire Line
 	9050 4850 9300 4850
 Connection ~ 9300 4850
-Text GLabel 6450 3650 2    50   Input ~ 0
+Text GLabel 8000 5100 2    50   Input ~ 0
 A1
 Wire Wire Line
-	6050 3650 6450 3650
+	7600 5100 8000 5100
 Wire Wire Line
 	2100 6550 2450 6550
 $Comp
@@ -470,9 +446,9 @@ F 3 "" H 2450 6650 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2450 6650 2450 6550
-Text GLabel 4900 3850 0    50   Input ~ 0
+Text GLabel 6450 5300 0    50   Input ~ 0
 D9
-Text GLabel 4900 3950 0    50   Input ~ 0
+Text GLabel 6450 5400 0    50   Input ~ 0
 D13
 Text GLabel 1050 6550 0    50   Input ~ 0
 D9
@@ -484,51 +460,208 @@ Wire Wire Line
 	1050 7000 1350 7000
 Text Notes 800  6150 0    50   ~ 10
 Indicator LEDs
-Text Notes 4300 6400 0    50   ~ 0
-Larger surface mounted components\nResistor values for LEDs\nMounting holes on board\nCorrect foot prints?\n   - 90 degree -> Servo\n   - Screw terminal -> FSR\n
+Text Notes 6500 2950 0    50   ~ 0
+Larger surface mounted components\nResistor values for LEDs\nMounting holes on board\nDoes the RC need capacitor across power?\nCorrect foot prints?\n   - 90 degree -> Servo\n   - Screw terminal -> FSR\n
 $Comp
 L power:+3.3V #PWR?
 U 1 1 5DB748D2
-P 5650 2300
-F 0 "#PWR?" H 5650 2150 50  0001 C CNN
-F 1 "+3.3V" H 5665 2473 50  0000 C CNN
-F 2 "" H 5650 2300 50  0001 C CNN
-F 3 "" H 5650 2300 50  0001 C CNN
-	1    5650 2300
+P 7200 3750
+F 0 "#PWR?" H 7200 3600 50  0001 C CNN
+F 1 "+3.3V" H 7215 3923 50  0000 C CNN
+F 2 "" H 7200 3750 50  0001 C CNN
+F 3 "" H 7200 3750 50  0001 C CNN
+	1    7200 3750
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	5650 2550 5650 2300
+	7200 4000 7200 3750
 Wire Wire Line
-	4900 3350 5050 3350
+	6450 4800 6600 4800
 Wire Wire Line
-	4900 3450 5050 3450
-Text GLabel 4900 3650 0    50   Input ~ 0
+	6450 4900 6600 4900
+Text GLabel 6450 5100 0    50   Input ~ 0
 CE
-Text GLabel 4900 3750 0    50   Input ~ 0
+Text GLabel 6450 5200 0    50   Input ~ 0
 CSN
-Text GLabel 4900 4250 0    50   Input ~ 0
+Text GLabel 6450 5700 0    50   Input ~ 0
 SCK
-Text GLabel 4900 4050 0    50   Input ~ 0
+Text GLabel 6450 5500 0    50   Input ~ 0
 MOSI
-Text GLabel 4900 4150 0    50   Input ~ 0
+Text GLabel 6450 5600 0    50   Input ~ 0
 MISO
 Wire Wire Line
-	4900 3250 5050 3250
+	6450 4700 6600 4700
 Wire Wire Line
-	4900 3150 5050 3150
+	6450 4600 6600 4600
 Wire Wire Line
-	4900 3650 5050 3650
+	6450 5100 6600 5100
 Wire Wire Line
-	4900 3750 5050 3750
+	6450 5200 6600 5200
 Wire Wire Line
-	4900 4050 5050 4050
+	6450 5500 6600 5500
 Wire Wire Line
-	4900 4150 5050 4150
+	6450 5600 6600 5600
 Wire Wire Line
-	4900 4250 5050 4250
+	6450 5700 6600 5700
 Wire Wire Line
-	4900 3850 5050 3850
+	6450 5300 6600 5300
 Wire Wire Line
-	4900 3950 5050 3950
+	6450 5400 6600 5400
+Text Notes 3400 800  0    50   ~ 10
+Current Sensor
+Text Notes 3400 1000 0    50   ~ 0
+Measure new servos and then select a unit with correct full scale range. 
+$Comp
+L Amplifier_Current:ZXCT1009F U?
+U 1 1 5DB8DEA9
+P 4750 1800
+F 0 "U?" H 5030 1846 50  0000 L CNN
+F 1 "ZXCT1009F" H 5030 1755 50  0000 L CNN
+F 2 "Package_TO_SOT_SMD:SOT-23" H 4750 1800 50  0001 C CNN
+F 3 "https://www.diodes.com/assets/Datasheets/ZXCT1009.pdf" H 4700 1800 50  0001 C CNN
+	1    4750 1800
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R?
+U 1 1 5DB8F047
+P 4750 1300
+F 0 "R?" V 4543 1300 50  0000 C CNN
+F 1 "?" V 4634 1300 50  0000 C CNN
+F 2 "" H 4820 1209 50  0000 L CNN
+F 3 "~" H 4750 1300 50  0001 C CNN
+	1    4750 1300
+	0    -1   -1   0   
+$EndComp
+$Comp
+L power:+5V #PWR?
+U 1 1 5DB94970
+P 3950 1300
+F 0 "#PWR?" H 3950 1150 50  0001 C CNN
+F 1 "+5V" H 3965 1473 50  0000 C CNN
+F 2 "" H 3950 1300 50  0001 C CNN
+F 3 "" H 3950 1300 50  0001 C CNN
+	1    3950 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5VA #PWR?
+U 1 1 5DB95131
+P 5650 1300
+F 0 "#PWR?" H 5650 1150 50  0001 C CNN
+F 1 "+5VA" H 5665 1473 50  0000 C CNN
+F 2 "" H 5650 1300 50  0001 C CNN
+F 3 "" H 5650 1300 50  0001 C CNN
+	1    5650 1300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5VA #PWR?
+U 1 1 5DB9587A
+P 900 3450
+F 0 "#PWR?" H 900 3300 50  0001 C CNN
+F 1 "+5VA" H 915 3623 50  0000 C CNN
+F 2 "" H 900 3450 50  0001 C CNN
+F 3 "" H 900 3450 50  0001 C CNN
+	1    900  3450
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5VA #PWR?
+U 1 1 5DB96027
+P 900 4650
+F 0 "#PWR?" H 900 4500 50  0001 C CNN
+F 1 "+5VA" H 915 4823 50  0000 C CNN
+F 2 "" H 900 4650 50  0001 C CNN
+F 3 "" H 900 4650 50  0001 C CNN
+	1    900  4650
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	900  4650 900  4900
+Wire Wire Line
+	3950 1300 4150 1300
+Wire Wire Line
+	4900 1300 4950 1300
+Wire Wire Line
+	4550 1600 4550 1300
+Connection ~ 4550 1300
+Wire Wire Line
+	4550 1300 4600 1300
+Wire Wire Line
+	4950 1600 4950 1300
+Connection ~ 4950 1300
+Wire Wire Line
+	4950 1300 5650 1300
+$Comp
+L Device:R R?
+U 1 1 5DBA6407
+P 4750 2250
+F 0 "R?" V 4543 2250 50  0000 C CNN
+F 1 "?" V 4634 2250 50  0000 C CNN
+F 2 "" H 4820 2159 50  0000 L CNN
+F 3 "~" H 4750 2250 50  0001 C CNN
+	1    4750 2250
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4750 2100 4750 2050
+$Comp
+L Device:R R?
+U 1 1 5DBB163E
+P 4750 2800
+F 0 "R?" V 4543 2800 50  0000 C CNN
+F 1 "?" V 4634 2800 50  0000 C CNN
+F 2 "" H 4820 2709 50  0000 L CNN
+F 3 "~" H 4750 2800 50  0001 C CNN
+	1    4750 2800
+	-1   0    0    1   
+$EndComp
+Wire Wire Line
+	4750 2650 4750 2550
+$Comp
+L Device:D_Zener D?
+U 1 1 5DBB4837
+P 4150 1800
+F 0 "D?" V 4104 1879 50  0000 L CNN
+F 1 "D_Zener" V 4195 1879 50  0000 L CNN
+F 2 "" H 4150 1800 50  0001 C CNN
+F 3 "~" H 4150 1800 50  0001 C CNN
+	1    4150 1800
+	0    1    1    0   
+$EndComp
+Wire Wire Line
+	4150 1650 4150 1300
+Connection ~ 4150 1300
+Wire Wire Line
+	4150 1300 4550 1300
+Wire Wire Line
+	4150 1950 4150 2050
+Wire Wire Line
+	4150 2050 4750 2050
+Connection ~ 4750 2050
+Wire Wire Line
+	4750 2050 4750 2000
+Text GLabel 5350 2550 2    50   Input ~ 0
+A2
+Wire Wire Line
+	5350 2550 4750 2550
+Connection ~ 4750 2550
+Wire Wire Line
+	4750 2550 4750 2400
+$Comp
+L power:GND #PWR?
+U 1 1 5DBBBF4B
+P 4750 3150
+F 0 "#PWR?" H 4750 2900 50  0001 C CNN
+F 1 "GND" H 4755 2977 50  0000 C CNN
+F 2 "" H 4750 3150 50  0001 C CNN
+F 3 "" H 4750 3150 50  0001 C CNN
+	1    4750 3150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4750 3150 4750 2950
+Text Notes 3700 4600 0    50   ~ 10
+Radio
 $EndSCHEMATC
