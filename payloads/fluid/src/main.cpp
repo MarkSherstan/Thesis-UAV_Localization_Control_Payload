@@ -1,40 +1,44 @@
 #include <Arduino.h>
-#include <SPI.h>
-#include <nRF24L01.h>
+#include <RF24Network.h>
 #include <RF24.h>
+#include <SPI.h>
 
-#define led 12
+#define button    2
+#define led       3
+#define radioCSN  9
+#define radioCE   10
+#define channel   90
 
-RF24 radio(7, 8); // CE, CSN
+RF24 radio(radioCE, radioCSN);
+RF24Network network(radio);
 
-const byte addresses[][6] = {"00001", "00002"};
-boolean buttonState = 0;
+const uint16_t masterNode = 00;
+const uint16_t thisNode = 02;
 
 void setup() {
-  pinMode(12, OUTPUT);
+  SPI.begin();
   radio.begin();
-  radio.openWritingPipe(addresses[1]); // 00002
-  radio.openReadingPipe(1, addresses[0]); // 00001
-  radio.setPALevel(RF24_PA_MIN);
+  network.begin(channel, thisNode);
+  radio.setDataRate(RF24_2MBPS);
+
+  pinMode(button, INPUT_PULLUP);
+  pinMode(led, OUTPUT);
 }
 
 void loop() {
-  delay(5);
-  radio.stopListening();
+  // Update that network
+  network.update();
 
-  int potValue = analogRead(A0);
-  int angleValue = map(potValue, 0, 1023, 0, 180);
-
-  radio.write(&angleValue, sizeof(angleValue));
-  delay(5);
-  radio.startListening();
-
-  while (!radio.available());
-  radio.read(&buttonState, sizeof(buttonState));
-  if (buttonState == HIGH) {
-    digitalWrite(led, HIGH);
+  // Receiving
+  while (network.available()){
+    RF24NetworkHeader header;
+    unsigned long buttonState;
+    network.read(header, &buttonState, sizeof(buttonState));
+    digitalWrite(led, !buttonState);
   }
-  else {
-    digitalWrite(led, LOW);
-  }
+
+  // Sending
+  unsigned long buttonState = digitalRead(button);
+  RF24NetworkHeader header(masterNode);
+  bool ok = network.write(header, &buttonState, sizeof(buttonState));
 }

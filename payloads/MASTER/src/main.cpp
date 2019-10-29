@@ -6,8 +6,8 @@
 
 #define button    2
 #define led       3
-#define radioCE   10
 #define radioCSN  9
+#define radioCE   10
 
 RF24 radio(radioCE, radioCSN);
 RF24Network network(radio);
@@ -18,7 +18,6 @@ const uint16_t node02 = 02;       // Fluid
 const uint16_t node03 = 03;       // Vibration
 const uint16_t node04 = 04;       // Camera
 const uint16_t node05 = 05;       // Future port
-const uint16_t node06 = 06;       // Future port
 
 
 void setup() {
@@ -41,7 +40,8 @@ void loop() {
     RF24NetworkHeader header;
     unsigned long incomingData;
     network.read(header, &incomingData, sizeof(incomingData));
-    Serial.println(incomingData);
+    digitalWrite(led, !incomingData);
+    // Serial.println(incomingData);
   }
 
   // Transmitting
