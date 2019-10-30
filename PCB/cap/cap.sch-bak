@@ -354,7 +354,7 @@ L Connector_Generic:Conn_02x04_Top_Bottom J6
 U 1 1 5DB8BBDA
 P 4950 6600
 F 0 "J6" H 5000 6917 50  0000 C CNN
-F 1 "Radio" H 5000 6826 50  0000 C CNN
+F 1 "Conn_02x04_Top_Bottom" H 5000 6826 50  0000 C CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_2x04_P2.54mm_Vertical" H 4950 6600 50  0001 C CNN
 F 3 "https://www.amazon.ca/gp/product/B01C3YNGI8/ref=ppx_od_dt_b_asin_image_s00?ie=UTF8&psc=1" H 4950 6600 50  0001 C CNN
 	1    4950 6600
@@ -454,7 +454,7 @@ L Connector_Generic:Conn_01x02 J7
 U 1 1 5DC7C73C
 P 9750 4550
 F 0 "J7" H 9830 4542 50  0000 L CNN
-F 1 "FSR1" H 9830 4451 50  0000 L CNN
+F 1 "Conn_01x02" H 9830 4451 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 9750 4550 50  0001 C CNN
 F 3 "~" H 9750 4550 50  0001 C CNN
 	1    9750 4550
@@ -465,7 +465,7 @@ L Connector_Generic:Conn_01x02 J8
 U 1 1 5DC879D4
 P 9750 5700
 F 0 "J8" H 9830 5692 50  0000 L CNN
-F 1 "FSR2" H 9830 5601 50  0000 L CNN
+F 1 "Conn_01x02" H 9830 5601 50  0000 L CNN
 F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 9750 5700 50  0001 C CNN
 F 3 "~" H 9750 5700 50  0001 C CNN
 	1    9750 5700
@@ -495,7 +495,7 @@ L Connector_Generic:Conn_01x03 J1
 U 1 1 5DCA5112
 P 1550 3750
 F 0 "J1" H 1630 3792 50  0000 L CNN
-F 1 "Servo1" H 1630 3701 50  0000 L CNN
+F 1 "Conn_01x03" H 1630 3701 50  0000 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x03_P2.54mm_Vertical" H 1550 3750 50  0001 C CNN
 F 3 "~" H 1550 3750 50  0001 C CNN
 	1    1550 3750
@@ -506,7 +506,7 @@ L Connector_Generic:Conn_01x03 J2
 U 1 1 5DCA5E07
 P 1550 4900
 F 0 "J2" H 1630 4942 50  0000 L CNN
-F 1 "Servo2" H 1630 4851 50  0000 L CNN
+F 1 "Conn_01x03" H 1630 4851 50  0000 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x03_P2.54mm_Vertical" H 1550 4900 50  0001 C CNN
 F 3 "~" H 1550 4900 50  0001 C CNN
 	1    1550 4900
@@ -551,7 +551,7 @@ L Connector_Generic:Conn_01x02 J3
 U 1 1 5DCC0B75
 P 1600 1300
 F 0 "J3" H 1680 1292 50  0000 L CNN
-F 1 "LS1" H 1680 1201 50  0000 L CNN
+F 1 "Conn_01x02" H 1680 1201 50  0000 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical" H 1600 1300 50  0001 C CNN
 F 3 "~" H 1600 1300 50  0001 C CNN
 	1    1600 1300
@@ -562,7 +562,7 @@ L Connector_Generic:Conn_01x02 J4
 U 1 1 5DCC16B0
 P 1600 2000
 F 0 "J4" H 1680 1992 50  0000 L CNN
-F 1 "LS2" H 1680 1901 50  0000 L CNN
+F 1 "Conn_01x02" H 1680 1901 50  0000 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical" H 1600 2000 50  0001 C CNN
 F 3 "~" H 1600 2000 50  0001 C CNN
 	1    1600 2000
@@ -616,8 +616,8 @@ $Comp
 L Connector_Generic:Conn_01x02 J5
 U 1 1 5DD20618
 P 4700 1200
-F 0 "J5" H 4618 875 50  0000 C CNN
-F 1 "VCC/GND-IN" H 4618 966 50  0000 C CNN
+F 0 "J5" H 4780 1192 50  0000 L CNN
+F 1 "Conn_01x02" H 4780 1101 50  0000 L CNN
 F 2 "Connector_PinSocket_2.54mm:PinSocket_1x02_P2.54mm_Vertical" H 4700 1200 50  0001 C CNN
 F 3 "~" H 4700 1200 50  0001 C CNN
 	1    4700 1200
