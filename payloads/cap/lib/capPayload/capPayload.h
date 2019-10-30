@@ -6,7 +6,6 @@ class CapPayload {
 
 private:
   // FSR variables
-  // int dummyVar;
   int fsrADC;
   float fsrV, fsrR, fsrG;
   float VCC = 4.98;       // volts
@@ -29,14 +28,14 @@ public:
   CapPayload() = default;
 
   // Functions
-  void setUpDigitalPins(int limitSwitchA, int limitSwitchB, int LED);
+  void setUpDigitalPins(int limitSwitchA, int limitSwitchB, int ledA, int ledB);
   void startTimeSync(long loopTimeMicroSec);
   float readFSR(int analogPin);
   float readCurrent(int analogPin);
   bool readSwitch(int limitSwitch);
   void LED_ON(int LED);
   void LED_OFF(int LED);
-  void printData(float force, float current, bool switchStateA, bool switchStateB, int receiverInputChannel);
+  void printData(float force, float current, bool switchStateA, bool switchStateB);
   void timeSync();
 
   // Variables out

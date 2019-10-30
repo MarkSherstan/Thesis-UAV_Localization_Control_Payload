@@ -5,24 +5,23 @@
 #include <RF24.h>
 #include "capPayload.h"
 
-// Pinout
+// Pinout Analog
 #define forceAnalog     0
 #define currentAnalog   2
-#define blueLED         3
-#define limitSwitchA    5
-#define limitSwitchB    6
-#define receiver        8
-#define clampServo      9
+
+// Pinout Digital
+#define limitSwitchA    2
+#define limitSwitchB    3
+#define clampServo      4
 #define radioCE         7
 #define radioCSN        8
+#define gLED            9
+#define rLED            10
 
 // Variables
 long loopTimeMicroSec = 10000;
 float force, current;
-byte lastChannel;
-int receiverInputChannel;
 bool switchStateA, switchStateB;
-unsigned long timer;
 
 // Functions
 void radioSetup(const byte address[6]);
@@ -38,11 +37,7 @@ void setup(){
   Serial.begin(115200);
 
   // Configure digital pins
-  CP.setUpDigitalPins(limitSwitchA, limitSwitchB, blueLED);
-
-  // Set Atmega for interupt (condifugred for D8)
-  PCICR |= (1 << PCIE0);
-  PCMSK0 |= (1 << PCINT0);
+  CP.setUpDigitalPins(limitSwitchA, limitSwitchB, gLED, rLED);
 
   // Set up clamping servo and set to off
   clamp.attach(clampServo);
@@ -63,13 +58,22 @@ void loop(){
   switchStateA = CP.readSwitch(limitSwitchA);
   switchStateB = CP.readSwitch(limitSwitchB);
 
-  // Print data
-  CP.printData(force, current, switchStateA, switchStateB, receiverInputChannel);
+  // Actuate
+  if (switchStateA == 0){
+    clamp.writeMicroseconds(1000);
+    CP.LED_ON(gLED);
+    CP.LED_OFF(rLED);
+  } else if (switchStateB == 0){
+    clamp.writeMicroseconds(2000);
+    CP.LED_ON(rLED);
+    CP.LED_OFF(gLED);
+  }
 
-  // Stabilize sampling rate and flicker LED
-  CP.LED_ON(blueLED);
+  // Print data
+  CP.printData(force, current, switchStateA, switchStateB);
+
+  // Stabilize sampling rate
   CP.timeSync();
-  CP.LED_OFF(blueLED);
 }
 
 // Radio Setup
@@ -78,18 +82,4 @@ void radioSetup(const byte address[6]){
   radio.openWritingPipe(address);
   radio.setPALevel(RF24_PA_MIN);
   radio.stopListening();
-}
-
-// Inturpt function for receiver
-ISR(PCINT0_vect){
-  // Input changed from 0 to 1
-  if(lastChannel == 0 && PINB & B00000001){
-    lastChannel = 1;
-    timer = micros();
-  }
-  // Input changed from 1 to 0
-  else if(lastChannel == 1 && !(PINB & B00000001)){
-    lastChannel = 0;
-    receiverInputChannel = micros() - timer;
-  }
 }
