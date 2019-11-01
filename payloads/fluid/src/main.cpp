@@ -5,9 +5,11 @@
 
 #define button    2
 #define led       3
-#define radioCSN  9
-#define radioCE   10
+#define radioCSN  8
+#define radioCE   7
 #define channel   90
+
+unsigned long analog;
 
 RF24 radio(radioCE, radioCSN);
 RF24Network network(radio);
@@ -16,13 +18,12 @@ const uint16_t masterNode = 00;
 const uint16_t thisNode = 02;
 
 void setup() {
+  Serial.begin(9600);
+
   SPI.begin();
   radio.begin();
   network.begin(channel, thisNode);
   radio.setDataRate(RF24_2MBPS);
-
-  pinMode(button, INPUT_PULLUP);
-  pinMode(led, OUTPUT);
 }
 
 void loop() {
@@ -34,11 +35,13 @@ void loop() {
     RF24NetworkHeader header;
     unsigned long buttonState;
     network.read(header, &buttonState, sizeof(buttonState));
-    digitalWrite(led, !buttonState);
+    Serial.println(buttonState);
   }
 
   // Sending
-  unsigned long buttonState = digitalRead(button);
+  analog = analogRead(A0);
   RF24NetworkHeader header(masterNode);
-  bool ok = network.write(header, &buttonState, sizeof(buttonState));
+  bool ok = network.write(header, &analog, sizeof(analog));
+
+  delay(1000);
 }
