@@ -19,16 +19,29 @@ void MasterPayload::startTimeSync(long loopTimeMicroSec){
    micros();
  }
 
-bool MasterPayload::readSwitch(int limitSwitch){
-  return digitalRead(limitSwitch);
-}
-
 void MasterPayload::LED_ON(int LED){
   digitalWrite(LED, HIGH);
 }
 
 void MasterPayload::LED_OFF(int LED){
   digitalWrite(LED, LOW);
+}
+
+void MasterPayload::payloadEngaged(int limitSwitchA, int limitSwitchB){
+  if ((digitalRead(limitSwitchA) == true) && (digitalRead(limitSwitchA) == true)){
+    _engagedState = true;
+  } else {
+    _engagedState = false;
+  }
+}
+
+void MasterPayload::sendSerialMsg(){
+  if (_engagedState == true)
+    engaged = 0x64; //100
+
+  // Create the message and write to serial port
+  unsigned char buf[5] = {headerA, headerB, engaged, payload, msg};
+  Serial.write(buf, 5);
 }
 
 void MasterPayload::printData(){

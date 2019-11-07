@@ -48,6 +48,7 @@ void setup() {
   // Set up clamping servo and set to release
   lock.attach(lockServo);
   lock.writeMicroseconds(lockOpen);
+  MP._engagedState = false;
 
   // Set up radio
   SPI.begin();
@@ -72,6 +73,9 @@ void loop() {
     digitalWrite(rLED, !incomingData);
     Serial.println(incomingData);
   }
+
+
+  MP.payloadEngaged(limitSwitchA, limitSwitchB);
 
   // Transmitting
   analog = analogRead(A0);
