@@ -30,6 +30,7 @@ const uint16_t node05 = 05;       // Future port
 
 // Variables
 unsigned long analog;
+char incomingByte;
 
 // Setup classes
 MasterPayload MP;
@@ -58,6 +59,10 @@ void setup() {
 
   // Start time sync (10000->100Hz, 5000->200Hz)
   MP.startTimeSync(loopTimeMicroSec);
+
+  // MP.LED_ON(gLED); MP.LED_ON(rLED);
+  // delay(2000);
+  // MP.LED_OFF(gLED); MP.LED_OFF(rLED);
 }
 
 
@@ -74,6 +79,23 @@ void loop() {
     Serial.println(incomingData);
   }
 
+  // Read incoming bytes from the serial port
+    if (Serial.available() > 0) {
+      // read the incoming byte:
+      incomingByte = Serial.read();
+
+      if (incomingByte == 0x0A) {
+        // Open command
+        lock.writeMicroseconds(lockOpen);
+        MP.LED_ON(gLED);
+        MP.LED_OFF(rLED);
+      } else if (incomingByte == 0x0C) {
+        // Open command
+        lock.writeMicroseconds(lockClose);
+        MP.LED_ON(rLED);
+        MP.LED_OFF(gLED);
+      }
+    }mike
 
   MP.payloadEngaged(limitSwitchA, limitSwitchB);
 
