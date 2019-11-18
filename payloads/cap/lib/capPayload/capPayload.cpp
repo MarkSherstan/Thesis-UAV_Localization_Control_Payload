@@ -1,5 +1,4 @@
 #include "capPayload.h"
-#include <arduino.h>
 
 void CapPayload::setUpDigitalPins(int limitSwitchA, int limitSwitchB, int ledA, int ledB){
   // Limit Switches
@@ -88,3 +87,8 @@ void CapPayload::timeSync(){
    // Update the tracked time
    _trackedTime = currentTime + timeToDelay;
  }
+
+void CapPayload::fnc(Servo *s){
+  s->writeMicroseconds(1000);
+}
+ 
