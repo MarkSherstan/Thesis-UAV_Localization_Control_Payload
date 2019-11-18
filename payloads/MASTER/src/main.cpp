@@ -6,8 +6,6 @@
 #include "masterPayload.h"
 
 // Pinout Digital
-#define limitSwitchA    2
-#define limitSwitchB    3
 #define gLED            4
 #define rLED            5
 #define radioCE         7
@@ -44,12 +42,11 @@ void setup() {
   Serial.begin(9600);
 
   // Configure digital pins
-  MP.setUpDigitalPins(limitSwitchA, limitSwitchB, gLED, rLED);
+  MP.setUpDigitalPins(gLED, rLED);
 
   // Set up clamping servo and set to release
   lock.attach(lockServo);
   lock.writeMicroseconds(lockOpen);
-  MP._engagedState = false;
 
   // Set up radio
   SPI.begin();
@@ -59,10 +56,6 @@ void setup() {
 
   // Start time sync (10000->100Hz, 5000->200Hz)
   MP.startTimeSync(loopTimeMicroSec);
-
-  // MP.LED_ON(gLED); MP.LED_ON(rLED);
-  // delay(2000);
-  // MP.LED_OFF(gLED); MP.LED_OFF(rLED);
 }
 
 
@@ -95,9 +88,7 @@ void loop() {
         MP.LED_ON(rLED);
         MP.LED_OFF(gLED);
       }
-    }mike
-
-  MP.payloadEngaged(limitSwitchA, limitSwitchB);
+    }
 
   // Transmitting
   analog = analogRead(A0);
@@ -114,6 +105,6 @@ void loop() {
   RF24NetworkHeader header04(node04);
   bool ok4 = network.write(header04, &analog, sizeof(analog));
 
-
+  // Stabilize time domain
   MP.timeSync();
 }
