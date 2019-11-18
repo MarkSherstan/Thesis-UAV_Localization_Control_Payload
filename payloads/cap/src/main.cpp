@@ -18,10 +18,13 @@
 #define gLED            9
 #define rLED            10
 
-// Radio and timer
+// Radio, timer, and servo pulses
 #define channel           90
 #define masterNode        00
 #define thisNode          01
+#define clampOpen         2000
+#define clampClose        1000
+#define clampStop         1520
 #define loopTimeMicroSec  10000
 
 // Serial port flag
@@ -50,7 +53,7 @@ void setup(){
 
   // Set up clamping servo and set to off
   clamp.attach(clampServo);
-  clamp.writeMicroseconds(1520);
+  clamp.writeMicroseconds(clampStop);
 
   // Set up radio
   SPI.begin();
@@ -82,11 +85,11 @@ void loop(){
 
   // Actuate
   if (switchStateA == 0){
-    clamp.writeMicroseconds(1000);
+    clamp.writeMicroseconds(clampOpen);
     CP.LED_ON(gLED);
     CP.LED_OFF(rLED);
   } else if (switchStateB == 0){
-    clamp.writeMicroseconds(2000);
+    clamp.writeMicroseconds(clampClose);
     CP.LED_ON(rLED);
     CP.LED_OFF(gLED);
   }
