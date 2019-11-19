@@ -28,6 +28,38 @@ while True:
         elif (str == 'c'):
             ser.write(b'\xFF')
             print('Close')
+        elif (str == 'cap'):
+            ser.write(b'\x01')
+            print('Cap request')
+
+            # print(hex(struct.unpack('B', ser.read())[0]))
+            while(True):
+                var = ser.read()
+                print( hex(struct.unpack('B', var)[0]))
+                var = struct.unpack('B', var)[0]
+
+                if var is 90:
+                    ser.write(b'\x5A')
+                    break
+
+            print('YAY')
+
+            while(True):
+                print(hex(struct.unpack('B', ser.read())[0]))
+                str = input('In: ')
+
+                # Send to servo
+                if (str == ' '):
+                    ser.write(b'\x0A')
+
+
+
+                # print('hello')
+                # try:
+                #     print(hex(struct.unpack('B', ser.read())[0]))
+                # except:
+                #     print('-')
+                #     break
         else:
             print('Invalid input')
 
@@ -36,7 +68,7 @@ while True:
         try:
             print(hex(struct.unpack('B', ser.read())[0]))
         except:
-            print('No read')
+            print('-')
 
     except:
         # Exit sequence

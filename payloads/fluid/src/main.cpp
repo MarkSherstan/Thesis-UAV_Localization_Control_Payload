@@ -9,13 +9,16 @@
 #define radioCE   7
 #define channel   90
 
-unsigned long analog;
+byte var, radioByteIn;
 
 RF24 radio(radioCE, radioCSN);
 RF24Network network(radio);
 
 const uint16_t masterNode = 00;
 const uint16_t thisNode = 02;
+
+
+void receiveRadioMessage();
 
 void setup() {
   Serial.begin(9600);
@@ -28,20 +31,35 @@ void setup() {
 
 void loop() {
   // Update that network
-  network.update();
+  // network.update();
 
-  // Receiving
-  while (network.available()){
-    RF24NetworkHeader header;
-    unsigned long buttonState;
-    network.read(header, &buttonState, sizeof(buttonState));
-    Serial.println(buttonState);
-  }
+  // // Receiving
+  // while (network.available()){
+  //   RF24NetworkHeader header;
+  //   unsigned long buttonState;
+  //   network.read(header, &buttonState, sizeof(buttonState));
+  //   Serial.println(buttonState);
+  // }
+
+  receiveRadioMessage();
+  Serial.println(radioByteIn, HEX);
 
   // Sending
-  analog = analogRead(A0);
-  RF24NetworkHeader header(masterNode);
-  bool ok = network.write(header, &analog, sizeof(analog));
+  // var = 0x4E;
+  // RF24NetworkHeader header(masterNode);
+  // network.write(header, &var, sizeof(var));
 
-  delay(1000);
+  delay(300);
+}
+
+
+void receiveRadioMessage(){
+  // Update the network
+  network.update();
+
+  // Receiving data if available
+  while (network.available()){
+    RF24NetworkHeader header;
+    network.read(header, &radioByteIn, sizeof(radioByteIn));
+  }
 }

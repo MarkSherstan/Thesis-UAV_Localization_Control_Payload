@@ -1,11 +1,11 @@
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/fluid/include
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/fluid/src
+-I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/fluid/lib/RF24Network
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/fluid/lib/RF24
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/fluid/lib/RF24/utility
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/cores/arduino
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/variants/eightanaloginputs
--I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/fluid/lib/RF24Network
 -I/Users/MarkSherstan/.platformio/lib/Servo_ID883/src
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/EEPROM/src
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/HID/src
@@ -15,7 +15,7 @@
 -I/Users/MarkSherstan/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/5.4.0/include
 -I/Users/MarkSherstan/.platformio/packages/toolchain-atmelavr/lib/gcc/avr/5.4.0/include-fixed
 -I/Users/MarkSherstan/.platformio/packages/tool-unity
--DPLATFORMIO=40003
+-DPLATFORMIO=40100
 -DARDUINO_AVR_NANO
 -DF_CPU=16000000L
 -DARDUINO_ARCH_AVR
