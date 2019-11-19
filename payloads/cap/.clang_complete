@@ -2,6 +2,7 @@
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/cap/src
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/cap/lib/capPayload
 -I/Users/MarkSherstan/.platformio/lib/Servo_ID883/src
+-I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/cap/lib/RF24Network
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/cap/lib/RF24
 -I/Users/MarkSherstan/Documents/GitHub/UAV-Sampling-Control-System/payloads/cap/lib/RF24/utility
 -I/Users/MarkSherstan/.platformio/packages/framework-arduinoavr/libraries/__cores__/arduino/SPI/src
