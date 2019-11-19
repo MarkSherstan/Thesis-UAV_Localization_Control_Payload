@@ -1,7 +1,8 @@
 import serial
+import struct
 import time
 
-serialPort = '/dev/cu.wchusbserial1420'
+serialPort = '/dev/cu.wchusbserial1410'
 serialBaud = 9600
 
 # Connect to serial port
@@ -22,13 +23,21 @@ while True:
 
         # Send to servo
         if (str == 'o'):
-            ok = ser.write(b'\xFE')
-            print('Open', ok)
+            ser.write(b'\xFE')
+            print('Open')
         elif (str == 'c'):
-            ok = ser.write(b'\xFF')
-            print('Close ', ok)
+            ser.write(b'\xFF')
+            print('Close')
         else:
             print('Invalid input')
+
+
+        # Reading
+        try:
+            print(hex(struct.unpack('B', ser.read())[0]))
+        except:
+            print('No read')
+
     except:
         # Exit sequence
         ser.close()

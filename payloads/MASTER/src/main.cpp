@@ -73,26 +73,32 @@ void loop() {
       case P_ENGAGE:
         lock.writeMicroseconds(lockOpen);
         Serial.write(serialByteIn);
+        break;
 
       case P_RELEASE:
         lock.writeMicroseconds(lockClose);
         Serial.write(serialByteIn);
+        break;
 
       case CAP:
         void capPayload();
         Serial.write(serialByteIn);
+        break;
 
       case FLUID:
         void fluidPayload();
         Serial.write(serialByteIn);
+        break;
 
       case VIBRATION:
         void vibrationPayload();
         Serial.write(serialByteIn);
+        break;
 
       case CAMERA:
         void cameraPayload();
         Serial.write(serialByteIn);
+        break;
     }
   }
 
@@ -117,22 +123,27 @@ void sendRadioMessage(uint16_t node){
     case NODE01:
       RF24NetworkHeader header01(NODE01);
       network.write(header01, &radioByteOut, sizeof(radioByteOut));
+      break;
 
     case NODE02:
       RF24NetworkHeader header02(NODE02);
       network.write(header02, &radioByteOut, sizeof(radioByteOut));
+      break;
 
     case NODE03:
       RF24NetworkHeader header03(NODE03);
       network.write(header03, &radioByteOut, sizeof(radioByteOut));
+      break;
 
     case NODE04:
       RF24NetworkHeader header04(NODE04);
       network.write(header04, &radioByteOut, sizeof(radioByteOut));
+      break;
 
     case NODE05:
       RF24NetworkHeader header05(NODE05);
       network.write(header04, &radioByteOut, sizeof(radioByteOut));
+      break;
   }
 }
 

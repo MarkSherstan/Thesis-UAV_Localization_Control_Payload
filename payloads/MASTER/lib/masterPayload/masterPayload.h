@@ -3,8 +3,8 @@
 #define MASTERPAYLOAD_H
 
 // Payloads protocal
-#define P_ENGAGE     0xFF
-#define P_RELEASE    0xFE
+#define P_ENGAGE     0xFE
+#define P_RELEASE    0xFF
 #define READY        0x5A
 #define WAIT         0x5F
 #define CAP          0x01
