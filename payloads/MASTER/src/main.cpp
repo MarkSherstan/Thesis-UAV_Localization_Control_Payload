@@ -1,8 +1,8 @@
 #include <Arduino.h>
+#include <Servo.h>
 #include <RF24Network.h>
 #include <RF24.h>
 #include <SPI.h>
-#include <Servo.h>
 #include "masterPayload.h"
 
 // Pinout Digital
@@ -13,22 +13,15 @@
 #define lockServo       9
 
 // Radio, timer, and servo pulses
+#define masterNode        00
 #define channel           90
 #define lockClose         900
 #define lockOpen          1400
 #define loopTimeMicroSec  10000
 
-// Payload nodes
-const uint16_t masterNode = 00;
-const uint16_t node01 = 01;       // Cap
-const uint16_t node02 = 02;       // Fluid
-const uint16_t node03 = 03;       // Vibration
-const uint16_t node04 = 04;       // Camera
-const uint16_t node05 = 05;       // Future port
-
 // Variables
-unsigned long analog;
-char incomingByte;
+byte radioByteIn, radioByteOut;
+byte serialByteIn, serialByteOut;
 
 // Setup classes
 MasterPayload MP;
@@ -36,13 +29,21 @@ Servo lock;
 RF24 radio(radioCE, radioCSN);
 RF24Network network(radio);
 
-// Run Once
+// Functions
+void sendRadioMessage(uint16_t node);
+void receiveRadioMessage();
+void capPayload();
+void fluidPayload();
+void vibrationPayload();
+void cameraPayload();
+
+// Run once
 void setup() {
   // Start the serial port
   Serial.begin(9600);
 
   // Configure digital pins
-  MP.setUpDigitalPins(gLED, rLED);
+  MP.setUpDigitalPins(rLED, gLED);
 
   // Set up clamping servo and set to release
   lock.attach(lockServo);
@@ -58,53 +59,88 @@ void setup() {
   MP.startTimeSync(loopTimeMicroSec);
 }
 
-
+// Run forever
 void loop() {
-  // Update that network
-  network.update();
+  // Read incoming byte from the serial port and do something
+  if (Serial.available() > 0) {
+    // read the incoming byte
+    serialByteIn = Serial.read();
 
-  // Receiving data
-  while (network.available()){
-    RF24NetworkHeader header;
-    unsigned long incomingData;
-    network.read(header, &incomingData, sizeof(incomingData));
-    digitalWrite(rLED, !incomingData);
-    Serial.println(incomingData);
+    // Switch statment based on serial input
+    switch (serialByteIn) {
+      case P_ENGAGE:
+        lock.writeMicroseconds(lockOpen);
+        Serial.write(serialByteIn);
+
+      case P_RELEASE:
+        lock.writeMicroseconds(lockClose);
+        Serial.write(serialByteIn);
+
+      case CAP:
+        void capPayload();
+        Serial.write(serialByteIn);
+
+      case FLUID:
+        void fluidPayload();
+        Serial.write(serialByteIn);
+
+      case VIBRATION:
+        void vibrationPayload();
+        Serial.write(serialByteIn);
+
+      case CAMERA:
+        void cameraPayload();
+        Serial.write(serialByteIn);
+    }
   }
 
-  // Read incoming bytes from the serial port
-    if (Serial.available() > 0) {
-      // read the incoming byte:
-      incomingByte = Serial.read();
-
-      if (incomingByte == 0x0A) {
-        // Open command
-        lock.writeMicroseconds(lockOpen);
-        MP.LED_ON(gLED);
-        MP.LED_OFF(rLED);
-      } else if (incomingByte == 0x0C) {
-        // Open command
-        lock.writeMicroseconds(lockClose);
-        MP.LED_ON(rLED);
-        MP.LED_OFF(gLED);
-      }
-    }
-
-  // Transmitting
-  analog = analogRead(A0);
-
-  RF24NetworkHeader header01(node01);
-  bool ok1 = network.write(header01, &analog, sizeof(analog));
-
-  RF24NetworkHeader header02(node02);
-  bool ok2 = network.write(header02, &analog, sizeof(analog));
-
-  RF24NetworkHeader header03(node03);
-  bool ok3 = network.write(header03, &analog, sizeof(analog));
-
-  RF24NetworkHeader header04(node04);
-  bool ok4 = network.write(header04, &analog, sizeof(analog));
-
-  // Stabilize time domain
+  // Stabilize sampling rate
   MP.timeSync();
 }
+
+void receiveRadioMessage(){
+  // Update the network
+  network.update();
+
+  // Receiving data if available
+  while (network.available()){
+    RF24NetworkHeader header;
+    network.read(header, &radioByteIn, sizeof(radioByteIn));
+  }
+}
+
+void sendRadioMessage(uint16_t node){
+  // Send the message to the correct node
+  switch (node) {
+    case NODE01:
+      RF24NetworkHeader header01(NODE01);
+      network.write(header01, &radioByteOut, sizeof(radioByteOut));
+
+    case NODE02:
+      RF24NetworkHeader header02(NODE02);
+      network.write(header02, &radioByteOut, sizeof(radioByteOut));
+
+    case NODE03:
+      RF24NetworkHeader header03(NODE03);
+      network.write(header03, &radioByteOut, sizeof(radioByteOut));
+
+    case NODE04:
+      RF24NetworkHeader header04(NODE04);
+      network.write(header04, &radioByteOut, sizeof(radioByteOut));
+
+    case NODE05:
+      RF24NetworkHeader header05(NODE05);
+      network.write(header04, &radioByteOut, sizeof(radioByteOut));
+  }
+}
+
+void capPayload(){
+  // Check for incoming message
+  receiveRadioMessage();
+}
+
+void fluidPayload(){}
+
+void vibrationPayload(){}
+
+void cameraPayload(){}
