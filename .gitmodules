@@ -3,8 +3,8 @@
   url = https://github.com/nRF24/RF24.git
 
 [submodule "payloads/cap/lib/RF24Network"]
-  path = payloads/cap/lib/RF24Network
-  url = https://github.com/nRF24/RF24Network.git
+	path = payloads/cap/lib/RF24Network
+	url = https://github.com/nRF24/RF24Network.git
 
 [submodule "payloads/fluid/lib/RF24"]
   path = payloads/fluid/lib/RF24
