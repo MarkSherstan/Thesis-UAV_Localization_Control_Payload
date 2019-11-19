@@ -13,11 +13,17 @@
 #define lockServo       9
 
 // Radio, timer, and servo pulses
-#define masterNode        00
 #define channel           90
 #define lockClose         900
 #define lockOpen          1400
 #define loopTimeMicroSec  10000
+
+const uint16_t masterNode = 00;
+const uint16_t NODE01 = 01;       // Cap
+const uint16_t NODE02 = 02;       // Fluid
+const uint16_t NODE03 = 03;       // Vibration
+const uint16_t NODE04 = 04;       // Camera
+const uint16_t NODE05 = 05;       // Future port
 
 // Variables
 byte radioByteIn, radioByteOut;
@@ -81,23 +87,27 @@ void loop() {
         break;
 
       case CAP:
-        void capPayload();
         Serial.write(serialByteIn);
+
+        // Confirm payload is ready
+        payloadReady(C_FLOATING);
+
+        capPayload();
         break;
 
       case FLUID:
-        void fluidPayload();
         Serial.write(serialByteIn);
+        void fluidPayload();
         break;
 
       case VIBRATION:
-        void vibrationPayload();
         Serial.write(serialByteIn);
+        void vibrationPayload();
         break;
 
       case CAMERA:
-        void cameraPayload();
         Serial.write(serialByteIn);
+        void cameraPayload();
         break;
     }
   }
@@ -118,33 +128,8 @@ void receiveRadioMessage(){
 }
 
 void sendRadioMessage(uint16_t node){
-  // Send the message to the correct node
-  switch (node) {
-    case NODE01:
-      RF24NetworkHeader header01(NODE01);
-      network.write(header01, &radioByteOut, sizeof(radioByteOut));
-      break;
-
-    case NODE02:
-      RF24NetworkHeader header02(NODE02);
-      network.write(header02, &radioByteOut, sizeof(radioByteOut));
-      break;
-
-    case NODE03:
-      RF24NetworkHeader header03(NODE03);
-      network.write(header03, &radioByteOut, sizeof(radioByteOut));
-      break;
-
-    case NODE04:
-      RF24NetworkHeader header04(NODE04);
-      network.write(header04, &radioByteOut, sizeof(radioByteOut));
-      break;
-
-    case NODE05:
-      RF24NetworkHeader header05(NODE05);
-      network.write(header04, &radioByteOut, sizeof(radioByteOut));
-      break;
-  }
+  RF24NetworkHeader header(node);
+  network.write(header, &radioByteOut, sizeof(radioByteOut));
 }
 
 byte readSerialPort(){
@@ -188,12 +173,10 @@ void payloadReady(byte floating){
 }
 
 void capPayload(){
-  // Confirm payload is ready
-  payloadReady(C_FLOATING);
-
   while(true){
     // Get info from serial port
     serialByteIn = readSerialPort();
+    Serial.write(serialByteIn);
 
     // Send to payload if its good data
     if (serialByteIn != 0x00){

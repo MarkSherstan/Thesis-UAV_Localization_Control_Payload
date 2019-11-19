@@ -20,11 +20,11 @@
 #define C_FLOATING   0x0E
 
 // Node assignment
-#define NODE01       01       // Cap
-#define NODE02       02       // Fluid
-#define NODE03       03       // Vibration
-#define NODE04       04       // Camera
-#define NODE05       05       // Future port
+// #define NODE01       01       // Cap
+// #define NODE02       02       // Fluid
+// #define NODE03       03       // Vibration
+// #define NODE04       04       // Camera
+// #define NODE05       05       // Future port
 
 
 class MasterPayload {
