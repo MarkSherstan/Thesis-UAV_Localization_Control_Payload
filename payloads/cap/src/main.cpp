@@ -11,7 +11,7 @@
 
 // Pinout Digital
 #define limitSwitchA    2
-#define MASTERNODEhB    3
+#define limitSwitchB    3
 #define clampServo      4
 #define radioCE         7
 #define radioCSN        8
@@ -62,7 +62,7 @@ void setup(){
   // Set up radio and network
   SPI.begin();
   radio.begin();
-  network.begin(CHANNEL, thisNode);
+  network.begin(CHANNEL, THISNODE);
   radio.setDataRate(RF24_2MBPS);
 
   // Start time sync (10000->100Hz, 5000->200Hz)
@@ -169,7 +169,7 @@ void loop(){
 
 void sendMessage(byte dataOut){
     // Send message
-    RF24NetworkHeader header(masterNode);
+    RF24NetworkHeader header(MASTERNODE);
     network.write(header, &dataOut, sizeof(dataOut));
 }
 
