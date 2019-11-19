@@ -1,6 +1,10 @@
 # UAV-Sampling-Control-System
 Control, data acquisition, and actuation system for autonomous UAV sampler.
 
+## Setup
+Make sure to install all the dependencies. For the first time call
+`git submodule update --init --recursive`. Otherwise update using `git submodule update --recursive`
+
 ## Manipulator Actuation
 Open the `ManipulatorActuation` PlatformIO project and build the project (current settings are for an Arduino Uno). All pinout is labeled in `src\main.cpp`. The servo library may need to be re-installed with the following command: `pio lib install "Servo"` in the PlatformIO command line.
 
