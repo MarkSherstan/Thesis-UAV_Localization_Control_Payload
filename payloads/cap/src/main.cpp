@@ -11,7 +11,7 @@
 
 // Pinout Digital
 #define limitSwitchA    2
-#define limitSwitchB    3
+#define MASTERNODEhB    3
 #define clampServo      4
 #define radioCE         7
 #define radioCSN        8
@@ -29,7 +29,7 @@
 bool serialFlag = true;
 
 // Variables
-float force, forceDesH, forceDesL, current;
+float force, forceDesL, forceDesH, current;
 bool switchStateA, switchStateB;
 byte dataIn, dataOut;
 int servoControl;
@@ -43,26 +43,26 @@ RF24Network network(radio);
 // Functions
 void sendMessage(byte dataOut);
 void receiveMessage();
-void bounds();
+void boundaryControl();
 
 // Run once
 void setup(){
-  if (serialFlag == false){
+  if (serialFlag == true){
     // Start serial port
     Serial.begin(115200);
   }
 
   // Configure digital pins
-  CP.setUpDigitalPins(limitSwitchA, limitSwitchB, gLED, rLED);
+  CP.setUpDigitalPins(limitSwitchA, limitSwitchB, rLED, gLED);
 
   // Set up clamping servo and set to off
   clamp.attach(clampServo);
   clamp.writeMicroseconds(clampStop);
 
-  // Set up radio
+  // Set up radio and network
   SPI.begin();
   radio.begin();
-  network.begin(channel, thisNode);
+  network.begin(CHANNEL, thisNode);
   radio.setDataRate(RF24_2MBPS);
 
   // Start time sync (10000->100Hz, 5000->200Hz)
@@ -74,7 +74,7 @@ void loop(){
   // Check for incoming message
   receiveMessage();
 
-  // Enage, release, or pass based on command
+  // Enage, release, or pass based on incoming message
   if (dataIn == ENGAGE){
     while(true){
       // Close the clamps
@@ -95,7 +95,7 @@ void loop(){
 
         while(true){
           // Beware of limt switches
-          bounds();
+          boundaryControl();
 
           // Get fresh force data
           force = CP.readFSR(forceAnalog);
@@ -122,10 +122,10 @@ void loop(){
       }
 
       // Not yet engaged
-      sendMessage(BETWEEN);
+      sendMessage(FLOATING);
 
       // Beware of limit switches
-      bounds();
+      boundaryControl();
 
       // Stabilize sampling rate
       CP.timeSync();
@@ -135,12 +135,12 @@ void loop(){
       // Open the clamp
       clamp.writeMicroseconds(clampOpen);
 
-      // Check if released
+      // Get fresh force data
       force = CP.readFSR(forceAnalog);
 
-      // Release protocal
+      // Check if released and begin protocal
       if (force < 10){
-        // Transmit data back
+        // Transmit released state
         sendMessage(RELEASED);
 
         // Open the jaws the entire way
@@ -153,20 +153,15 @@ void loop(){
       }
 
       // Beaware of limit switches
-      bounds();
+      boundaryControl();
 
       // Stabilize sampling rate
       CP.timeSync();
     }
+  } else{
+    // Floating state message
+    sendMessage(FLOATING);
   }
-
-  // CP.fnc(&clamp);
-
-  // Print data based on flag state
-  // if (serialFlag == true){
-  //   CP.printData(force, current, switchStateA, switchStateB);
-  // }
-  sendMessage(BETWEEN);
 
   // Stabilize sampling rate
   CP.timeSync();
@@ -182,22 +177,28 @@ void receiveMessage(){
   // Update the network
   network.update();
 
-  // Receiving data
+  // Receiving data if available
   while (network.available()){
     RF24NetworkHeader header;
     network.read(header, &dataIn, sizeof(dataIn));
   }
 }
 
-void bounds(){
+void boundaryControl(){
+  // Get limit switch reading
   switchStateA = CP.readSwitch(limitSwitchA);
   switchStateB = CP.readSwitch(limitSwitchB);
 
+  // Open or close the jaws based on the response
   if (switchStateA == 0){
     clamp.writeMicroseconds(clampOpen);
-    CP.LED_ON(gLED); CP.LED_OFF(rLED);
+    CP.LED_ON(rLED);
+    delay(1000);
+    CP.LED_OFF(rLED);
   } else if (switchStateB == 0){
     clamp.writeMicroseconds(clampClose);
-    CP.LED_ON(rLED); CP.LED_OFF(gLED);
+    CP.LED_ON(rLED);
+    delay(1000);
+    CP.LED_ON(rLED);
   }
 }

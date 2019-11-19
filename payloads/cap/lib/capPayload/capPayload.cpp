@@ -1,4 +1,5 @@
 #include "capPayload.h"
+#include <arduino.h>
 
 void CapPayload::setUpDigitalPins(int limitSwitchA, int limitSwitchB, int ledA, int ledB){
   // Limit Switches
@@ -63,14 +64,6 @@ void CapPayload::LED_OFF(int LED){
   digitalWrite(LED, LOW);
 }
 
-void CapPayload::printData(float force, float current, bool switchStateA, bool switchStateB){
-  Serial.print(micros());           Serial.print(",");
-  Serial.print(force,1);            Serial.print(",");
-  Serial.print(current,1);          Serial.print(",");
-  Serial.print(switchStateA);       Serial.print(",");
-  Serial.println(switchStateB);
-}
-
 void CapPayload::timeSync(){
    // Calculate required delay
    currentTime = micros();
@@ -87,8 +80,3 @@ void CapPayload::timeSync(){
    // Update the tracked time
    _trackedTime = currentTime + timeToDelay;
  }
-
-void CapPayload::fnc(Servo *s){
-  s->writeMicroseconds(1000);
-}
- 
