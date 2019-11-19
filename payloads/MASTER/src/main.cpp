@@ -30,6 +30,8 @@ RF24 radio(radioCE, radioCSN);
 RF24Network network(radio);
 
 // Functions
+byte readSerialPort();
+void payloadReady(byte floating);
 void sendRadioMessage(uint16_t node);
 void receiveRadioMessage();
 void capPayload();
@@ -134,9 +136,66 @@ void sendRadioMessage(uint16_t node){
   }
 }
 
+byte readSerialPort(){
+  if (Serial.available() > 0) {
+    serialByteIn = Serial.read();
+    return serialByteIn;
+  }
+    return 0x00;
+}
+
+void payloadReady(byte floating){
+  // Make sure there is a connection established
+  int count;
+
+  while (count < 10){
+    // Check for incoming radio messages
+    receiveRadioMessage();
+
+    // If floating state
+    if (radioByteIn == floating){
+      count++;
+    }
+
+    // Update serial port and stabilize sampling rate
+    Serial.write(WAIT);
+    MP.timeSync();
+  }
+
+  // Wait for a command
+  while(true){
+    // Tell serial port we are ready
+    Serial.write(READY);
+
+    // Break when ready
+    serialByteOut = readSerialPort();
+
+    if (serialByteOut == READY){
+      break;
+    }
+  }
+}
+
 void capPayload(){
-  // Check for incoming message
-  receiveRadioMessage();
+  // Confirm payload is ready
+  payloadReady(C_FLOATING);
+
+  while(true){
+    // Get info from serial port
+    serialByteIn = readSerialPort();
+
+    // Send to payload if its good data
+    if (serialByteIn != 0x00){
+      radioByteOut = serialByteIn;
+      sendRadioMessage(NODE01);
+    }
+
+    // Check for incoming radio messages
+    receiveRadioMessage();
+
+    // Send the radio message to the serial port
+    Serial.write(radioByteIn);
+  }
 }
 
 void fluidPayload(){}

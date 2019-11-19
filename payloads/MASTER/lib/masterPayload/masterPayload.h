@@ -5,6 +5,8 @@
 // Payloads protocal
 #define P_ENGAGE     0xFF
 #define P_RELEASE    0xFE
+#define READY        0x5A
+#define WAIT         0x5F
 #define CAP          0x01
 #define FLUID        0x02
 #define VIBRATION    0x03
