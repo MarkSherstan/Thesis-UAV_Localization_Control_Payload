@@ -2,30 +2,33 @@
 #ifndef MASTERPAYLOAD_H
 #define MASTERPAYLOAD_H
 
-// Payloads protocal
-#define P_ENGAGE     0xFE
-#define P_RELEASE    0xFF
+// Payload protocal
+#define ENGAGE       0xFE
+#define RELEASE      0xFF
+
+// Payload states
 #define FLOATING     0x0E
 #define READY        0x5A
 #define WAIT         0x5F
-#define LEAVE        0xCC
+#define EXIT         0xEE
+
+// Payload ids
 #define CAP          0x01
 #define FLUID        0x02
 #define VIBRATION    0x03
 #define CAMERA       0x04
+#define FUTURE       0x05
 
-// Cap communication protocal
-#define C_ENGAGE     0x0A
-#define C_RELEASE    0x0B
-#define C_CLAMPED    0x0C
-#define C_RELEASED   0x0D
+// Radio parameters
+#define MASTER_NODE  00
+#define CHANNEL      90
 
 // Node assignment
-// #define NODE01       01       // Cap
-// #define NODE02       02       // Fluid
-// #define NODE03       03       // Vibration
-// #define NODE04       04       // Camera
-// #define NODE05       05       // Future port
+#define NODE01       01       // Cap
+#define NODE02       02       // Fluid
+#define NODE03       03       // Vibration
+#define NODE04       04       // Camera
+#define NODE05       05       // Future port
 
 
 class MasterPayload {

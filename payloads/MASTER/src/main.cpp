@@ -12,18 +12,10 @@
 #define radioCSN        8
 #define lockServo       9
 
-// Radio, timer, and servo pulses
-#define channel           90
-#define lockClose         1400
-#define lockOpen          900
+// Servo pulses and timer
+#define lockClose         900
+#define lockOpen          1400
 #define loopTimeMicroSec  10000
-
-const uint16_t masterNode = 00;
-const uint16_t NODE01 = 01;       // Cap
-const uint16_t NODE02 = 02;       // Fluid
-const uint16_t NODE03 = 03;       // Vibration
-const uint16_t NODE04 = 04;       // Camera
-const uint16_t NODE05 = 05;       // Future port
 
 // Variables
 byte radioByteIn, radioByteOut;
@@ -57,7 +49,7 @@ void setup() {
   // Set up radio
   SPI.begin();
   radio.begin();
-  network.begin(channel, masterNode);
+  network.begin(CHANNEL, MASTER_NODE);
   radio.setDataRate(RF24_2MBPS);
 
   // Start time sync (10000->100Hz, 5000->200Hz)
@@ -73,38 +65,33 @@ void loop() {
 
     // Switch statment based on serial input
     switch (serialByteIn) {
-      case P_ENGAGE:
+      case ENGAGE:
         lock.writeMicroseconds(lockClose);
-        Serial.write(serialByteIn);
+        payloadReady();
         break;
 
-      case P_RELEASE:
+      case RELEASE:
         lock.writeMicroseconds(lockOpen);
-        Serial.write(serialByteIn);
         break;
 
       case CAP:
-        Serial.write(serialByteIn);
-        payloadReady();
         COMS(NODE01);
         break;
 
       case FLUID:
-        Serial.write(serialByteIn);
-        payloadReady();
         COMS(NODE02);
         break;
 
       case VIBRATION:
-        Serial.write(serialByteIn);
-        payloadReady();
         COMS(NODE03);
         break;
 
       case CAMERA:
-        Serial.write(serialByteIn);
-        payloadReady();
         COMS(NODE04);
+        break;
+
+      case FUTURE:
+        COMS(NODE05);
         break;
     }
   }
@@ -189,7 +176,7 @@ void COMS(uint16_t node){
     Serial.write(radioByteIn);
 
     // Exit if command is given
-    if (serialByteIn == LEAVE){
+    if (serialByteIn == EXIT){
       break;
     }
   }
