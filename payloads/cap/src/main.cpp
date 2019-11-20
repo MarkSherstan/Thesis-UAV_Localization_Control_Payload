@@ -25,9 +25,6 @@
 #define currentThresh     200
 #define loopTimeMicroSec  10000
 
-// Serial port flag
-bool serialFlag = true;
-
 // Variables
 float force, forceDesL, forceDesH, current;
 bool switchStateA, switchStateB;
@@ -47,11 +44,6 @@ void boundaryControl();
 
 // Run once
 void setup(){
-  if (serialFlag == true){
-    // Start serial port
-    Serial.begin(115200);
-  }
-
   // Configure digital pins
   CP.setUpDigitalPins(limitSwitchA, limitSwitchB, rLED, gLED);
 
@@ -74,94 +66,109 @@ void loop(){
   // Check for incoming message
   receiveMessage();
 
-  // Enage, release, or pass based on incoming message
-  if (dataIn == ENGAGE){
-    while(true){
-      // Close the clamps
-      clamp.writeMicroseconds(clampClose);
+  // Enage, release, or float based on incoming message
+  switch(dataIn) {
+    case ENGAGE:
+      while(true){
+        // Close the clamps
+        clamp.writeMicroseconds(clampClose);
 
-      // Acquire new data from onboard sensors
-      force = CP.readFSR(forceAnalog);
-      current = CP.readCurrent(currentAnalog);
+        // Not yet engaged
+        sendMessage(FLOATING);
 
-      if (current >= currentThresh){
-        // Send clamped message
-        sendMessage(CLAMPED);
-
-        // Update control variables
-        forceDesH = force * 1.05;
-        forceDesL = force * 0.95;
-        servoControl = clampStop;
-
-        while(true){
-          // Beware of limt switches
-          boundaryControl();
-
-          // Get fresh force data
-          force = CP.readFSR(forceAnalog);
-
-          // Do some control for tightness
-          if (force >= forceDesH){
-            servoControl -= 2;
-          } else if (force <= forceDesL){
-            servoControl += 2;
-          }
-
-          // Send the servo command
-          clamp.writeMicroseconds(servoControl);
-
-          // Can the cap be released?
-          receiveMessage();
-          if (dataIn == RELEASE){
-            break;
-          }
-
-          // Stabilize sampling rate
-          CP.timeSync();
+        // Check if there is an updated command
+        receiveMessage();
+        if (dataIn == RELEASE){
+          break;
         }
+
+        // Beware of limit switches
+        boundaryControl();
+
+        // Acquire new data from onboard sensors
+        force = CP.readFSR(forceAnalog);
+        current = CP.readCurrent(currentAnalog);
+
+        // If threshold is met keep clamped
+        if (current >= currentThresh){
+          // Send clamped message
+          sendMessage(CLAMPED);
+
+          // Update control variables
+          forceDesH = force * 1.05;
+          forceDesL = force * 0.95;
+          servoControl = clampStop;
+
+          while(true){
+            // Beware of limit switches
+            boundaryControl();
+
+            // Get fresh force data
+            force = CP.readFSR(forceAnalog);
+
+            // Do some control for clamping force
+            if (force >= forceDesH){
+              servoControl -= 2;
+            } else if (force <= forceDesL){
+              servoControl += 2;
+            }
+
+            // Send the servo command
+            clamp.writeMicroseconds(servoControl);
+
+            // Update message
+            sendMessage(CLAMPED);
+
+            // Can the cap be released?
+            receiveMessage();
+            if (dataIn == RELEASE){
+              break;
+            }
+
+            // Stabilize sampling rate
+            CP.timeSync();
+          }
+        }
+
+        // Stabilize sampling rate
+        CP.timeSync();
       }
 
-      // Not yet engaged
+    case RELEASE:
+      while(true){
+        // Open the clamp
+        clamp.writeMicroseconds(clampOpen);
+
+        // Beware of limit switches
+        boundaryControl();
+
+        // Get fresh force data
+        force = CP.readFSR(forceAnalog);
+
+        // Check if released and begin protocal
+        if (force < 10){
+          // Transmit released state
+          sendMessage(RELEASED);
+
+          // Open the jaws the entire way
+          while (CP.readSwitch(limitSwitchB) != 0){
+            // Transmit released state at stable rate
+            sendMessage(RELEASED);
+            CP.timeSync();
+          }
+
+          // Break the loop and wait for next command
+          break;
+        }
+
+        // Stabilize sampling rate
+        CP.timeSync();
+      }
+
+    default:
       sendMessage(FLOATING);
-
-      // Beware of limit switches
-      boundaryControl();
-
-      // Stabilize sampling rate
-      CP.timeSync();
+      break;
     }
-  } else if (dataIn == RELEASE){
-    while(true){
-      // Open the clamp
-      clamp.writeMicroseconds(clampOpen);
-
-      // Get fresh force data
-      force = CP.readFSR(forceAnalog);
-
-      // Check if released and begin protocal
-      if (force < 10){
-        // Transmit released state
-        sendMessage(RELEASED);
-
-        // Open the jaws the entire way
-        while (CP.readSwitch(limitSwitchB) != 0){
-          CP.timeSync();
-        }
-
-        // Break the loop and wait for next command
-        break;
-      }
-
-      // Beaware of limit switches
-      boundaryControl();
-
-      // Stabilize sampling rate
-      CP.timeSync();
-    }
-  } else{
-    // Floating state message
-    sendMessage(FLOATING);
-  }
 
   // Stabilize sampling rate
   CP.timeSync();
