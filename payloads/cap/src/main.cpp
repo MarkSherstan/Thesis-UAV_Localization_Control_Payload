@@ -22,7 +22,7 @@
 #define clampOpen         2000
 #define clampClose        1000
 #define clampStop         1520
-#define currentThresh     200
+#define forceThresh       300
 #define loopTimeMicroSec  10000
 
 // Variables
@@ -90,13 +90,13 @@ void loop(){
         current = CP.readCurrent(currentAnalog);
 
         // If threshold is met keep clamped
-        if (current >= currentThresh){
+        if (force >= forceThresh){
           // Send clamped message
           sendMessage(CLAMPED);
 
           // Update control variables
-          forceDesH = force * 1.05;
-          forceDesL = force * 0.95;
+          forceDesH = force * 1.4;
+          forceDesL = force * 1;
           servoControl = clampStop;
 
           while(true){
@@ -108,10 +108,12 @@ void loop(){
 
             // Do some control for clamping force
             if (force >= forceDesH){
-              servoControl -= 2;
+              servoControl += 1;
             } else if (force <= forceDesL){
-              servoControl += 2;
+              servoControl -= 1;
             }
+
+            servoControl = constrain(servoControl, clampClose, clampOpen);
 
             // Send the servo command
             clamp.writeMicroseconds(servoControl);
@@ -134,13 +136,13 @@ void loop(){
         CP.timeSync();
       }
 
+      // Break from switch case
+      break;
+
     case OPEN:
-      while(true){
+      while(CP.readSwitch(limitSwitchB) != 0){
         // Open the clamp
         clamp.writeMicroseconds(clampOpen);
-
-        // Beware of limit switches
-        boundaryControl();
 
         // Check if there is an updated command
         receiveMessage();
@@ -151,30 +153,27 @@ void loop(){
         // Get fresh force data
         force = CP.readFSR(forceAnalog);
 
-        // Check if released and begin protocal
-        if (force < 10){
-          // Transmit released state
+        // Check if released and send corresponding message
+        if (force < 50){
           sendMessage(RELEASED);
-
-          // Open the jaws the entire way
-          while (CP.readSwitch(limitSwitchB) != 0){
-            // Transmit released state at stable rate
-            sendMessage(RELEASED);
-            CP.timeSync();
-          }
-
-          // Break the loop and wait for next command
-          break;
+        } else {
+          sendMessage(FLOATING);
         }
 
         // Stabilize sampling rate
         CP.timeSync();
       }
 
+      // Stop the clamp and break
+      clamp.write(clampStop);
+      break;
+
     default:
+      boundaryControl();
+      clamp.write(clampStop);
       sendMessage(FLOATING);
       break;
-    }
+  }
 
   // Stabilize sampling rate
   CP.timeSync();
@@ -206,12 +205,12 @@ void boundaryControl(){
   if (switchStateA == 0){
     clamp.writeMicroseconds(clampOpen);
     CP.LED_ON(rLED);
-    delay(1000);
+    delay(500);
     CP.LED_OFF(rLED);
   } else if (switchStateB == 0){
     clamp.writeMicroseconds(clampClose);
     CP.LED_ON(rLED);
-    delay(1000);
-    CP.LED_ON(rLED);
+    delay(500);
+    CP.LED_OFF(rLED);
   }
 }
