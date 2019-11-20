@@ -93,6 +93,11 @@ void loop() {
       case FUTURE:
         COMS(NODE05);
         break;
+
+      default:
+        receiveRadioMessage();
+        serialByteIn = readSerialPort();
+        break;
     }
   }
 
