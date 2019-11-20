@@ -3,17 +3,16 @@
 #define CAPPAYLOAD_H
 
 // Communcation protocal
-#define ENGAGE     0x0A
-#define RELEASE    0x0B
-#define CLAMPED    0x0C
-#define RELEASED   0x0D
-#define FLOATING   0x0E
+#define OPEN         0x0A
+#define CLOSE        0x0B
+#define CLAMPED      0x0C
+#define RELEASED     0x0D
+#define FLOATING     0x0E
 
 // Radio values
-#define CHANNEL    90
-#define MASTERNODE 00
-#define THISNODE   01
-
+#define MASTER_NODE  00
+#define THIS_NODE    01
+#define CHANNEL      90
 
 class CapPayload {
 

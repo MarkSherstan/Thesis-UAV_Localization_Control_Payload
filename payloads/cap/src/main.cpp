@@ -54,7 +54,7 @@ void setup(){
   // Set up radio and network
   SPI.begin();
   radio.begin();
-  network.begin(CHANNEL, THISNODE);
+  network.begin(CHANNEL, THIS_NODE);
   radio.setDataRate(RF24_2MBPS);
 
   // Start time sync (10000->100Hz, 5000->200Hz)
@@ -66,19 +66,19 @@ void loop(){
   // Check for incoming message
   receiveMessage();
 
-  // Enage, release, or float based on incoming message
+  // Use incoming byte to determine state
   switch(dataIn) {
-    case ENGAGE:
+    case CLOSE:
       while(true){
         // Close the clamps
         clamp.writeMicroseconds(clampClose);
 
-        // Not yet engaged
+        // Not yet closed
         sendMessage(FLOATING);
 
         // Check if there is an updated command
         receiveMessage();
-        if (dataIn == RELEASE){
+        if (dataIn == OPEN){
           break;
         }
 
@@ -121,7 +121,7 @@ void loop(){
 
             // Can the cap be released?
             receiveMessage();
-            if (dataIn == RELEASE){
+            if (dataIn == OPEN){
               break;
             }
 
@@ -134,13 +134,19 @@ void loop(){
         CP.timeSync();
       }
 
-    case RELEASE:
+    case OPEN:
       while(true){
         // Open the clamp
         clamp.writeMicroseconds(clampOpen);
 
         // Beware of limit switches
         boundaryControl();
+
+        // Check if there is an updated command
+        receiveMessage();
+        if (dataIn == CLOSE){
+          break;
+        }
 
         // Get fresh force data
         force = CP.readFSR(forceAnalog);
@@ -176,7 +182,7 @@ void loop(){
 
 void sendMessage(byte dataOut){
     // Send message
-    RF24NetworkHeader header(MASTERNODE);
+    RF24NetworkHeader header(MASTER_NODE);
     network.write(header, &dataOut, sizeof(dataOut));
 }
 
