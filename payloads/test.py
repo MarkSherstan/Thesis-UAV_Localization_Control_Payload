@@ -19,23 +19,24 @@ time.sleep(1)
 while True:
     try:
         # Get input
-        str = input('Open [o] or Close [c]: ')
+        str = input('Open [o], Close [c], payload [p]: ')
 
-        # Send to servo
+        # Use the input
         if (str == 'o'):
             ser.write(b'\xFE')
             print('Open')
+
         elif (str == 'c'):
             ser.write(b'\xFF')
             print('Close')
-        elif (str == 'cap'):
+
+        elif (str == 'p'):
             ser.write(b'\x01')
             print('Cap request')
 
-            # print(hex(struct.unpack('B', ser.read())[0]))
             while(True):
                 var = ser.read()
-                print( hex(struct.unpack('B', var)[0]))
+                print(hex(struct.unpack('B', var)[0]))
                 var = struct.unpack('B', var)[0]
 
                 if var is 90:
@@ -52,17 +53,8 @@ while True:
                 if (str == ' '):
                     ser.write(b'\x0A')
 
-
-
-                # print('hello')
-                # try:
-                #     print(hex(struct.unpack('B', ser.read())[0]))
-                # except:
-                #     print('-')
-                #     break
         else:
             print('Invalid input')
-
 
         # Reading
         try:
