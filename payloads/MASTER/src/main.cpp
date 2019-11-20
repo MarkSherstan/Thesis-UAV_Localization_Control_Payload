@@ -14,8 +14,8 @@
 
 // Radio, timer, and servo pulses
 #define channel           90
-#define lockClose         900
-#define lockOpen          1400
+#define lockClose         1400
+#define lockOpen          900
 #define loopTimeMicroSec  10000
 
 const uint16_t masterNode = 00;
@@ -37,13 +37,10 @@ RF24Network network(radio);
 
 // Functions
 byte readSerialPort();
-void payloadReady(byte floating);
 void sendRadioMessage(uint16_t node);
 void receiveRadioMessage();
-void capPayload();
-void fluidPayload();
-void vibrationPayload();
-void cameraPayload();
+void payloadReady();
+void COMS(uint16_t node);
 
 // Run once
 void setup() {
@@ -77,37 +74,37 @@ void loop() {
     // Switch statment based on serial input
     switch (serialByteIn) {
       case P_ENGAGE:
-        lock.writeMicroseconds(lockOpen);
+        lock.writeMicroseconds(lockClose);
         Serial.write(serialByteIn);
         break;
 
       case P_RELEASE:
-        lock.writeMicroseconds(lockClose);
+        lock.writeMicroseconds(lockOpen);
         Serial.write(serialByteIn);
         break;
 
       case CAP:
         Serial.write(serialByteIn);
-
-        // Confirm payload is ready
-        payloadReady(C_FLOATING);
-
-        capPayload();
+        payloadReady();
+        COMS(NODE01);
         break;
 
       case FLUID:
         Serial.write(serialByteIn);
-        void fluidPayload();
+        payloadReady();
+        COMS(NODE02);
         break;
 
       case VIBRATION:
         Serial.write(serialByteIn);
-        void vibrationPayload();
+        payloadReady();
+        COMS(NODE03);
         break;
 
       case CAMERA:
         Serial.write(serialByteIn);
-        void cameraPayload();
+        payloadReady();
+        COMS(NODE04);
         break;
     }
   }
@@ -140,7 +137,7 @@ byte readSerialPort(){
     return 0x00;
 }
 
-void payloadReady(byte floating){
+void payloadReady(){
   // Make sure there is a connection established
   int count;
 
@@ -149,7 +146,7 @@ void payloadReady(byte floating){
     receiveRadioMessage();
 
     // If floating state
-    if (radioByteIn == floating){
+    if (radioByteIn == FLOATING){
       count++;
     }
 
@@ -165,23 +162,24 @@ void payloadReady(byte floating){
 
     // Break when ready
     serialByteOut = readSerialPort();
-
     if (serialByteOut == READY){
       break;
     }
+
+    // Stabilize sampling rate
+    MP.timeSync();
   }
 }
 
-void capPayload(){
+void COMS(uint16_t node){
   while(true){
     // Get info from serial port
     serialByteIn = readSerialPort();
-    Serial.write(serialByteIn);
 
-    // Send to payload if its good data
+    // Send serial message to payload if its good data
     if (serialByteIn != 0x00){
       radioByteOut = serialByteIn;
-      sendRadioMessage(NODE01);
+      sendRadioMessage(node);
     }
 
     // Check for incoming radio messages
@@ -189,11 +187,10 @@ void capPayload(){
 
     // Send the radio message to the serial port
     Serial.write(radioByteIn);
+
+    // Exit if command is given
+    if (serialByteIn == LEAVE){
+      break;
+    }
   }
 }
-
-void fluidPayload(){}
-
-void vibrationPayload(){}
-
-void cameraPayload(){}

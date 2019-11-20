@@ -5,8 +5,10 @@
 // Payloads protocal
 #define P_ENGAGE     0xFE
 #define P_RELEASE    0xFF
+#define FLOATING     0x0E
 #define READY        0x5A
 #define WAIT         0x5F
+#define LEAVE        0xCC
 #define CAP          0x01
 #define FLUID        0x02
 #define VIBRATION    0x03
@@ -17,7 +19,6 @@
 #define C_RELEASE    0x0B
 #define C_CLAMPED    0x0C
 #define C_RELEASED   0x0D
-#define C_FLOATING   0x0E
 
 // Node assignment
 // #define NODE01       01       // Cap
