@@ -61,7 +61,7 @@ class COMS:
         print('Disconnected from ' + str(self.port))
 
 class QuickConnect:
-    def __init__(self):
+    def __init__(self, s):
         # Payload protocal
         self.ENGAGE   = 0xFE
         self.RELEASE  = 0xFF
@@ -72,20 +72,60 @@ class QuickConnect:
         self.WAIT     = 0x5F
         self.EXIT     = 0xEE
 
-    def engage(self, s):
+        # Serial port class
+        self.ser = s
+
+    def engage(self):
         # Send the command to engage
-        s.writeSerialData(self.ENGAGE)
+        self.ser.writeSerialData(self.ENGAGE)
 
         # Wait till ready command is received
-        while(s.byteOut != self.READY):
+        while(self.ser.byteOut != self.READY):
             pass
 
         # Acknowledge ready
-        s.writeSerialData(self.READY)
+        self.ser.writeSerialData(self.READY)
 
-    def release(self, s):
+    def release(self):
         # Send the command to engage
-        s.writeSerialData(self.RELEASE)
+        self.ser.writeSerialData(self.RELEASE)
+
+class CAP:
+    def __init__(self, s):
+        # ID
+        self.ID = 0x01
+
+        # Communcation protocal
+        self.OPEN     = 0x0A
+        self.CLOSE    = 0x0B
+        self.CLAMPED  = 0x0C
+        self.RELEASED = 0x0D
+        self.FLOATING = 0x0E
+
+        # Serial port class
+        self.ser = s
+
+    def openJaws(self):
+        # Send ID
+        self.ser.writeSerialData(self.ID)
+
+        # Send open command
+        self.ser.writeSerialData(self.OPEN)
+
+        # Do something unitl released
+        while(self.ser.byteOut != self.RELEASED):
+            time.sleep(0.01)
+
+    def closeJaws(self):
+        # Send ID
+        self.ser.writeSerialData(self.ID)
+
+        # Send closed command
+        self.ser.writeSerialData(self.CLOSE)
+
+        # Do something until clamped
+        while(self.ser.byteOut != self.CLAMPED):
+            time.sleep(0.01)
 
 def main():
     # Connect to serial port
@@ -97,7 +137,8 @@ def main():
     s.readSerialStart()
 
     # Classes
-    q = QuickConnect()
+    q = QuickConnect(s)
+    c = CAP(s)
 
     # Run till quit
     while(True):
@@ -107,9 +148,13 @@ def main():
         if state is 'q':
             break
         elif state is 'e':
-            q.engage(s)
+            q.engage()
         elif state is 'r':
-            q.release(s)
+            q.release()
+        elif state is 'o':
+            c.openJaws()
+        elif state is 'c':
+            c.closeJaws()
 
     # Close the serial port
     s.close()
