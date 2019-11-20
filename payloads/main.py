@@ -156,6 +156,9 @@ def main():
         elif state is 'c':
             c.closeJaws()
 
+        # Clear the data line
+        s.writeSerialData(0xEE);
+
     # Close the serial port
     s.close()
 
