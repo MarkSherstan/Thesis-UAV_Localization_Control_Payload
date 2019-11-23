@@ -6,14 +6,6 @@
 	path = payloads/cap/lib/RF24Network
 	url = https://github.com/nRF24/RF24Network.git
 
-[submodule "payloads/fluid/lib/RF24"]
-	path = payloads/fluid/lib/RF24
-	url = https://github.com/nRF24/RF24.git
-
-[submodule "payloads/fluid/lib/RF24Network"]
-	path = payloads/fluid/lib/RF24Network
-	url = https://github.com/nRF24/RF24Network.git
-
 [submodule " payloads/MASTER/lib/RF24"]
 	path = payloads/MASTER/lib/RF24
 	url = https://github.com/nRF24/RF24.git
