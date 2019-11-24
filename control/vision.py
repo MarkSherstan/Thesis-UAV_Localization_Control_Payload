@@ -1,10 +1,50 @@
 import numpy as np
+import thread from threading
 import pickle
 import glob
 import cv2
 import cv2.aruco as aruco
 
-class ARUCO:
+class CaptureFrame:
+    __init__(self):
+        self.isReceiving = False
+        self.isRun = True
+        self.thread = None
+        self.frame = None
+
+        try:
+            self.cam = cv2.VideoCapture(0)
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+        except:
+            print('Camera setup failed')
+
+	def acquireFrameStart(self):
+		# Create a thread
+		if self.thread == None:
+			self.thread = Thread(target=self.acquireFrame)
+			self.thread.start()
+
+			# Block till we start receiving values
+			while self.isReceiving != True:
+				time.sleep(0.1)
+
+	def acquireFrame(self):
+		# Pause and then start
+		time.sleep(2)
+
+		# Acquire until closed
+		while(self.isRun):
+            _, self.frame = self.cam.read()
+			self.isReceiving = True
+
+	def close(self):
+		# Close the serial port connection
+		self.isRun = False
+		self.thread.join()
+		self.cam.release()
+
+class imgProcess:
     def __init__(self, arucoDict):
         self.arucoDict = aruco.Dictionary_get(arucoDict)
         self.frameWidth = 1280
@@ -179,11 +219,13 @@ class ARUCO:
                     cv2.destroyAllWindows()
                     break
 
+
 def main():
-    ac = ARUCOCLAW(aruco.DICT_5X5_1000)
+    IC = CaptureFrame()
+    IP = imgProcess(aruco.DICT_5X5_1000)
 
     # ac.getCalibration()
-    ac.trackAruco()
+    # ac.trackAruco()
     # ac.blockManipulator(rec=True)
 
 # Main loop
