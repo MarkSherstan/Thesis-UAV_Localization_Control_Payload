@@ -1,5 +1,6 @@
 from threading import Thread
 import numpy as np
+import math
 import time
 import cv2
 import cv2.aruco as aruco
@@ -63,6 +64,12 @@ class ProcessFrame:
 		self.mtx = np.array([[1.01477877e+03, 0.00000000e+00, 6.59914048e+02], [0.00000000e+00, 1.01195343e+03, 3.81079689e+02], [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
 		self.dist = np.array([[ 1.51665143e-01, 9.43194746e-01, 1.00876376e-02, 4.75462514e-03, -1.07961076e+01]])
 
+		# Output values
+		self.North = None
+		self.East  = None
+		self.Down  = None
+		self.Yaw   = None
+
 	def processFrameStart(self):
 		# Create a thread
 		if self.thread == None:
@@ -89,17 +96,50 @@ class ProcessFrame:
 
 		# Only continue if a marker was found
 		if np.all(ids != None):
-			# Estimate the pose
-			rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.mtx, self.dist)
+			if (len(ids) != 1):
+				pass
+			else:
+				# Estimate the pose
+				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.mtx, self.dist)
 
-			# Print ids found in top left
-			idz = ''
-			for ii in range(0, ids.size):
-				idz += str(ids[ii][0])+' '
-				x = round(tvec[ii][0][0]*100,2)
-				y = round(tvec[ii][0][1]*100,2)
-				z = round(tvec[ii][0][2]*100,2)
-				print(x,y,z)
+				# Save the distances
+				self.North = tvec[0][0][2]*100
+				self.East  = tvec[0][0][0]*100
+				self.Down  = tvec[0][0][1]*100
+
+				# Convert to rotation matrix and extract yaw
+				R, _ = cv2.Rodrigues(rvec)
+				eulerAngles = self.rotationMatrixToEulerAngles(R)
+				self.Yaw = eulerAngles[1]
+
+	def isRotationMatrix(self, R):
+		# Checks if matrix is valid
+		Rt = np.transpose(R)
+		shouldBeIdentity = np.dot(Rt, R)
+		I = np.identity(3, dtype = R.dtype)
+		n = np.linalg.norm(I - shouldBeIdentity)
+		return n < 1e-6
+
+	def rotationMatrixToEulerAngles(self, R):
+		# Check if rotation matrix is valid
+		assert(self.isRotationMatrix(R))
+
+		# Check if singular
+		sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+
+		if (sy < 1e-6):
+			# Singular
+			x = math.atan2(-R[1,2], R[1,1])
+			y = math.atan2(-R[2,0], sy)
+			z = 0
+		else:
+			# Not singular
+			x = math.atan2(R[2,1] , R[2,2])
+			y = math.atan2(-R[2,0], sy)
+			z = math.atan2(R[1,0], R[0,0])
+
+		# Return roll, pitch, and yaw
+		return np.array([x, y, z])
 
 	def close(self):
 		# Close the processing thread

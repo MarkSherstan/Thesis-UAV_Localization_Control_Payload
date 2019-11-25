@@ -1,4 +1,11 @@
+from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
+from pymavlink import mavutil
+import pandas as pd
+import math
+from controller import *
 from vision import *
+
+
 
 # import threading
 
@@ -21,7 +28,7 @@ from vision import *
 
 
 def main():
-	# Start capture frame class and get a frame
+	# Start capture frame class and dont start until we receive a frame
 	CF = CaptureFrame()
 	CF.acquireFrameStart()
 
@@ -38,8 +45,9 @@ def main():
 	tt = time.time()
 	while time.time() < tt + T:
 		PF.frame = CF.frame
+		print(round(PF.North,2), round(PF.East,2), round(PF.Down,2), round(math.degrees(PF.Yaw),2))
 
-	# Close the threads and other connections
+	# Close the threads and any other connections
 	PF.close()
 	CF.close()
 
