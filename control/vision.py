@@ -1,8 +1,6 @@
 from threading import Thread
 import numpy as np
 import time
-import pickle
-import glob
 import cv2
 import cv2.aruco as aruco
 
@@ -79,31 +77,3 @@ class ProcessFrame:
 				y = round(tvec[ii][0][1]*100,2)
 				z = round(tvec[ii][0][2]*100,2)
 				print(x,y,z)
-
-def main():
-	# Start capture frame class
-	CF = CaptureFrame()
-	CF.acquireFrameStart()
-
-	# Start processing frame class
-	PF = ProcessFrame()
-
-	# Run for T secounds
-	T = int(input('Input time to run: '))
-
-	tt = time.time()
-	while time.time() < tt + T:
-		# frame =
-
-		PF.getPose(CF.frame)
-		# cv2.imshow('frame', frame)
-		# if cv2.waitKey(1) & 0xFF == ord('q'):
-		# 	return
-
-	# Clean up
-	# cv2.destroyAllWindows()
-	CF.close()
-
-# Main loop
-if __name__ == '__main__':
-	main()
