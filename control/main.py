@@ -2,49 +2,28 @@ from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelativ
 from pymavlink import mavutil
 from controller import *
 from vision import *
+import pandas as pd
+import datetime
 import math
 
-def logData(V, CF, PF, C):
+def dispData(V, CF, PF, C):
 	# Display data to user:
-	# Actual
 	print('Actual ->\t', \
 		'\tN: ', round(PF.North,2), \
 		'\tE: ', round(PF.East,2), \
 		'\tD: ', round(PF.Down,2), \
-		'\tY: ', round(PF.Yaw,2))
-	# Controller
+		'\tY: ', round(math.degrees(PF.Yaw),2))
+
 	print('Controller ->\t', \
-		'\tN: ', round(C.pitchAngle,2), \
-		'\tE: ', round(C.rollAngle,2), \
-		'\tD: ', round(C.thrust,2), \
-		'\tY: ', round(C.yawRate))
-	# Print actual roll and pitch
+		'\tR: ', round(math.degrees(C.rollAngle),2), \
+		'\tP: ', round(math.degrees(C.pitchAngle),2), \
+		'\tY: ', round(math.degrees(C.yawRate),2), \
+		'\tD: ', round(C.thrust,2))
+
 	print('Attitude ->\t', \
 	  	'\tR: ', round(math.degrees(V.attitude.roll),2), \
 	  	'\tP: ', round(math.degrees(V.attitude.pitch),2), \
 	  	'\tY: ', round(math.degrees(V.attitude.yaw),2), '\n')
-
-	# # Log data
-	# self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
-	# 	vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
-	# 	northCurrentPos, eastCurrentPos, downCurrentPos, self.heading, \
-	# 	errorNorth, errorEast, errorDown, self.heading, \
-	# 	self.rollAngle, self.pitchAngle, self.yawRate, self.thrust])
-	#
-	# # Create file name
-	# now = datetime.datetime.now()
-	# fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
-	#
-	# # Write data to a data frame
-	# df = pd.DataFrame(self.tempData, columns=['Mode', 'Time',
-	# 					'Roll', 'Pitch', 'Yaw',
-	# 					'northCurrentPos', 'eastCurrentPos','downCurrentPos', 'yawCurrentAngle',
-	# 					'errorNorth', 'errorEast', 'errorDown', 'errorYaw',
-	# 					'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
-	#
-	# # Save as CSV and display to user
-	# df.to_csv(fileName, index=None, header=True)
-	# print('File saved to:\t' + fileName)
 
 def main():
 	# Connect to the Vehicle
@@ -73,30 +52,54 @@ def main():
 	C.controllerStart()
 
 	# Run for T secounds
-	T = int(input('Input time to run: '))
-
-	tt = time.time()
+	print('\nStarting...\n')
+	tempData = []
 	printTimer = time.time()
+	logTimer = time.time()
 
-	while time.time() < tt + T:
-		# Share data between classes and threads
-		PF.frame = CF.frame
+	try:
+		while(True):
+			# Share data between classes and threads
+			PF.frame = CF.frame
 
-		C.North  = PF.North
-		C.East   = PF.East
-		C.Down   = PF.Down
-		C.Yaw    = PF.Yaw
+			C.North  = PF.North
+			C.East   = PF.East
+			C.Down   = PF.Down
+			C.Yaw    = PF.Yaw
 
-		# # Print data
-		# if (time.time() > printTimer + 0.75):
-		# 	logData(vehicle, CF, PF, C)
-		# 	printTimer = time.time()
+			# Print data evert second
+			if (time.time() > printTimer + 1):
+				dispData(vehicle, CF, PF, C)
+				printTimer = time.time()
 
-	# Close the threads and any other connections
-	C.close()
-	PF.close()
-	CF.close()
-	vehicle.close()
+			# Log data at 50 Hz
+			if (time.time() > logTimer + 0.02):
+				tempData.append([vehicle.mode.name, time.time(), \
+					vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
+					C.North, C.East, C.Down, C.Yaw, \
+					C.rollAngle, C.pitchAngle, C.yawRate, C.thrust])
+				logTimer = time.time()
+
+	except KeyboardInterrupt:
+		# Close the threads and any other connections
+		C.close()
+		PF.close()
+		CF.close()
+		vehicle.close()
+
+		# Create file name
+		now = datetime.datetime.now()
+		fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
+
+		# Write data to a data frame
+		df = pd.DataFrame(tempData, columns=['Mode', 'Time',
+							'Roll', 'Pitch', 'Yaw',
+							'northCurrentPos', 'eastCurrentPos','downCurrentPos', 'yawCurrentAngle',
+							'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
+
+		# Save as CSV and display to user
+		df.to_csv(fileName, index=None, header=True)
+		print('File saved to:\t' + fileName)
 
 # Main loop
 if __name__ == '__main__':
