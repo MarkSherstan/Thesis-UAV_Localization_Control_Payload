@@ -14,8 +14,10 @@ class CaptureFrame:
 
 		try:
 			self.cam = cv2.VideoCapture(0)
-			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+			self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+			self.cam.set(cv2.CAP_PROP_AUTO_WB, 0)
 			print('Camera start')
 		except:
 			print('Camera setup failed')

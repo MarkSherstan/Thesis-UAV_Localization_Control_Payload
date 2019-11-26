@@ -48,7 +48,7 @@ def logData(V, CF, PF, C):
 
 def main():
 	# Connect to the Vehicle
-	connection_string = "/dev/cu.usbserial-DN04J8B4"
+	connection_string = "/dev/ttyS0"
 	print('Connecting to vehicle on: %s\n' % connection_string)
 	vehicle = connect(connection_string, wait_ready=["attitude"], baud=57600)
 
@@ -87,10 +87,10 @@ def main():
 		C.Down   = PF.Down
 		C.Yaw    = PF.Yaw
 
-		# Print data
-		if (time.time() > printTimer + 0.75):
-			logData(vehicle, CF, PF, C)
-			printTimer = time.time()
+		# # Print data
+		# if (time.time() > printTimer + 0.75):
+		# 	logData(vehicle, CF, PF, C)
+		# 	printTimer = time.time()
 
 	# Close the threads and any other connections
 	C.close()
