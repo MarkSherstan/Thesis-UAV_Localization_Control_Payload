@@ -1,2 +1,5 @@
 # Mac OS ignores
 .DS_Store
+
+# Python
+*.pyc
