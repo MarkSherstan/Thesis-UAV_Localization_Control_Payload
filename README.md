@@ -57,3 +57,31 @@ python main-SITL.py
 A [companion computer](http://ardupilot.org/dev/docs/companion-computers.html#companion-computers) is used to connect with the flight controller to implement off board control. Follow the guide for the respective hardware for setting up. To develop code connect on a desired serial port and use any of the commands outlined [here](https://web.archive.org/web/20180803235025/http://python.dronekit.io/guide/copter/guided_mode.html#guided-mode-copter).
 
 Connect on `/dev/ttyS1` which are pins 8 and 10 on the J1 expansion connector of the Odroid C2. Further information can be found [here](https://wiki.odroid.com/odroid-c2/hardware/expansion_connectors) and a wiring diagram can be found [here](http://ardupilot.org/dev/_images/RaspberryPi_Pixhawk_wiring1.jpg) (RPi and Odroid C2 can be wired the same).
+
+
+### RPi
+
+Installed Packages:
+
+```
+Package               Version
+--------------------- --------
+DateTime              4.3     
+dronekit              2.9.2   
+future                0.18.2  
+imutils               0.5.3   
+lxml                  4.4.1   
+monotonic             1.5     
+numpy                 1.17.4  
+opencv-contrib-python 4.1.0.25
+pandas                0.25.3  
+pip                   19.3.1  
+pymavlink             2.4.0   
+pyserial              3.4     
+python-dateutil       2.8.1   
+pytz                  2019.3  
+setuptools            41.6.0  
+six                   1.13.0  
+wheel                 0.33.6  
+zope.interface        4.7.1   
+```
