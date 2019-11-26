@@ -114,7 +114,7 @@ class ProcessFrame:
 				self.Yaw = eulerAngles[1]
 
 		# Change state for controller class
-		self.ready = True
+		self.isReady = True
 
 	def isRotationMatrix(self, R):
 		# Checks if matrix is valid

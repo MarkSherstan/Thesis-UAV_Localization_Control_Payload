@@ -61,9 +61,6 @@ class Controller:
 		self.yawConstrained = [-3.1415/4, -3.1415/90, 3.1415/90, 3.1415/4]
 		self.yawRateInterp = [-3.1415/2, 0, 0, 3.1415/2]
 
-		# Data Logging
-		self.tempData = []
-
 	def controllerStart(self):
 		# Create a thread
 		if self.thread == None:
@@ -79,7 +76,6 @@ class Controller:
 		# Run control until closed
 		while(self.isRun):
 			self.positionControl(self.drone)
-			self.isReceiving = True
 
 	def sendAttitudeTarget(self, vehicle):
 		# https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
@@ -149,89 +145,47 @@ class Controller:
 		# Start a timer
 		self.startTime = time.time()
 
-		try:
-			while(True):
-				# Get current values
-				northCurrentPos = self.N
-				eastCurrentPos  = self.E
-				downCurrentPos  = self.D
-				self.heading	= self.Y
+		while(True):
+			# Update thread flag
+			self.isReceiving = True
 
-				# Error calculations
-				errorNorth = self.northDesired - northCurrentPos
-				errorEast = self.eastDesired - eastCurrentPos
-				errorDown = self.downDesired - downCurrentPos
+			# Get current values
+			northCurrentPos = self.North
+			eastCurrentPos  = self.East
+			downCurrentPos  = self.Down
+			self.heading	= self.Yaw
 
-				# Get time delta
-				dt = time.time() - self.startTime
+			# Error calculations
+			errorNorth = self.northDesired - northCurrentPos
+			errorEast = self.eastDesired - eastCurrentPos
+			errorDown = self.downDesired - downCurrentPos
 
-				# Run some control
-				rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
-				pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
-				yawControl = self.constrain(self.heading * self.kYaw, self.minValYaw, self.maxValYaw)
-				thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+			# Get time delta
+			dt = time.time() - self.startTime
 
-				# Update previous error
-				self.northPreviousError = errorNorth
-				self.eastPreviousError = errorEast
+			# Run some control
+			rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
+			pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
+			yawControl = self.constrain(self.heading * self.kYaw, self.minValYaw, self.maxValYaw)
+			thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
-				# Set the controller values
-				self.rollAngle = -self.constrain(rollControl, self.minValNE, self.maxValNE)
-				self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-				self.yawRate = -np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
-				self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+			# Update previous error
+			self.northPreviousError = errorNorth
+			self.eastPreviousError = errorEast
 
-				# Send the command with small buffer
-				self.sendAttitudeTarget(vehicle)
-				time.sleep(self.duration)
+			# Set the controller values
+			self.rollAngle = -self.constrain(rollControl, self.minValNE, self.maxValNE)
+			self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
+			self.yawRate = -np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
+			self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
-				# Display data to user:
-				# Actual
-				print 'Actual ->\t', \
-					'\tN: ', round(northCurrentPos,2), \
-					'\tE: ', round(eastCurrentPos,2), \
-					'\tD: ', round(downCurrentPos,2), \
-					'\tY: ', round(self.heading,2)
-				# Error
-				print 'Error ->\t', \
-					'\tN: ', round(errorNorth,2), \
-					'\tE: ', round(errorEast,2), \
-					'\tD: ', round(errorDown,2), \
-					'\tY: ', round(self.heading,2)
-				# Controller
-				print 'Controller ->\t', \
-					'\tN: ', round(self.pitchAngle,2), \
-					'\tE: ', round(self.rollAngle,2), \
-					'\tD: ', round(self.thrust,2), \
-					'\tY: ', round(self.yawRate)
-				# Print actual roll and pitch
-				print 'Attitude ->\t', \
-				  	'\tR: ', round(math.degrees(vehicle.attitude.roll),2), \
-				  	'\tP: ', round(math.degrees(vehicle.attitude.pitch),2), \
-				  	'\tY: ', round(math.degrees(vehicle.attitude.yaw),2), '\n'
+			# Send the command with small buffer
+			self.sendAttitudeTarget(vehicle)
+			time.sleep(self.duration)
 
-				# Log data
-				self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
-					vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
-					northCurrentPos, eastCurrentPos, downCurrentPos, self.heading, \
-					errorNorth, errorEast, errorDown, self.heading, \
-					self.rollAngle, self.pitchAngle, self.yawRate, self.thrust])
-
-		except KeyboardInterrupt:
-			# Create file name
-			now = datetime.datetime.now()
-			fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
-
-			# Write data to a data frame
-			df = pd.DataFrame(self.tempData, columns=['Mode', 'Time',
-								'Roll', 'Pitch', 'Yaw',
-								'northCurrentPos', 'eastCurrentPos','downCurrentPos', 'yawCurrentAngle',
-								'errorNorth', 'errorEast', 'errorDown', 'errorYaw',
-								'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
-
-			# Save as CSV and display to user
-			df.to_csv(fileName, index=None, header=True)
-			print('File saved to:\t' + fileName)
+			# Thread breakout protocal
+			if (self.isRun is False):
+				break
 
 	def trajectoryControl(self, vehicle, s):
 		# Initialize variables
