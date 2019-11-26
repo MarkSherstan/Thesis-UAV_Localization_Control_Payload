@@ -7,22 +7,22 @@ import math
 def logData(V, CF, PF, C):
 	# Display data to user:
 	# Actual
-	print 'Actual ->\t', \
+	print('Actual ->\t', \
 		'\tN: ', round(PF.North,2), \
 		'\tE: ', round(PF.East,2), \
 		'\tD: ', round(PF.Down,2), \
-		'\tY: ', round(PF.Yaw,2)
+		'\tY: ', round(PF.Yaw,2))
 	# Controller
-	print 'Controller ->\t', \
+	print('Controller ->\t', \
 		'\tN: ', round(C.pitchAngle,2), \
 		'\tE: ', round(C.rollAngle,2), \
 		'\tD: ', round(C.thrust,2), \
-		'\tY: ', round(C.yawRate)
+		'\tY: ', round(C.yawRate))
 	# Print actual roll and pitch
-	print 'Attitude ->\t', \
+	print('Attitude ->\t', \
 	  	'\tR: ', round(math.degrees(V.attitude.roll),2), \
 	  	'\tP: ', round(math.degrees(V.attitude.pitch),2), \
-	  	'\tY: ', round(math.degrees(V.attitude.yaw),2), '\n'
+	  	'\tY: ', round(math.degrees(V.attitude.yaw),2), '\n')
 
 	# # Log data
 	# self.tempData.append([vehicle.mode.name, (time.time() - self.startTime), \
