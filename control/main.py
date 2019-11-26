@@ -76,6 +76,8 @@ def main():
 	T = int(input('Input time to run: '))
 
 	tt = time.time()
+	printTimer = time.time()
+
 	while time.time() < tt + T:
 		# Share data between classes and threads
 		PF.frame = CF.frame
@@ -85,8 +87,10 @@ def main():
 		C.Down   = PF.Down
 		C.Yaw    = PF.Yaw
 
-		# Print or data
-		# logData(vehicle, CF, PF, C)
+		# Print data
+		if (time.time() > printTimer + 0.75):
+			logData(vehicle, CF, PF, C)
+			printTimer = time.time()
 
 	# Close the threads and any other connections
 	C.close()
