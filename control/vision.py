@@ -65,10 +65,11 @@ class ProcessFrame:
 		self.dist = np.array([[ 1.51665143e-01, 9.43194746e-01, 1.00876376e-02, 4.75462514e-03, -1.07961076e+01]])
 
 		# Output values
-		self.North = None
-		self.East  = None
-		self.Down  = None
-		self.Yaw   = None
+		self.North = 0
+		self.East  = 0
+		self.Down  = 0
+		self.Yaw   = 0
+		self.isReady = False
 
 	def processFrameStart(self):
 		# Create a thread
@@ -78,7 +79,7 @@ class ProcessFrame:
 			print('Frame processing thread start')
 
 			# Block till we start receiving values
-			while (self.isReceiving != True): #(self.frame is None) and
+			while (self.isReceiving != True):
 				time.sleep(0.1)
 
 	def processFrame(self):
@@ -111,6 +112,9 @@ class ProcessFrame:
 				R, _ = cv2.Rodrigues(rvec)
 				eulerAngles = self.rotationMatrixToEulerAngles(R)
 				self.Yaw = eulerAngles[1]
+
+		# Change state for controller class
+		self.ready = True
 
 	def isRotationMatrix(self, R):
 		# Checks if matrix is valid

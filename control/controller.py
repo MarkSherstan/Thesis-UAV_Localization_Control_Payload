@@ -1,9 +1,22 @@
+from threading import Thread
 import numpy as np
 import time
 import math
 
 class Controller:
-	def __init__(self):
+	def __init__(self, drone):
+		# Pass vehicle class
+		self.drone = drone
+
+		# Threading parameters
+		self.isReceiving = False
+		self.isRun = True
+		self.thread = None
+		self.North = 0
+		self.East  = 0
+		self.Down  = 0
+		self.Yaw   = 0
+
 		# Initial conditions
 		self.rollAngle = 0.0
 		self.pitchAngle = 0.0
@@ -50,6 +63,23 @@ class Controller:
 
 		# Data Logging
 		self.tempData = []
+
+	def controllerStart(self):
+		# Create a thread
+		if self.thread == None:
+			self.thread = Thread(target=self.control)
+			self.thread.start()
+			print('Controller thread start')
+
+			# Block till we start receiving values
+			while (self.isReceiving != True):
+				time.sleep(0.1)
+
+	def control(self):
+		# Run control until closed
+		while(self.isRun):
+			self.positionControl(self.drone)
+			self.isReceiving = True
 
 	def sendAttitudeTarget(self, vehicle):
 		# https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
@@ -372,18 +402,8 @@ class Controller:
 		# Return the resulting position
 		return pos
 
-def main():
-	# Connect to the Vehicle
-	connection_string = "/dev/ttyS1"
-	print('Connecting to vehicle on: %s\n' % connection_string)
-	vehicle = connect(connection_string, wait_ready=["attitude"], baud=57600)
-
-	# Set up controller class
-	C = Controller()
-
-	# Run a test
-	C.positionControl(vehicle)
-
-# Main loop
-if __name__ == '__main__':
-	main()
+	def close(self):
+		# Close the processing thread
+		self.isRun = False
+		self.thread.join()
+		print('Controller thread closed')
