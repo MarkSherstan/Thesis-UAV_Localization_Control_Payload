@@ -5,60 +5,23 @@ import time
 import cv2
 import cv2.aruco as aruco
 
-class CaptureFrame:
+class Vision:
 	def __init__(self):
-		self.isReceiving = False
-		self.isRun = True
-		self.thread = None
+		# Threading parameters
+		self.isReceivingFrame = False
+		self.isReceivingPose = False
+
+		self.isRunFrame = True
+		self.isRunPose = True
+
+		self.frameThread = None
+		self.poseThread = None
+
+		# Frame
 		self.frame = None
 
-		try:
-			self.cam = cv2.VideoCapture(0)
-			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-			self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-			self.cam.set(cv2.CAP_PROP_AUTO_WB, 0)
-			print('Camera start')
-		except:
-			print('Camera setup failed')
-
-	def acquireFrameStart(self):
-		# Create a thread
-		if self.thread == None:
-			self.thread = Thread(target=self.acquireFrame)
-			self.thread.start()
-			print('Camera thread start')
-
-			# Block till we start receiving values
-			while self.isReceiving != True:
-				time.sleep(0.1)
-
-	def acquireFrame(self):
-		# Acquire until closed
-		while(self.isRun):
-			_, self.frame = self.cam.read()
-			self.isReceiving = True
-
-	def close(self):
-		# Close the thread and camera connection
-		self.isRun = False
-		self.thread.join()
-		print('Camera thread closed')
-		self.cam.release()
-		print('Camera closed')
-
-class ProcessFrame:
-	def __init__(self, firstFrame):
-		# Threading parameters
-		self.isReceiving = False
-		self.isRun = True
-		self.thread = None
-		self.frame = firstFrame
-
-		# Aruco dictionary to be used
+		# Aruco dictionary to be used and pose processing parameters
 		self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
-
-		# Processing parameters
 		self.parm = aruco.DetectorParameters_create()
 		self.parm.adaptiveThreshConstant = 10
 
@@ -73,22 +36,54 @@ class ProcessFrame:
 		self.Yaw   = 0
 		self.isReady = False
 
-	def processFrameStart(self):
+		# Start the connection to the camera
+		try:
+			self.cam = cv2.VideoCapture(0)
+			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
+			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
+			self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+			self.cam.set(cv2.CAP_PROP_AUTO_WB, 0)
+			print('Camera start')
+		except:
+			print('Camera setup failed')
+
+	def startFrameThread(self):
 		# Create a thread
-		if self.thread == None:
-			self.thread = Thread(target=self.processFrame)
-			self.thread.start()
+		if self.frameThread == None:
+			self.frameThread = Thread(target=self.acquireFrame)
+			self.frameThread.start()
+			print('Camera thread start')
+
+			# Block till we start receiving values
+			while self.isReceivingFrame != True:
+				time.sleep(0.1)
+
+	def acquireFrame(self):
+		# Acquire until closed
+		while(self.isRunFrame):
+			_, self.frame = self.cam.read()
+			self.isReceivingFrame = True
+
+	def startPoseThread(self):
+		# Block until a frame has been acquired
+		while self.frame is None:
+			time.sleep(0.1)
+
+		# Create a thread
+		if self.poseThread == None:
+			self.poseThread = Thread(target=self.processFrame)
+			self.poseThread.start()
 			print('Frame processing thread start')
 
 			# Block till we start receiving values
-			while (self.isReceiving != True):
+			while (self.isReceivingPose != True):
 				time.sleep(0.1)
 
 	def processFrame(self):
 		# Process data until closed
-		while(self.isRun):
+		while(self.isRunPose):
 			self.getPose()
-			self.isReceiving = True
+			self.isReceivingPose = True
 
 	def getPose(self):
 		# Get frame and convert to gray
@@ -148,7 +143,16 @@ class ProcessFrame:
 		return np.array([x, y, z])
 
 	def close(self):
-		# Close the processing thread
-		self.isRun = False
-		self.thread.join()
-		print('Frame processing thread closed')
+		# Close the pose processing thread
+		self.isRunPose = False
+		self.poseThread.join()
+		print('\nFrame processing thread closed')
+
+		# Close the capture thread
+		self.isRunFrame = False
+		self.frameThread.join()
+		print('Camera thread closed')
+
+		# Rlease the camera connection
+		self.cam.release()
+		print('Camera closed')

@@ -6,24 +6,24 @@ import pandas as pd
 import datetime
 import math
 
-def dispData(V, CF, PF, C):
+def dispData(V, C, vehicle):
 	# Display data to user:
-	print('Actual ->\t', \
-		'\tN: ', round(PF.North,2), \
-		'\tE: ', round(PF.East,2), \
-		'\tD: ', round(PF.Down,2), \
-		'\tY: ', round(math.degrees(PF.Yaw),2))
+	print('Vision ->\t', \
+		'\tN: ', round(V.North,2), \
+		'\tE: ', round(V.East,2), \
+		'\tD: ', round(V.Down,2), \
+		'\tY: ', round(math.degrees(V.Yaw),2))
 
 	print('Controller ->\t', \
 		'\tR: ', round(math.degrees(C.rollAngle),2), \
 		'\tP: ', round(math.degrees(C.pitchAngle),2), \
 		'\tY: ', round(math.degrees(C.yawRate),2), \
-		'\tD: ', round(C.thrust,2))
+		'\tT: ', round(C.thrust,2))
 
 	print('Attitude ->\t', \
-	  	'\tR: ', round(math.degrees(V.attitude.roll),2), \
-	  	'\tP: ', round(math.degrees(V.attitude.pitch),2), \
-	  	'\tY: ', round(math.degrees(V.attitude.yaw),2), '\n')
+	  	'\tR: ', round(math.degrees(vehicle.attitude.roll),2), \
+	  	'\tP: ', round(math.degrees(vehicle.attitude.pitch),2), \
+	  	'\tY: ', round(math.degrees(vehicle.attitude.yaw),2), '\n')
 
 def main():
 	# Connect to the Vehicle
@@ -31,27 +31,20 @@ def main():
 	print('Connecting to vehicle on: %s\n' % connection_string)
 	vehicle = connect(connection_string, wait_ready=["attitude"], baud=57600)
 
-	# Start capture frame class and thread
-	CF = CaptureFrame()
-	CF.acquireFrameStart()
-
-	# Do not proceed until there is a frame
-	while(CF.frame is None):
-		time.sleep(0.1)
-
-	# Start processing frame class and thread
-	PF = ProcessFrame(CF.frame)
-	PF.processFrameStart()
+	# Start vision class and the capture and pose threads
+	V = Vision()
+	V.startFrameThread()
+	V.startPoseThread()
 
 	# Do not proceed until vision processor is ready
-	while(PF.isReady != True):
+	while(V.isReady != True):
 		time.sleep(0.1)
 
 	# Start controller and thread
 	C = Controller(vehicle)
 	C.controllerStart()
 
-	# Run for T secounds
+	# Run until broken by user
 	print('\nStarting...\n')
 	tempData = []
 	printTimer = time.time()
@@ -59,32 +52,29 @@ def main():
 
 	try:
 		while(True):
-			# Share data between classes and threads
-			PF.frame = CF.frame
-
-			C.North  = PF.North
-			C.East   = PF.East
-			C.Down   = PF.Down
-			C.Yaw    = PF.Yaw
+			# Share data between the two classes
+			C.North = V.North
+			C.East  = V.East
+			C.Down  = V.Down
+			C.Yaw   = V.Yaw
 
 			# Print data evert second
 			if (time.time() > printTimer + 1):
-				dispData(vehicle, CF, PF, C)
+				dispData(V, C, vehicle)
 				printTimer = time.time()
 
 			# Log data at 50 Hz
 			if (time.time() > logTimer + 0.02):
 				tempData.append([vehicle.mode.name, time.time(), \
-					vehicle.attitude.roll, vehicle.attitude.pitch, vehicle.attitude.yaw, \
+					math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
 					C.North, C.East, C.Down, C.Yaw, \
-					C.rollAngle, C.pitchAngle, C.yawRate, C.thrust])
+					math.degrees(C.rollAngle), math.degrees(C.pitchAngle), math.degrees(C.yawRate), C.thrust])
 				logTimer = time.time()
 
 	except KeyboardInterrupt:
 		# Close the threads and any other connections
 		C.close()
-		PF.close()
-		CF.close()
+		V.close()
 		vehicle.close()
 
 		# Create file name
@@ -93,8 +83,8 @@ def main():
 
 		# Write data to a data frame
 		df = pd.DataFrame(tempData, columns=['Mode', 'Time',
-							'Roll', 'Pitch', 'Yaw',
-							'northCurrentPos', 'eastCurrentPos','downCurrentPos', 'yawCurrentAngle',
+							'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
+							'North-Vision', 'East-Vision', 'Down-Vision', 'Yaw-Vision',
 							'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
 
 		# Save as CSV and display to user
