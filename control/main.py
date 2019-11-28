@@ -41,7 +41,7 @@ def main():
 		time.sleep(0.1)
 
 	# Start controller and thread
-	C = Controller(vehicle)
+	C = Controller(vehicle, 0.4, 0, 0)
 	C.controllerStart()
 
 	# Run until broken by user
