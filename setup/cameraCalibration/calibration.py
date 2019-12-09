@@ -20,15 +20,20 @@ class calibrateCamera:
 		self.calibrationDir = 'calibrationImgs/'
 		self.imgExtension = '.jpg'
 
-	def generateCharucoBoard(self, rows, columns):
+	def generateCharucoBoard(self, rows=7, columns=5):
 		# Create the board
-		board = aruco.CharucoBoard_create(columns, rows, 0.025, 0.0125, self.arucoDict)
+		board = aruco.CharucoBoard_create(
+					squaresX=columns,
+					squaresY=rows,
+					squareLength=0.025,
+					markerLength=0.0125,
+					dictionary=self.arucoDict)
 		img = board.draw((100*columns, 100*rows))
 
 		# Save it to a file
 		cv2.imwrite('CharucoBoard.png', img)
 
-	def generateMarker(self, ID=7, size=700):
+	def generateArucoMarker(self, ID=7, size=700):
 		# Create an image from the marker
 		img = aruco.drawMarker(self.arucoDict, ID, size)
 
@@ -65,83 +70,98 @@ class calibrateCamera:
 		self.cam.release()
 		cv2.destroyAllWindows()
 
-	def calibrateCamera(self):
-		# Based on: https://opencv-python-tutroals.readthedocs.io/en/latest/py_tutorials/py_calib3d/py_calibration/py_calibration.html
-		# Store object points (3D) and image points (2D) from processed images
-		objpoints = []
-		imgpoints = []
+	def calibrateCamera(self, rows=7, columns=5, lengthSquare=35.50, lengthMarker=17.75):
+		# Create charuco board with actual measured dimensions from print out
+		board = aruco.CharucoBoard_create(
+					squaresX=columns,
+					squaresY=rows,
+					squareLength=lengthSquare,
+					markerLength=lengthMarker,
+					dictionary=self.arucoDict)
 
-		# Chessboard size
-		rowCount = 9
-		colCount = 6
-
-		# prepare object points, e.g (0,0,0), (1,0,0), (2,0,0) ... (rowCount-1,colCount-1,0)
-		objp = np.zeros((rowCount*colCount,3), np.float32)
-		objp[:,:2] = np.mgrid[0:rowCount,0:colCount].T.reshape(-1,2)
+		# Storage variables
+		cornerList = []
+		idList = []
 
 		# Get image paths from calibration folder
 		paths = glob.glob(self.calibrationDir + '*' + self.imgExtension)
 
-		# Empty imageSize variable for run time
+		# Empty imageSize variable to be determined at runtime
 		imageSize = None
 
-		# Loop through all the images
+		# Loop through all images
 		for filePath in paths:
 			# Read image and convert to gray
 			img = cv2.imread(filePath)
 			gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
 
-			# Find the chess board corners
-			ret, corners = cv2.findChessboardCorners(gray, (rowCount,colCount), None)
+			# Find aruco markers in the query image
+			corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict)
 
-			# If points are found
-			if ret == True:
-				# Add points discovered
-				objpoints.append(objp)
+			# Outline the aruco markers found in the query image
+			img = aruco.drawDetectedMarkers(image=img, corners=corners)
 
-				# Refines the corner locations and add the points
-				corners2 = cv2.cornerSubPix(
-								image = gray,
-								corners = corners,
-								winSize = (11,11),
-								zeroZone = (-1,-1),
-								criteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.001))
-				imgpoints.append(corners2)
+			# Get charuco corners and ids from detected aruco markers
+			response, charucoCorners, charucoIDs = aruco.interpolateCornersCharuco(
+					markerCorners=corners,
+					markerIds=ids,
+					image=gray,
+					board=board)
 
-				# Get image size for calibration later
+			# If at least 20 corners were found
+			if response > 20:
+				# Add the corners and ids to calibration list
+				cornerList.append(charucoCorners)
+				idList.append(charucoIDs)
+
+				# Draw the Charuco board detected to show calibration results
+				img = aruco.drawDetectedCornersCharuco(
+						image=img,
+						charucoCorners=charucoCorners,
+						charucoIds=charucoIDs)
+
+				# If image size is still None, set it to the image size
 				if not imageSize:
 					imageSize = gray.shape[::-1]
 
-				# Draw and display the calibration. Wait for user to smash a key before moving on
-				img = cv2.drawChessboardCorners(img, (rowCount,colCount), corners2, ret)
-				cv2.imshow(filePath, img)
+				# Display each image until a key is pressed
+				cv2.imshow(str(filePath), img)
 				cv2.waitKey(0)
 			else:
-				print('Not able to detect a chessboard in image: {}'.format(filePath))
+				# Error message
+				print('Error in: ' + str(filePath))
+				cv2.imshow('ERROR: ' + str(filePath), img)
+				cv2.waitKey(0)
 
-		# Close all windows
+		# Destroy any open windows
 		cv2.destroyAllWindows()
 
-		# Error handling
+		# Make sure at least one image was found
+		if len(paths) < 1:
+			print('No images of charucoboards were found.')
+			return
+
+		# Make sure at least one charucoboard was found
 		if not imageSize:
-			print('Calibration failed. Try again with more / new images')
-			exit()
+			print('Images supplied were not regonized by calibration')
+			return
 
 		# Run calibration
-		ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(
-											objectPoints = objpoints,
-											imagePoints = imgpoints,
-											imageSize = imageSize,
-											cameraMatrix = None,
-											distCoeffs = None)
+		_, self.mtx, self.dist, _, _ = aruco.calibrateCameraCharuco(
+				charucoCorners=cornerList,
+				charucoIds=idList,
+				board=board,
+				imageSize=imageSize,
+				cameraMatrix=None,
+				distCoeffs=None)
 
 		# Display matrix and distortion coefficients
-		print(mtx)
-		print(dist)
+		print(self.mtx)
+		print(self.dist)
 
 		# Pickle the results
 		f = open('calibration.pckl', 'wb')
-		pickle.dump((mtx, dist), f)
+		pickle.dump((self.mtx, self.dist), f)
 		f.close()
 
 	def getCalibration(self):
@@ -150,7 +170,7 @@ class calibrateCamera:
 		self.mtx, self.dist = pickle.load(file)
 		file.close()
 
-	def trackAruco(self):
+	def trackAruco(self, lengthMarker=123.60):
 		# Get calibration data
 		try:
 			self.getCalibration()
@@ -176,7 +196,7 @@ class calibrateCamera:
 			# Only continue if a marker was found
 			if np.all(ids != None):
 				# Estimate the pose
-				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.mtx, self.dist)
+				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, lengthMarker, self.mtx, self.dist)
 
 				# Draw axis for each aruco marker found
 				for ii in range(0, ids.size):
@@ -209,10 +229,10 @@ class calibrateCamera:
 def main():
 	CC = calibrateCamera()
 
-	CC.generateCharucoBoard(7, 5)
+	# CC.generateCharucoBoard()
 
-	# CC.generateMarker(ID=97, size=90)
-	# CC.generateMarker(ID=35, size=500)
+	# CC.generateArucoMarker(ID=97, size=90)
+	# CC.generateArucoMarker(ID=35, size=500)
 
 	# CC.captureCalibrationImages()
 
