@@ -5,17 +5,11 @@ import cv2
 import cv2.aruco as aruco
 
 class calibrateCamera:
-	def __init__(self, width=640, height=480):
+	def __init__(self):
 		self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
-		self.frameWidth = width
-		self.frameHeight = height
 
 		try:
 			self.cam = cv2.VideoCapture(0)
-			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.frameWidth)
-			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.frameHeight)
-			self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-			self.cam.set(cv2.CAP_PROP_AUTO_WB, 0)
 			print('Camera start')
 		except:
 			print('Camera setup failed')
@@ -23,8 +17,16 @@ class calibrateCamera:
 		self.mtx = None
 		self.dist = None
 
-		self.calibrationDir = 'calibration/'
+		self.calibrationDir = 'calibrationImgs/'
 		self.imgExtension = '.jpg'
+
+	def generateCharucoBoard(self, rows, columns):
+		# Create the board
+		board = aruco.CharucoBoard_create(columns, rows, 0.025, 0.0125, self.arucoDict)
+		img = board.draw((100*columns, 100*rows))
+
+		# Save it to a file
+		cv2.imwrite('CharucoBoard.png', img)
 
 	def generateMarker(self, ID=7, size=700):
 		# Create an image from the marker
@@ -206,6 +208,8 @@ class calibrateCamera:
 
 def main():
 	CC = calibrateCamera()
+
+	CC.generateCharucoBoard(7, 5)
 
 	# CC.generateMarker(ID=97, size=90)
 	# CC.generateMarker(ID=35, size=500)
