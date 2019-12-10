@@ -70,7 +70,7 @@ class calibrateCamera:
 		self.cam.release()
 		cv2.destroyAllWindows()
 
-	def calibrateCamera(self, rows=7, columns=5, lengthSquare=35.50, lengthMarker=17.75):
+	def calibrateCamera(self, rows=7, columns=5, lengthSquare=0.035, lengthMarker=0.0175):
 		# Create charuco board with actual measured dimensions from print out
 		board = aruco.CharucoBoard_create(
 					squaresX=columns,
@@ -170,7 +170,7 @@ class calibrateCamera:
 		self.mtx, self.dist = pickle.load(file)
 		file.close()
 
-	def trackAruco(self, lengthMarker=123.60):
+	def trackAruco(self, lengthMarker=0.106):
 		# Get calibration data
 		try:
 			self.getCalibration()
@@ -205,13 +205,18 @@ class calibrateCamera:
 				# Draw square around markers
 				aruco.drawDetectedMarkers(frame, corners)
 
-				# Print ids found in top left
+				# Print ids found in top left and to the screen
 				idz = ''
 				for ii in range(0, ids.size):
 					idz += str(ids[ii][0])+' '
-					x = round(tvec[ii][0][0]*100,2)
-					y = round(tvec[ii][0][1]*100,2)
-					z = round(tvec[ii][0][2]*100,2)
+					x = round(tvec[ii][0][0]*100,1)
+					y = round(tvec[ii][0][1]*100,1)
+					z = round(tvec[ii][0][2]*100,1)
+
+					cv2.putText(frame, "X: " + str(x), (0, 50), font, 1, fontColor, 2)
+					cv2.putText(frame, "Y: " + str(y), (0, 75), font, 1, fontColor, 2)
+					cv2.putText(frame, "Z: " + str(z), (0, 100), font, 1, fontColor, 2)
+
 					print(x,y,z)
 
 				cv2.putText(frame, "ID: " + idz, (0, 25), font, 1, fontColor, 2)
@@ -232,7 +237,7 @@ def main():
 	# CC.generateCharucoBoard()
 
 	# CC.generateArucoMarker(ID=97, size=90)
-	# CC.generateArucoMarker(ID=35, size=500)
+	# CC.generateArucoMarker(ID=35, size=300)
 
 	# CC.captureCalibrationImages()
 
