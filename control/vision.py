@@ -50,6 +50,8 @@ class Vision:
 		# Start the connection to the camera
 		try:
 			self.cam = cv2.VideoCapture(0)
+			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
 			print('Camera start')
 		except:
 			print('Camera setup failed')
