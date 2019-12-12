@@ -160,13 +160,13 @@ class calibrateCamera:
 		print(self.dist)
 
 		# Pickle the results
-		f = open('calibration.pckl', 'wb')
+		f = open('resources/calibration.pckl', 'wb')
 		pickle.dump((self.mtx, self.dist), f)
 		f.close()
 
 	def getCalibration(self):
 		# Open file, retrieve variables, and close
-		file = open('calibration.pckl', 'rb')
+		file = open('resources/calibration.pckl', 'rb')
 		self.mtx, self.dist = pickle.load(file)
 		file.close()
 
