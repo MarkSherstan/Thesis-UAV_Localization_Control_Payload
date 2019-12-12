@@ -26,8 +26,11 @@ class Vision:
 		self.parm.adaptiveThreshConstant = 10
 
 		# Calibration values
-		self.mtx = np.array([[1.01477877e+03, 0.00000000e+00, 6.59914048e+02], [0.00000000e+00, 1.01195343e+03, 3.81079689e+02], [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-		self.dist = np.array([[ 1.51665143e-01, 9.43194746e-01, 1.00876376e-02, 4.75462514e-03, -1.07961076e+01]])
+		self.mtx = np.array([[1.40106056e+03, 0.00000000e+00, 6.36194296e+02],
+							 [0.00000000e+00, 1.39929991e+03, 4.73179102e+02],
+							 [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+		self.dist = np.array([[0.00770591, 0.24889461, 0.00463238, 0.00254009, 0.28752805]])
+		self.lengthMarker = 0.106
 
 		# Output values
 		self.North = 0
@@ -39,10 +42,6 @@ class Vision:
 		# Start the connection to the camera
 		try:
 			self.cam = cv2.VideoCapture(0)
-			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 640)
-			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 480)
-			self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-			self.cam.set(cv2.CAP_PROP_AUTO_WB, 0)
 			print('Camera start')
 		except:
 			print('Camera setup failed')
@@ -98,7 +97,7 @@ class Vision:
 				pass
 			else:
 				# Estimate the pose
-				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, 0.05, self.mtx, self.dist)
+				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist)
 
 				# Save the distances
 				self.North = tvec[0][0][2]*100
