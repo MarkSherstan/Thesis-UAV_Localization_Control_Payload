@@ -47,7 +47,7 @@ def main():
 		time.sleep(0.1)
 
 	# Start controller and thread
-	C = Controller(vehicle, 0.4, 0, 0)
+	C = Controller(vehicle, 200, 0, 0)
 	C.controllerStart()
 
 	# Run until broken by user
@@ -83,19 +83,21 @@ def main():
 		V.close()
 		vehicle.close()
 
-		# Create file name
-		now = datetime.datetime.now()
-		fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
+		# Write data to a file based on flag
+		if (logFlag is True):
+			# Create file name
+			now = datetime.datetime.now()
+			fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
 
-		# Write data to a data frame
-		df = pd.DataFrame(tempData, columns=['Mode', 'Time',
-							'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
-							'North-Vision', 'East-Vision', 'Down-Vision', 'Yaw-Vision',
-							'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
+			# Write data to a data frame
+			df = pd.DataFrame(tempData, columns=['Mode', 'Time',
+								'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
+								'North-Vision', 'East-Vision', 'Down-Vision', 'Yaw-Vision',
+								'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
 
-		# Save as CSV and display to user
-		df.to_csv(fileName, index=None, header=True)
-		print('File saved to:\t' + fileName)
+			# Save as CSV and display to user
+			df.to_csv(fileName, index=None, header=True)
+			print('File saved to:\t' + fileName)
 
 # Main loop
 if __name__ == '__main__':

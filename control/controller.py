@@ -4,9 +4,9 @@ import time
 import math
 
 class Controller:
-	def __init__(self, northDesired, eastDesired, downDesired):
+	def __init__(self, vehicle, northDesired, eastDesired, downDesired):
 		# Connect to the vehicle class
-		self.drone = vehicle
+		self.UAV = vehicle
 
 		# Desired position
 		self.northDesired = northDesired

@@ -32,8 +32,8 @@ class Vision:
 		self.dist = np.array([[0.00770591, 0.24889461, 0.00463238, 0.00254009, 0.28752805]])
 
 		# Marker properties
-		self.lengthMarker = 0.106
-		self.markerID = 35
+		self.lengthMarker = 0.176
+		self.markerID = 17
 
 		# Offset values in cm
 		self.offsetNorth = 0
@@ -103,21 +103,21 @@ class Vision:
 		if np.all(ids != None):
 			if (len(ids) != 1):
 				pass
-			elif (ids[ii][0] != self.markerID):
-				pass
-			else:
+			elif (ids[0][0] == self.markerID):
 				# Estimate the pose
 				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist)
 
 				# Save the distances
-				self.North = tvec[0][0][2]*100 - self.offsetNorth
-				self.East  = tvec[0][0][0]*100 - self.offsetEast
-				self.Down  = tvec[0][0][1]*100 - self.offsetDown
+				self.North = (tvec[0][0][2]*100 - self.offsetNorth)
+				self.East  = (tvec[0][0][0]*100 - self.offsetEast)
+				self.Down  = (tvec[0][0][1]*100 - self.offsetDown)
 
 				# Convert to rotation matrix and extract yaw
 				R, _ = cv2.Rodrigues(rvec)
 				eulerAngles = self.rotationMatrixToEulerAngles(R)
 				self.Yaw = eulerAngles[1]
+			else:
+				pass
 
 		# Change state for controller class
 		self.isReady = True
