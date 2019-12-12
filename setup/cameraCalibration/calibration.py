@@ -238,6 +238,7 @@ def main():
 
 	# CC.generateArucoMarker(ID=97, size=90)
 	# CC.generateArucoMarker(ID=35, size=300)
+	# CC.generateArucoMarker(ID=17, size=500)
 
 	# CC.captureCalibrationImages()
 
