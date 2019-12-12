@@ -9,23 +9,29 @@ import math
 def dispData(V, C, vehicle):
 	# Display data to user:
 	print('Vision ->\t', \
-		'\tN: ', round(V.North,2), \
-		'\tE: ', round(V.East,2), \
-		'\tD: ', round(V.Down,2), \
-		'\tY: ', round(math.degrees(V.Yaw),2))
+		'\tN: ', round(V.North,1), \
+		'\tE: ', round(V.East,1), \
+		'\tD: ', round(V.Down,1), \
+		'\tY: ', round(math.degrees(V.Yaw),1))
 
 	print('Controller ->\t', \
-		'\tR: ', round(math.degrees(C.rollAngle),2), \
-		'\tP: ', round(math.degrees(C.pitchAngle),2), \
-		'\tY: ', round(math.degrees(C.yawRate),2), \
+		'\tR: ', round(math.degrees(C.rollAngle),1), \
+		'\tP: ', round(math.degrees(C.pitchAngle),1), \
+		'\tY: ', round(math.degrees(C.yawRate),1), \
 		'\tT: ', round(C.thrust,2))
 
 	print('Attitude ->\t', \
-	  	'\tR: ', round(math.degrees(vehicle.attitude.roll),2), \
-	  	'\tP: ', round(math.degrees(vehicle.attitude.pitch),2), \
-	  	'\tY: ', round(math.degrees(vehicle.attitude.yaw),2), '\n')
+	  	'\tR: ', round(math.degrees(vehicle.attitude.roll),1), \
+	  	'\tP: ', round(math.degrees(vehicle.attitude.pitch),1), \
+	  	'\tY: ', round(math.degrees(vehicle.attitude.yaw),1), '\n')
 
 def main():
+	# Flags and data rates
+	printFlag = True
+	printRate = 0.75
+	logFlag   = False
+	logRate   = 1/50
+
 	# Connect to the Vehicle
 	connection_string = "/dev/ttyS0"
 	print('Connecting to vehicle on: %s\n' % connection_string)
@@ -59,12 +65,12 @@ def main():
 			C.Yaw   = V.Yaw
 
 			# Print data evert second
-			if (time.time() > printTimer + 1):
+			if (time.time() > printTimer + printRate) and (printFlag is True):
 				dispData(V, C, vehicle)
 				printTimer = time.time()
 
-			# Log data at 50 Hz
-			if (time.time() > logTimer + 0.02):
+			# Log data
+			if (time.time() > logTimer + logRate) and (logFlag is True):
 				tempData.append([vehicle.mode.name, time.time(), \
 					math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
 					C.North, C.East, C.Down, C.Yaw, \
