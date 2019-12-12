@@ -144,10 +144,10 @@ class Controller:
 		return (P + I + D), I
 
 	def positionControl(self):
-		# Error calculations
-		errorNorth = self.northDesired - self.North
-		errorEast = self.eastDesired - self.East
-		errorDown = self.downDesired - self.Down
+		# Error calculations and conversion to meters
+		errorNorth = (self.northDesired - self.North) * 0.01
+		errorEast = (self.eastDesired - self.East) * 0.01
+		errorDown = (self.downDesired - self.Down) * 0.01
 
 		# Get time delta
 		dt = time.time() - self.startTime
@@ -163,7 +163,7 @@ class Controller:
 		self.eastPreviousError = errorEast
 
 		# Set the controller values
-		self.rollAngle = -self.constrain(rollControl, self.minValNE, self.maxValNE)
+		self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 		self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
 		self.yawRate = -np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 		self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)

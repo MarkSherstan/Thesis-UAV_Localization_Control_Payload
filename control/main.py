@@ -29,7 +29,7 @@ def main():
 	# Flags and data rates
 	printFlag = True
 	printRate = 0.75
-	logFlag   = False
+	logFlag   = True
 	logRate   = 1/50
 
 	# Connect to the Vehicle
