@@ -33,7 +33,12 @@ class Vision:
 
 		# Marker properties
 		self.lengthMarker = 0.106
-		self.markerID = 17
+		self.markerID = 35
+
+		# Offset values in cm
+		self.offsetNorth = 0
+		self.offsetEast  = 0
+		self.offsetDown  = 0
 
 		# Output values
 		self.North = 0
@@ -94,7 +99,7 @@ class Vision:
 		# lists of ids and corners belonging to each id
 		corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=self.parm)
 
-		# Only continue if a marker was found
+		# Only continue if a marker was found and is the correct ID
 		if np.all(ids != None):
 			if (len(ids) != 1):
 				pass
@@ -105,9 +110,9 @@ class Vision:
 				rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist)
 
 				# Save the distances
-				self.North = tvec[0][0][2]*100
-				self.East  = tvec[0][0][0]*100
-				self.Down  = tvec[0][0][1]*100
+				self.North = tvec[0][0][2]*100 - self.offsetNorth
+				self.East  = tvec[0][0][0]*100 - self.offsetEast
+				self.Down  = tvec[0][0][1]*100 - self.offsetDown
 
 				# Convert to rotation matrix and extract yaw
 				R, _ = cv2.Rodrigues(rvec)
@@ -143,7 +148,7 @@ class Vision:
 			y = math.atan2(-R[2,0], sy)
 			z = math.atan2(R[1,0], R[0,0])
 
-		# Return roll, pitch, and yaw
+		# Return roll, pitch, and yaw in some order
 		return np.array([x, y, z])
 
 	def close(self):
