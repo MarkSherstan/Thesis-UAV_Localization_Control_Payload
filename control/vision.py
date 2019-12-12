@@ -30,7 +30,10 @@ class Vision:
 							 [0.00000000e+00, 1.39929991e+03, 4.73179102e+02],
 							 [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
 		self.dist = np.array([[0.00770591, 0.24889461, 0.00463238, 0.00254009, 0.28752805]])
+
+		# Marker properties
 		self.lengthMarker = 0.106
+		self.markerID = 17
 
 		# Output values
 		self.North = 0
@@ -94,6 +97,8 @@ class Vision:
 		# Only continue if a marker was found
 		if np.all(ids != None):
 			if (len(ids) != 1):
+				pass
+			elif (ids[ii][0] != self.markerID):
 				pass
 			else:
 				# Estimate the pose
