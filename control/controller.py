@@ -156,7 +156,7 @@ class Controller:
 		rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
 		pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
 		yawControl = self.constrain(self.Yaw * self.kYaw, self.minValYaw, self.maxValYaw)
-		thrustControl = self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
+		thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 		# Update previous error
 		self.northPreviousError = errorNorth
@@ -165,7 +165,7 @@ class Controller:
 		# Set the controller values
 		self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 		self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-		self.yawRate = -np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
+		self.yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 		self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
 
 		# Send the command with small buffer

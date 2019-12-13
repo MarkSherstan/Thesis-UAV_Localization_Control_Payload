@@ -14,4 +14,4 @@ vehicle.reboot()
 time.sleep(1)
 
 # End message
-print 'Closing...'
+print('Rebooting...')

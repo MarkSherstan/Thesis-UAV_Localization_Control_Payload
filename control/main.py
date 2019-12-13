@@ -47,7 +47,10 @@ def main():
 		time.sleep(0.1)
 
 	# Start controller and thread
-	C = Controller(vehicle, 200, 0, 0)
+	northDesired = 200
+	eastDesired  = 0
+	downDesired  = 0
+	C = Controller(vehicle, northDesired, eastDesired, downDesired)
 	C.controllerStart()
 
 	# Run until broken by user
@@ -64,7 +67,7 @@ def main():
 			C.Down  = V.Down
 			C.Yaw   = V.Yaw
 
-			# Print data evert second
+			# Print data
 			if (time.time() > printTimer + printRate) and (printFlag is True):
 				dispData(V, C, vehicle)
 				printTimer = time.time()
@@ -73,7 +76,8 @@ def main():
 			if (time.time() > logTimer + logRate) and (logFlag is True):
 				tempData.append([vehicle.mode.name, time.time(), \
 					math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
-					C.North, C.East, C.Down, C.Yaw, \
+					C.North, C.East, C.Down, math.degrees(C.Yaw), \
+					northDesired, eastDesired, downDesired, \
 					math.degrees(C.rollAngle), math.degrees(C.pitchAngle), math.degrees(C.yawRate), C.thrust])
 				logTimer = time.time()
 
@@ -87,17 +91,18 @@ def main():
 		if (logFlag is True):
 			# Create file name
 			now = datetime.datetime.now()
-			fileName = now.strftime("%Y-%m-%d %H:%M:%S") + ".csv"
+			fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
 
 			# Write data to a data frame
 			df = pd.DataFrame(tempData, columns=['Mode', 'Time',
 								'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
-								'North-Vision', 'East-Vision', 'Down-Vision', 'Yaw-Vision',
-								'rollControl', 'pitchControl', 'yawControl', 'thrustControl'])
+								'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
+								'North-Desired', 'East-Desired', 'Down-Desired',
+								'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control'])
 
 			# Save as CSV and display to user
 			df.to_csv(fileName, index=None, header=True)
-			print('File saved to:\t' + fileName)
+			print('File saved to:' + fileName)
 
 # Main loop
 if __name__ == '__main__':
