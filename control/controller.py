@@ -35,8 +35,8 @@ class Controller:
 		self.duration = 0.05
 
 		# Constraints for roll, pitch, yaw and thrust
-		self.minValNE = -3.1415/8
-		self.maxValNE = 3.1415/8
+		self.minValNE = -3.1415/12
+		self.maxValNE = 3.1415/12
 		self.minValD = -1
 		self.maxValD = 1
 		self.minValYaw = -3.1415/4

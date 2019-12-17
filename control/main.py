@@ -47,7 +47,7 @@ def main():
 		time.sleep(0.1)
 
 	# Start controller and thread
-	northDesired = 200
+	northDesired = 150
 	eastDesired  = 0
 	downDesired  = 0
 	C = Controller(vehicle, northDesired, eastDesired, downDesired)
