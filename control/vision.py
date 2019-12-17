@@ -19,6 +19,8 @@ class Vision:
 
 		# Frame
 		self.frame = None
+		self.frameCount = 0
+		self.frameTime = 0
 
 		# Aruco dictionary to be used and pose processing parameters
 		self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
@@ -71,6 +73,8 @@ class Vision:
 		# Acquire until closed
 		while(self.isRunFrame):
 			_, self.frame = self.cam.read()
+			self.frameCount += 1
+			self.frameTime = time.time()
 			self.isReceivingFrame = True
 
 	def startPoseThread(self):
