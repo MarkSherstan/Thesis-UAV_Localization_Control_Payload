@@ -5,19 +5,14 @@ import argparse
 
 ########################
 # Argparse
-# Example use: python plotter.py --input "data.csv"
+# Example use: python plotter.py --input "flight1.csv" --mode "GUIDED_NOGPS"
 ########################
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", help = "input filename")
+parser.add_argument("--mode", help = "input guided or all data")
 args = parser.parse_args()
 fileName = args.input
-
-########################
-# Functions
-########################
-def highlight(indices, ax):
-    for ii in range(len(indices)):
-        ax.axvspan(indices[ii]-0.5, indices[ii]+0.5, facecolor='grey', edgecolor='none', alpha=0.3)
+modeArg = args.mode
 
 ########################
 # Prepare CSV
@@ -34,6 +29,10 @@ except:
     print('Error with file.')
     exit()
 
+# Plot only autonomous flight based off input arguments
+if modeArg == 'GUIDED_NOGPS':
+    df = df[df['Mode'] == 'GUIDED_NOGPS']
+
 ########################
 # Roll and Pitch
 ########################
@@ -49,8 +48,6 @@ df.plot(kind='line', x='normTime', y='Pitch-UAV', color='#700CBC', style='--',  
 ax0.set_title('Roll & Pitch Control', fontsize=14, fontweight='bold')
 ax0.set_xlabel('Time [s]', fontweight='bold')
 ax0.set_ylabel('Angle [deg]', fontweight='bold')
-
-highlight(df[df['Mode'] == 'GUIDED_NOGPS'].index, ax0)
 
 ########################
 # Yaw
@@ -71,8 +68,6 @@ ax2.set_ylabel('Yaw Rate [Deg/s]', color='#F0BD04', fontweight='bold')
 ax1.get_legend().remove()
 ax2.get_legend().remove()
 
-highlight(df[df['Mode'] == 'GUIDED_NOGPS'].index, ax1)
-
 ########################
 # North East
 ########################
@@ -91,8 +86,6 @@ ax3.set_title('NED Position', fontsize=14, fontweight='bold')
 ax3.set_xlabel('Time [s]', fontweight='bold')
 ax3.set_ylabel('Position [cm]', fontweight='bold')
 
-highlight(df[df['Mode'] == 'GUIDED_NOGPS'].index, ax3)
-
 ########################
 # Thrust
 ########################
@@ -105,8 +98,6 @@ ax4.set_title('Thrust Control', fontsize=14, fontweight='bold')
 ax4.set_xlabel('Time [s]', fontweight='bold')
 ax4.set_ylabel('Normalized Thrust Command', fontweight='bold')
 ax4.get_legend().remove()
-
-highlight(df[df['Mode'] == 'GUIDED_NOGPS'].index, ax4)
 
 ########################
 # Show the plots
