@@ -252,3 +252,4 @@ df -h
 ## To Do 
 * pip3 install mavsdk
 * Clean up documentation 
+* pip3 install mavsdk
