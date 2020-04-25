@@ -77,3 +77,163 @@ zope.interface        4.7.1
 Once the repo is cloned on the microprocessor ensure to `workon cv` (run the code in a virtual environement) and run the main program with the controller and vision modules in the `\control` directory.
 
 To plot data (once saved) navigate to the `\flightData` directory and enter the file name and flight mode of interest in the command line as such: `python plotter.py --input "flight1.csv" --mode "GUIDED_NOGPS"`.
+
+## Building OpenCV 4 on Ubuntu 18.04 
+### Install Odroid C2 Operating System (OS)
+Download the most up to date OS for the Odroid C2. It can be found [here](https://odroid.in/ubuntu_18.04lts/C2/). I selected `ubuntu-18.04.3-3.16-minimal-odroid-c2-20190814.img.xz`. The difference between minimal and mate is that the minimal version has no GUI and has slightly more usable ram. 
+
+Use a 16 Gb or larger (reccomended 32 Gb) micro SD card capable of 98Mb/s or greater and flash the OS using [Balena Etcher](https://www.balena.io/etcher/). Once complete insert the SD card into the Odroid C2 and apply power. Once the Odroid has power and the OS has initialized a blue flashing light will begin. 
+
+Once the system is ready scan for the IP address of the Odroid using [Angry IP Scanner](https://angryip.org). On my MacOS the address is `root@192.168.2.3` and the default password is `odroid`.
+
+### Prepare OpenCV Install
+Run the following commands one at a time and read the outputs. 
+```
+$ sudo apt-get update
+$ sudo apt-get upgrade
+
+$ sudo apt-get install build-essential cmake unzip pkg-config
+
+$ sudo apt-get install libjpeg-dev libpng-dev libtiff-dev
+$ sudo apt-get install libavcodec-dev libavformat-dev libswscale-dev libv4l-dev
+$ sudo apt-get install libxvidcore-dev libx264-dev
+
+$ sudo apt-get install libgtk-3-dev
+
+$ sudo apt-get install libatlas-base-dev gfortran
+
+$ sudo apt-get install python3-dev
+```
+
+The latest release of OpenCV as of April 2020 is `4.3.0`. In the future this release can be changed just update the numbers accordingly. 
+```
+$ cd ~
+$ wget -O opencv.zip https://github.com/opencv/opencv/archive/4.3.0.zip
+$ wget -O opencv_contrib.zip https://github.com/opencv/opencv_contrib/archive/4.3.0.zip
+
+$ unzip opencv.zip
+$ unzip opencv_contrib.zip
+
+$ mv opencv-4.3.0 opencv
+$ mv opencv_contrib-4.3.0 opencv_contrib
+```
+
+Install virtual environent requirments and source it.
+```
+$ wget https://bootstrap.pypa.io/get-pip.py
+$ sudo python3 get-pip.py
+
+$ sudo pip install virtualenv virtualenvwrapper
+$ sudo rm -rf ~/get-pip.py ~/.cache/pip
+
+$ echo -e "\n# virtualenv and virtualenvwrapper" >> ~/.bashrc
+$ echo "export WORKON_HOME=$HOME/.virtualenvs" >> ~/.bashrc
+$ echo "export VIRTUALENVWRAPPER_PYTHON=/usr/bin/python3" >> ~/.bashrc
+$ echo "source /usr/local/bin/virtualenvwrapper.sh" >> ~/.bashrc
+
+$ source ~/.bashrc
+```
+
+Create a virutal environment and install numpy. 
+```
+$ mkvirtualenv cv -p python3
+
+$ workon cv
+
+$ pip install numpy
+```
+
+### Install OpenCV
+Navigate the directories and prepare the cmake. 
+```
+$ cd ~/opencv
+$ mkdir build
+$ cd build
+
+$ cmake -D CMAKE_BUILD_TYPE=RELEASE \
+	-D CMAKE_INSTALL_PREFIX=/usr/local \
+	-D INSTALL_PYTHON_EXAMPLES=ON \
+	-D INSTALL_C_EXAMPLES=OFF \
+	-D OPENCV_ENABLE_NONFREE=ON \
+	-D OPENCV_EXTRA_MODULES_PATH=~/opencv_contrib/modules \
+	-D PYTHON_EXECUTABLE=~/.virtualenvs/cv/bin/python \
+	-D BUILD_EXAMPLES=ON ..
+```
+
+The Odroid has a finite amount of ram and the install can hang and crash. To mititage this increase the swap storage, this should only be done temporarily as it can burn out the SD card. 
+
+```
+$sudo apt-get install zram-config
+````
+
+Enter the command `sudo nano /usr/bin/init-zram-swapping` and change the line
+
+```
+mem=$(((totalmem / 2 / ${NRDEVICES}) * 1024))
+```
+
+To
+```
+mem=$(((totalmem / ${NRDEVICES}) * 1024))
+```
+
+OpenCV is now ready to be compiled. This make take forever so sit back and relax.
+
+```
+$ make -j4    
+```
+
+*Note: If the compile keeps failing try making with only one core: `make -j1`*
+
+### Configure OpenCV
+Once OpenCV has compiled to 100% it must be linked. Run the following commands and find the current python version installed in the virutal environment. 
+
+```
+$ sudo make install
+$ sudo ldconfig
+
+$ workon cv
+$ python --version
+```
+
+The current version of python at the time of writing is `Python 3.6.9`. Using that information run the following (use tab completion to be sure):
+
+```
+$ cd /usr/local/lib/python3.6/site-packages/cv2/python-3.6
+$ sudo mv cv2.cpython-36m-x86_64-linux-gnu.so cv2.so
+
+$ cd ~/.virtualenvs/cv/lib/python3.5/site-packages/
+```
+
+
+
+/usr/local/lib/python3.6/site-packages/cv2/python-3.6
+
+
+ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.so cv2.so
+
+ln -s /usr/local/python/cv2/python-3.5/cv2.so cv2.so
+
+
+
+
+
+https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
+https://pysource.com/2019/08/26/install-opencv-4-1-on-nvidia-jetson-nano/
+
+https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
+https://www.pyimagesearch.com/2019/09/16/install-opencv-4-on-raspberry-pi-4-and-raspbian-buster/
+
+
+
+
+
+
+
+## To Do 
+pip3 install mavsdk
+
+
+
+
+
