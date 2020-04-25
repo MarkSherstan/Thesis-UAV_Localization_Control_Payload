@@ -194,46 +194,61 @@ $ sudo ldconfig
 
 $ workon cv
 $ python --version
+$ deactivate
 ```
 
-The current version of python at the time of writing is `Python 3.6.9`. Using that information run the following (use tab completion to be sure):
+Make sure we are no longer in the virtual environment. The current version of python at the time of writing is `Python 3.6.9`. Using that information run the following (use tab completion to be sure):
 
 ```
 $ cd /usr/local/lib/python3.6/site-packages/cv2/python-3.6
 $ sudo mv cv2.cpython-36m-x86_64-linux-gnu.so cv2.so
 
-$ cd ~/.virtualenvs/cv/lib/python3.5/site-packages/
+$ cd ~/.virtualenvs/cv/lib/python3.6/site-packages
 ```
 
+From there we need to create a sym-link to the compiled file. 
 
-
-/usr/local/lib/python3.6/site-packages/cv2/python-3.6
-
-
+```
 ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.so cv2.so
+```
 
-ln -s /usr/local/python/cv2/python-3.5/cv2.so cv2.so
+Everything should be configured properly and  we will get an output as seen below. 
+```
+$ workon cv
+$ python
+>>> import cv2
+>>> cv2.__version__
+'4.3.0'
+```
 
+Make sure change back the swap memory `sudo nano /usr/bin/init-zram-swapping` and change the line
 
+```
+mem=$(((totalmem / ${NRDEVICES}) * 1024))
+```
 
+Back to 
 
+```
+mem=$(((totalmem / 2 / ${NRDEVICES}) * 1024))
+```
 
-https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
-https://pysource.com/2019/08/26/install-opencv-4-1-on-nvidia-jetson-nano/
+If you run into any errors consider some of these resources: 
+* https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
+* https://pysource.com/2019/08/26/install-opencv-4-1-on-nvidia-jetson-nano/
+* https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
+* https://www.pyimagesearch.com/2019/09/16/install-opencv-4-on-raspberry-pi-4-and-raspbian-buster/
 
-https://www.pyimagesearch.com/2018/08/15/how-to-install-opencv-4-on-ubuntu/
-https://www.pyimagesearch.com/2019/09/16/install-opencv-4-on-raspberry-pi-4-and-raspbian-buster/
+### Other
+Install Tmux with `sudo apt install tmux`
 
+Enter `tmux` to creat a session. 
+Enter `control+b` then `d` to exit the session 
+Enter `tmux attach` to rejoin a session 
 
-
-
-
-
+free -m 
+df -h
 
 ## To Do 
-pip3 install mavsdk
-
-
-
-
-
+* pip3 install mavsdk
+* Clean up documentation 
