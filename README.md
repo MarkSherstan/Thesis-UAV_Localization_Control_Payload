@@ -84,10 +84,10 @@ Download the most up to date OS for the Odroid C2. It can be found [here](https:
 
 Use a 16 Gb or larger (reccomended 32 Gb) micro SD card capable of 98Mb/s or greater and flash the OS using [Balena Etcher](https://www.balena.io/etcher/). Once complete insert the SD card into the Odroid C2 and apply power. Once the Odroid has power and the OS has initialized a blue flashing light will begin. 
 
-Once the system is ready scan for the IP address of the Odroid using [Angry IP Scanner](https://angryip.org). On my MacOS the address is `root@192.168.2.3` and the default password is `odroid`.
+Once the system is ready, scan for the IP address of the Odroid using [Angry IP Scanner](https://angryip.org). On my MacOS the address is `root@192.168.2.3` and the default password is `odroid`.
 
 ### Prepare OpenCV Install
-Run the following commands one at a time and read the outputs. 
+Run the following commands one at a time and read the outputs and act accordingly. 
 ```
 $ sudo apt-get update
 $ sudo apt-get upgrade
@@ -105,7 +105,7 @@ $ sudo apt-get install libatlas-base-dev gfortran
 $ sudo apt-get install python3-dev
 ```
 
-The latest release of OpenCV as of April 2020 is `4.3.0`. In the future this release can be changed just update the numbers accordingly. 
+The latest release of OpenCV as of April 2020 is `4.3.0`. In the future this release can be changed, just update the numbers accordingly. 
 ```
 $ cd ~
 $ wget -O opencv.zip https://github.com/opencv/opencv/archive/4.3.0.zip
@@ -118,7 +118,7 @@ $ mv opencv-4.3.0 opencv
 $ mv opencv_contrib-4.3.0 opencv_contrib
 ```
 
-Install virtual environent requirments and source it.
+Install virtual environent requirments and source it. You can double check the commands worked by running `nano source ~/.bashrc` and checking the file contents. 
 ```
 $ wget https://bootstrap.pypa.io/get-pip.py
 $ sudo python3 get-pip.py
@@ -171,7 +171,6 @@ Enter the command `sudo nano /usr/bin/init-zram-swapping` and change the line
 ```
 mem=$(((totalmem / 2 / ${NRDEVICES}) * 1024))
 ```
-
 To
 ```
 mem=$(((totalmem / ${NRDEVICES}) * 1024))
@@ -212,7 +211,7 @@ From there we need to create a sym-link to the compiled file.
 ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.so cv2.so
 ```
 
-Everything should be configured properly and  we will get an output as seen below. 
+Everything should be configured properly and we will get an output as seen below. 
 ```
 $ workon cv
 $ python
@@ -221,14 +220,12 @@ $ python
 '4.3.0'
 ```
 
-Make sure change back the swap memory `sudo nano /usr/bin/init-zram-swapping` and change the line
+Make sure change back the swap memory `sudo nano /usr/bin/init-zram-swapping` and change the line:
 
 ```
 mem=$(((totalmem / ${NRDEVICES}) * 1024))
 ```
-
 Back to 
-
 ```
 mem=$(((totalmem / 2 / ${NRDEVICES}) * 1024))
 ```
@@ -246,8 +243,7 @@ Enter `tmux` to creat a session.
 Enter `control+b` then `d` to exit the session 
 Enter `tmux attach` to rejoin a session 
 
-free -m 
-df -h
+To see memory and storage use `free -m` and `df -h` respectively. 
 
 ## To Do 
 * pip3 install mavsdk
