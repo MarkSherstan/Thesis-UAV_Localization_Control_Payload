@@ -44,7 +44,7 @@ class Simulate:
         vehicle.simple_takeoff(targetAltitude)
 
         # Wait until actual altitude is achieved
-        while abs(vehicle.location.local_frame.down) <= targetAltitude:
+        while abs(vehicle.location.local_frame.down) <= (targetAltitude*0.9):
             print '  ', round(vehicle.location.local_frame.down,3)
             time.sleep(0.2)
 
