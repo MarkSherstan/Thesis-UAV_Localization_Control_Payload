@@ -29,27 +29,27 @@ $EndComp
 $Comp
 L Device:R R4
 U 1 1 5DAE42D2
-P 1950 3650
-F 0 "R4" V 1743 3650 50  0000 C CNN
-F 1 "10 kOhm" V 1834 3650 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" H 2020 3559 50  0001 L CNN
-F 3 "" H 1950 3650 50  0001 C CNN
-	1    1950 3650
+P 1850 3750
+F 0 "R4" V 1643 3750 50  0000 C CNN
+F 1 "10 kOhm" V 1734 3750 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 1920 3659 50  0001 L CNN
+F 3 "" H 1850 3750 50  0001 C CNN
+	1    1850 3750
 	0    1    1    0   
 $EndComp
 $Comp
 L power:GND #PWR026
 U 1 1 5DAE4C27
-P 2450 3750
-F 0 "#PWR026" H 2450 3500 50  0001 C CNN
-F 1 "GND" H 2455 3577 50  0000 C CNN
-F 2 "" H 2450 3750 50  0001 C CNN
-F 3 "" H 2450 3750 50  0001 C CNN
-	1    2450 3750
+P 2350 3850
+F 0 "#PWR026" H 2350 3600 50  0001 C CNN
+F 1 "GND" H 2355 3677 50  0000 C CNN
+F 2 "" H 2350 3850 50  0001 C CNN
+F 3 "" H 2350 3850 50  0001 C CNN
+	1    2350 3850
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	2100 3650 2450 3650
+	2000 3750 2350 3750
 $Comp
 L power:GND #PWR02
 U 1 1 5DAEA58B
@@ -103,7 +103,7 @@ F 4 "" H 2000 6900 50  0001 C CNN "DigiKey"
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	1800 3200 1550 3200
+	1700 3300 1450 3300
 Text GLabel 4700 3950 0    50   Input ~ 0
 D2
 Text GLabel 4700 4050 0    50   Input ~ 0
@@ -142,22 +142,22 @@ Wire Wire Line
 Wire Wire Line
 	6100 1450 6550 1450
 Wire Wire Line
-	2450 3650 2450 3750
+	2350 3750 2350 3850
 Wire Wire Line
-	1550 3650 1550 3300
+	1450 3750 1450 3400
 Wire Wire Line
-	1550 3300 1800 3300
+	1450 3400 1700 3400
 Wire Wire Line
-	1550 3650 1800 3650
+	1450 3750 1700 3750
 Text GLabel 6250 4350 2    50   Input ~ 0
 A0
-Text GLabel 1300 3300 0    50   Input ~ 0
+Text GLabel 1200 3400 0    50   Input ~ 0
 A0
 Wire Wire Line
-	1550 3200 1550 3050
+	1450 3300 1450 3150
 Wire Wire Line
-	1300 3300 1550 3300
-Connection ~ 1550 3300
+	1200 3400 1450 3400
+Connection ~ 1450 3400
 Text GLabel 6250 4450 2    50   Input ~ 0
 A1
 Wire Wire Line
@@ -243,12 +243,12 @@ A1
 $Comp
 L Connector_Generic:Conn_01x02 J7
 U 1 1 5DC7C73C
-P 2000 3200
-F 0 "J7" H 2080 3192 50  0000 L CNN
-F 1 "FSR1" H 2080 3101 50  0000 L CNN
-F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 2000 3200 50  0001 C CNN
-F 3 "~" H 2000 3200 50  0001 C CNN
-	1    2000 3200
+P 1900 3300
+F 0 "J7" H 1980 3292 50  0000 L CNN
+F 1 "FSR1" H 1980 3201 50  0000 L CNN
+F 2 "Connector_PinHeader_2.54mm:PinHeader_1x02_P2.54mm_Vertical" H 1900 3300 50  0001 C CNN
+F 3 "~" H 1900 3300 50  0001 C CNN
+	1    1900 3300
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -340,12 +340,12 @@ $EndComp
 $Comp
 L power:+5V #PWR024
 U 1 1 5DCDD92C
-P 1550 3050
-F 0 "#PWR024" H 1550 2900 50  0001 C CNN
-F 1 "+5V" H 1565 3223 50  0000 C CNN
-F 2 "" H 1550 3050 50  0001 C CNN
-F 3 "" H 1550 3050 50  0001 C CNN
-	1    1550 3050
+P 1450 3150
+F 0 "#PWR024" H 1450 3000 50  0001 C CNN
+F 1 "+5V" H 1465 3323 50  0000 C CNN
+F 2 "" H 1450 3150 50  0001 C CNN
+F 3 "" H 1450 3150 50  0001 C CNN
+	1    1450 3150
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -856,7 +856,7 @@ Text Notes 6250 700  0    59   ~ 0
 Servo Out
 Text Notes 1050 750  0    59   ~ 0
 Limit Switches
-Text Notes 1150 2600 0    59   ~ 0
+Text Notes 1050 2700 0    59   ~ 0
 Force Sensitive Resistor (FSR)
 Text Notes 3600 750  0    59   ~ 0
 Power in

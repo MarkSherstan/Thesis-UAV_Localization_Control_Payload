@@ -180,7 +180,7 @@ Wire Wire Line
 Text GLabel 4700 4650 0    50   Input ~ 0
 D9
 Text GLabel 4700 4750 0    50   Input ~ 0
-D13
+D10
 Text GLabel 1100 6900 0    50   Input ~ 0
 D9
 Text GLabel 1100 7350 0    50   Input ~ 0
@@ -902,10 +902,10 @@ F 3 "" H 3900 1350 50  0001 C CNN
 	-1   0    0    -1  
 $EndComp
 $Comp
-L power:+3.3V #PWR?
+L power:+3.3V #PWR0111
 U 1 1 5EB91A5C
 P 1850 5050
-F 0 "#PWR?" H 1850 4900 50  0001 C CNN
+F 0 "#PWR0111" H 1850 4900 50  0001 C CNN
 F 1 "+3.3V" H 1865 5223 50  0000 C CNN
 F 2 "" H 1850 5050 50  0001 C CNN
 F 3 "" H 1850 5050 50  0001 C CNN
