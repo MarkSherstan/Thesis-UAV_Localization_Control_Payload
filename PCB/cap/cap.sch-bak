@@ -1,4 +1,5 @@
 EESchema Schematic File Version 4
+LIBS:cap-cache
 EELAYER 30 0
 EELAYER END
 $Descr USLetter 11000 8500
@@ -275,9 +276,9 @@ F 3 "" H 1000 1450 50  0001 C CNN
 	1    1000 1450
 	-1   0    0    -1  
 $EndComp
-Text GLabel 1350 1550 0    50   Input ~ 0
-D3
 Text GLabel 1350 1050 0    50   Input ~ 0
+D3
+Text GLabel 1350 1550 0    50   Input ~ 0
 D2
 $Comp
 L power:GND #PWR06

@@ -1,0 +1,20 @@
+EESchema-LIBRARY Version 2.4
+#encoding utf-8
+#
+# LM2596-Breakout-Board
+#
+DEF LM2596-Breakout-Board U 0 40 Y Y 1 F N
+F0 "U" 100 950 50 H V C CNN
+F1 "LM2596-Breakout-Board" 0 850 50 H V C CNN
+F2 "" 100 950 50 H I C CNN
+F3 "" 100 950 50 H I C CNN
+DRAW
+S -150 300 150 -250 0 1 0 f
+X In- 1 -100 400 100 D 50 50 1 1 I
+X in+ 2 100 400 100 D 50 50 1 1 I
+X Out+ 3 100 -350 100 U 50 50 1 1 I
+X out- 4 -100 -350 100 U 50 50 1 1 I
+ENDDRAW
+ENDDEF
+#
+#End Library

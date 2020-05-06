@@ -1,5 +1,4 @@
 EESchema Schematic File Version 4
-LIBS:cap-cache
 EELAYER 30 0
 EELAYER END
 $Descr USLetter 11000 8500
@@ -14,18 +13,6 @@ Comment2 ""
 Comment3 ""
 Comment4 ""
 $EndDescr
-$Comp
-L cap-rescue:Arduino_Nano_v3.x-MCU_Module A1
-U 1 1 5DAE21E4
-P 5350 4350
-F 0 "A1" H 5350 3261 50  0000 C CNN
-F 1 "Arduino_Nano_v3.x" H 5350 3170 50  0000 C CNN
-F 2 "Module:Arduino_Nano" H 5500 3400 50  0001 L CNN
-F 3 "" H 5350 3350 50  0001 C CNN
-F 4 "https://www.amazon.ca/gp/product/B01N7I0W77/ref=ppx_od_dt_b_asin_title_s00?ie=UTF8&psc=1" H 5350 4350 50  0001 C CNN "Link"
-	1    5350 4350
-	1    0    0    -1  
-$EndComp
 $Comp
 L Device:R R4
 U 1 1 5DAE42D2
@@ -61,8 +48,6 @@ F 3 "" H 6050 1000 50  0001 C CNN
 	1    6050 1000
 	1    0    0    -1  
 $EndComp
-Wire Wire Line
-	5850 4350 6250 4350
 $Comp
 L Device:R R2
 U 1 1 5DB11BB4
@@ -102,31 +87,6 @@ F 4 "" H 2000 6900 50  0001 C CNN "DigiKey"
 	1    2000 6900
 	-1   0    0    1   
 $EndComp
-Text GLabel 4700 3950 0    50   Input ~ 0
-D2
-Text GLabel 4700 4050 0    50   Input ~ 0
-D3
-$Comp
-L power:GND #PWR016
-U 1 1 5DB261B3
-P 5850 5400
-F 0 "#PWR016" H 5850 5150 50  0001 C CNN
-F 1 "GND" H 5855 5227 50  0000 C CNN
-F 2 "" H 5850 5400 50  0001 C CNN
-F 3 "" H 5850 5400 50  0001 C CNN
-	1    5850 5400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5450 5350 5850 5350
-Wire Wire Line
-	5850 5350 5850 5400
-Wire Wire Line
-	5250 3350 5250 2850
-Text GLabel 4700 4250 0    50   Input ~ 0
-D5
-Text GLabel 4700 4150 0    50   Input ~ 0
-D4
 Text GLabel 6500 1200 0    50   Input ~ 0
 D4
 Wire Wire Line
@@ -137,17 +97,11 @@ Wire Wire Line
 	1200 3400 1200 3050
 Wire Wire Line
 	1200 3400 1450 3400
-Text GLabel 6250 4350 2    50   Input ~ 0
-A0
 Text GLabel 950  3050 0    50   Input ~ 0
 A0
 Wire Wire Line
 	950  3050 1200 3050
 Connection ~ 1200 3050
-Text GLabel 6250 4950 2    50   Input ~ 0
-A6
-Wire Wire Line
-	5850 4950 6250 4950
 Wire Wire Line
 	2150 6900 2500 6900
 $Comp
@@ -163,10 +117,6 @@ F 3 "" H 2500 7000 50  0001 C CNN
 $EndComp
 Wire Wire Line
 	2500 7000 2500 6900
-Text GLabel 4700 4650 0    50   Input ~ 0
-D9
-Text GLabel 4700 4750 0    50   Input ~ 0
-D10
 Text GLabel 1100 6900 0    50   Input ~ 0
 D9
 Text GLabel 1100 7350 0    50   Input ~ 0
@@ -175,51 +125,6 @@ Wire Wire Line
 	1100 6900 1400 6900
 Wire Wire Line
 	1100 7350 1400 7350
-$Comp
-L power:+3.3V #PWR013
-U 1 1 5DB748D2
-P 5450 3100
-F 0 "#PWR013" H 5450 2950 50  0001 C CNN
-F 1 "+3.3V" H 5465 3273 50  0000 C CNN
-F 2 "" H 5450 3100 50  0001 C CNN
-F 3 "" H 5450 3100 50  0001 C CNN
-	1    5450 3100
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	5450 3350 5450 3100
-Wire Wire Line
-	4700 4150 4850 4150
-Wire Wire Line
-	4700 4250 4850 4250
-Text GLabel 4700 4450 0    50   Input ~ 0
-CE
-Text GLabel 4700 4550 0    50   Input ~ 0
-CSN
-Text GLabel 4700 5050 0    50   Input ~ 0
-SCK
-Text GLabel 4700 4850 0    50   Input ~ 0
-MOSI
-Text GLabel 4700 4950 0    50   Input ~ 0
-MISO
-Wire Wire Line
-	4700 4050 4850 4050
-Wire Wire Line
-	4700 3950 4850 3950
-Wire Wire Line
-	4700 4450 4850 4450
-Wire Wire Line
-	4700 4550 4850 4550
-Wire Wire Line
-	4700 4850 4850 4850
-Wire Wire Line
-	4700 4950 4850 4950
-Wire Wire Line
-	4700 5050 4850 5050
-Wire Wire Line
-	4700 4650 4850 4650
-Wire Wire Line
-	4700 4750 4850 4750
 Text Notes 8900 700  0    59   ~ 0
 Current Sensor A
 Text GLabel 10200 2900 2    50   Input ~ 0
@@ -235,21 +140,6 @@ F 3 "~" H 2350 3050 50  0001 C CNN
 	1    2350 3050
 	1    0    0    -1  
 $EndComp
-$Comp
-L power:GND #PWR010
-U 1 1 5DC88464
-P 4850 5400
-F 0 "#PWR010" H 4850 5150 50  0001 C CNN
-F 1 "GND" H 4855 5227 50  0000 C CNN
-F 2 "" H 4850 5400 50  0001 C CNN
-F 3 "" H 4850 5400 50  0001 C CNN
-	1    4850 5400
-	1    0    0    -1  
-$EndComp
-Wire Wire Line
-	4850 5400 4850 5350
-Wire Wire Line
-	4850 5350 5350 5350
 Wire Wire Line
 	1700 7350 1850 7350
 Wire Wire Line
@@ -323,28 +213,6 @@ F 2 "" H 1950 3150 50  0001 C CNN
 F 3 "" H 1950 3150 50  0001 C CNN
 	1    1950 3150
 	-1   0    0    1   
-$EndComp
-$Comp
-L power:+5V #PWR015
-U 1 1 5DCDED48
-P 5550 3350
-F 0 "#PWR015" H 5550 3200 50  0001 C CNN
-F 1 "+5V" H 5565 3523 50  0000 C CNN
-F 2 "" H 5550 3350 50  0001 C CNN
-F 3 "" H 5550 3350 50  0001 C CNN
-	1    5550 3350
-	1    0    0    -1  
-$EndComp
-$Comp
-L power:VCC #PWR012
-U 1 1 5DCE2068
-P 5250 2850
-F 0 "#PWR012" H 5250 2700 50  0001 C CNN
-F 1 "VCC" H 5267 3023 50  0000 C CNN
-F 2 "" H 5250 2850 50  0001 C CNN
-F 3 "" H 5250 2850 50  0001 C CNN
-	1    5250 2850
-	1    0    0    -1  
 $EndComp
 $Comp
 L power:VCC #PWR019
@@ -735,10 +603,6 @@ Wire Wire Line
 	4450 7750 4450 7650
 Wire Wire Line
 	5350 7750 5350 7650
-Text GLabel 6250 4550 2    50   Input ~ 0
-A2
-Wire Wire Line
-	5850 4550 6250 4550
 Text Notes 1500 4700 0    59   ~ 0
 Communication
 $Comp
@@ -802,8 +666,6 @@ Wire Wire Line
 	4450 7100 4450 7000
 Wire Wire Line
 	5350 7100 5350 7000
-Text Notes 5050 2550 0    59   ~ 0
-Microcontroller
 Text Notes 6250 700  0    59   ~ 0
 Servo Out
 Text Notes 1050 750  0    59   ~ 0
@@ -927,4 +789,141 @@ Wire Wire Line
 	1200 3050 2150 3050
 Wire Wire Line
 	1950 3150 2150 3150
+Text Notes 5050 2550 0    59   ~ 0
+Microcontroller
+Wire Wire Line
+	5850 4550 6250 4550
+Text GLabel 6250 4550 2    50   Input ~ 0
+A2
+$Comp
+L power:VCC #PWR012
+U 1 1 5DCE2068
+P 5250 2850
+F 0 "#PWR012" H 5250 2700 50  0001 C CNN
+F 1 "VCC" H 5267 3023 50  0000 C CNN
+F 2 "" H 5250 2850 50  0001 C CNN
+F 3 "" H 5250 2850 50  0001 C CNN
+	1    5250 2850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR015
+U 1 1 5DCDED48
+P 5550 3350
+F 0 "#PWR015" H 5550 3200 50  0001 C CNN
+F 1 "+5V" H 5565 3523 50  0000 C CNN
+F 2 "" H 5550 3350 50  0001 C CNN
+F 3 "" H 5550 3350 50  0001 C CNN
+	1    5550 3350
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4850 5350 5350 5350
+Wire Wire Line
+	4850 5400 4850 5350
+$Comp
+L power:GND #PWR010
+U 1 1 5DC88464
+P 4850 5400
+F 0 "#PWR010" H 4850 5150 50  0001 C CNN
+F 1 "GND" H 4855 5227 50  0000 C CNN
+F 2 "" H 4850 5400 50  0001 C CNN
+F 3 "" H 4850 5400 50  0001 C CNN
+	1    4850 5400
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4700 4750 4850 4750
+Wire Wire Line
+	4700 4650 4850 4650
+Wire Wire Line
+	4700 5050 4850 5050
+Wire Wire Line
+	4700 4950 4850 4950
+Wire Wire Line
+	4700 4850 4850 4850
+Wire Wire Line
+	4700 4550 4850 4550
+Wire Wire Line
+	4700 4450 4850 4450
+Wire Wire Line
+	4700 3950 4850 3950
+Wire Wire Line
+	4700 4050 4850 4050
+Text GLabel 4700 4950 0    50   Input ~ 0
+MISO
+Text GLabel 4700 4850 0    50   Input ~ 0
+MOSI
+Text GLabel 4700 5050 0    50   Input ~ 0
+SCK
+Text GLabel 4700 4550 0    50   Input ~ 0
+CSN
+Text GLabel 4700 4450 0    50   Input ~ 0
+CE
+Wire Wire Line
+	4700 4250 4850 4250
+Wire Wire Line
+	4700 4150 4850 4150
+Wire Wire Line
+	5450 3350 5450 3100
+$Comp
+L power:+3.3V #PWR013
+U 1 1 5DB748D2
+P 5450 3100
+F 0 "#PWR013" H 5450 2950 50  0001 C CNN
+F 1 "+3.3V" H 5465 3273 50  0000 C CNN
+F 2 "" H 5450 3100 50  0001 C CNN
+F 3 "" H 5450 3100 50  0001 C CNN
+	1    5450 3100
+	1    0    0    -1  
+$EndComp
+Text GLabel 4700 4750 0    50   Input ~ 0
+D10
+Text GLabel 4700 4650 0    50   Input ~ 0
+D9
+Wire Wire Line
+	5850 4950 6250 4950
+Text GLabel 6250 4950 2    50   Input ~ 0
+A6
+Text GLabel 6250 4350 2    50   Input ~ 0
+A0
+Text GLabel 4700 4150 0    50   Input ~ 0
+D4
+Text GLabel 4700 4250 0    50   Input ~ 0
+D5
+Wire Wire Line
+	5250 3350 5250 2850
+Wire Wire Line
+	5850 5350 5850 5400
+Wire Wire Line
+	5450 5350 5850 5350
+$Comp
+L power:GND #PWR016
+U 1 1 5DB261B3
+P 5850 5400
+F 0 "#PWR016" H 5850 5150 50  0001 C CNN
+F 1 "GND" H 5855 5227 50  0000 C CNN
+F 2 "" H 5850 5400 50  0001 C CNN
+F 3 "" H 5850 5400 50  0001 C CNN
+	1    5850 5400
+	1    0    0    -1  
+$EndComp
+Text GLabel 4700 4050 0    50   Input ~ 0
+D3
+Text GLabel 4700 3950 0    50   Input ~ 0
+D2
+Wire Wire Line
+	5850 4350 6250 4350
+$Comp
+L cap-rescue:Arduino_Nano_v3.x-MCU_Module A1
+U 1 1 5DAE21E4
+P 5350 4350
+F 0 "A1" H 5350 3261 50  0000 C CNN
+F 1 "Arduino_Nano_v3.x" H 5350 3170 50  0000 C CNN
+F 2 "Module:Arduino_Nano" H 5500 3400 50  0001 L CNN
+F 3 "" H 5350 3350 50  0001 C CNN
+F 4 "https://www.amazon.ca/gp/product/B01N7I0W77/ref=ppx_od_dt_b_asin_title_s00?ie=UTF8&psc=1" H 5350 4350 50  0001 C CNN "Link"
+	1    5350 4350
+	1    0    0    -1  
+$EndComp
 $EndSCHEMATC

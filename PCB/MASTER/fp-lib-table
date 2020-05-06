@@ -1,0 +1,3 @@
+(fp_lib_table
+  (lib (name LM2596-Breakout-Board)(type KiCad)(uri ${KIPRJMOD}/LM2596-Breakout-Board.pretty)(options "")(descr ""))
+)
