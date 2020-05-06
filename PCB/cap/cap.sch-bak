@@ -143,10 +143,10 @@ A0
 Wire Wire Line
 	950  3050 1200 3050
 Connection ~ 1200 3050
-Text GLabel 6250 4450 2    50   Input ~ 0
-A1
+Text GLabel 6250 4950 2    50   Input ~ 0
+A6
 Wire Wire Line
-	5850 4450 6250 4450
+	5850 4950 6250 4950
 Wire Wire Line
 	2150 6900 2500 6900
 $Comp
@@ -222,7 +222,7 @@ Wire Wire Line
 Text Notes 8900 700  0    59   ~ 0
 Current Sensor A
 Text GLabel 10200 2900 2    50   Input ~ 0
-A1
+A6
 $Comp
 L Connector_Generic:Conn_01x02 J7
 U 1 1 5DC7C73C
@@ -885,10 +885,6 @@ Text GLabel 1200 5400 0    50   Input ~ 0
 MOSI
 Wire Wire Line
 	1200 5400 1350 5400
-Text GLabel 6250 4650 2    50   Input ~ 0
-A3
-Wire Wire Line
-	5850 4650 6250 4650
 Wire Wire Line
 	1000 950  1450 950 
 Wire Wire Line
