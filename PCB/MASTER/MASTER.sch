@@ -201,9 +201,9 @@ F 3 "" H 2650 7050 50  0001 C CNN
 	1    2650 7050
 	1    0    0    -1  
 $EndComp
-Text GLabel 850  6900 0    50   Input ~ 0
-D9
 Text GLabel 850  7550 0    50   Input ~ 0
+D9
+Text GLabel 850  6900 0    50   Input ~ 0
 D10
 Text GLabel 4000 3850 0    50   Input ~ 0
 D9
