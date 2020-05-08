@@ -446,8 +446,8 @@ F 3 "" H 1700 1350 50  0001 C CNN
 $EndComp
 Text Notes 1400 900  0    50   ~ 0
 Power In
-Text Notes 1450 2900 0    50   ~ 0
-Communication
+Text Notes 1400 2950 0    50   ~ 0
+RF Communication
 Text Notes 5150 1900 0    50   ~ 0
 Microcontroller
 Text Notes 5000 6550 0    50   ~ 0
