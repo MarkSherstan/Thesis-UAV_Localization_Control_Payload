@@ -16,36 +16,37 @@ $EndDescr
 $Comp
 L Device:R R4
 U 1 1 5DAE42D2
-P 1600 3400
-F 0 "R4" V 1393 3400 50  0000 C CNN
-F 1 "10 kOhm" V 1484 3400 50  0000 C CNN
-F 2 "Resistor_SMD:R_0603_1608Metric" H 1670 3309 50  0001 L CNN
-F 3 "" H 1600 3400 50  0001 C CNN
-	1    1600 3400
+P 1650 3300
+F 0 "R4" V 1443 3300 50  0000 C CNN
+F 1 "10 kOhm" V 1534 3300 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric" H 1720 3209 50  0001 L CNN
+F 3 "https://www.digikey.ca/product-detail/en/panasonic-electronic-components/ERJ-3EKF1002V/P10.0KHCT-ND/198102" H 1650 3300 50  0001 C CNN
+F 4 "P10.0KHCT-ND" V 1650 3300 50  0001 C CNN "Field4"
+	1    1650 3300
 	0    1    1    0   
 $EndComp
 $Comp
 L power:GND #PWR026
 U 1 1 5DAE4C27
-P 2100 3500
-F 0 "#PWR026" H 2100 3250 50  0001 C CNN
-F 1 "GND" H 2105 3327 50  0000 C CNN
-F 2 "" H 2100 3500 50  0001 C CNN
-F 3 "" H 2100 3500 50  0001 C CNN
-	1    2100 3500
+P 2150 3400
+F 0 "#PWR026" H 2150 3150 50  0001 C CNN
+F 1 "GND" H 2155 3227 50  0000 C CNN
+F 2 "" H 2150 3400 50  0001 C CNN
+F 3 "" H 2150 3400 50  0001 C CNN
+	1    2150 3400
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1750 3400 2100 3400
+	1800 3300 2150 3300
 $Comp
 L power:GND #PWR02
 U 1 1 5DAEA58B
-P 6050 1000
-F 0 "#PWR02" H 6050 750 50  0001 C CNN
-F 1 "GND" H 6055 827 50  0000 C CNN
-F 2 "" H 6050 1000 50  0001 C CNN
-F 3 "" H 6050 1000 50  0001 C CNN
-	1    6050 1000
+P 5950 1100
+F 0 "#PWR02" H 5950 850 50  0001 C CNN
+F 1 "GND" H 5955 927 50  0000 C CNN
+F 2 "" H 5950 1100 50  0001 C CNN
+F 3 "" H 5950 1100 50  0001 C CNN
+	1    5950 1100
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -53,10 +54,10 @@ L Device:R R2
 U 1 1 5DB11BB4
 P 1550 7350
 F 0 "R2" V 1343 7350 50  0000 C CNN
-F 1 "-" V 1434 7350 50  0000 C CNN
+F 1 "220 ohm" V 1434 7350 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 1620 7259 50  0001 L CNN
-F 3 "" H 1550 7350 50  0001 C CNN
-F 4 "" V 1550 7350 50  0001 C CNN "DigiKey"
+F 3 "https://www.digikey.ca/product-detail/en/panasonic-electronic-components/ERJ-PA3J221V/P220BZCT-ND/5036283" H 1550 7350 50  0001 C CNN
+F 4 "P220BZCT-ND" V 1550 7350 50  0001 C CNN "Field4"
 	1    1550 7350
 	0    -1   -1   0   
 $EndComp
@@ -80,28 +81,28 @@ L Device:LED D1
 U 1 1 5DB1C9A4
 P 2000 6900
 F 0 "D1" H 1993 7116 50  0000 C CNN
-F 1 "G-LED" H 1993 7025 50  0000 C CNN
+F 1 "R-LED" H 1993 7025 50  0000 C CNN
 F 2 "LED_SMD:LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 2000 6900 50  0001 C CNN
-F 3 "" H 2000 6900 50  0001 C CNN
-F 4 "" H 2000 6900 50  0001 C CNN "DigiKey"
+F 3 "https://www.digikey.ca/product-detail/en/lite-on-inc/LTST-C191KRKT/160-1447-1-ND/386836" H 2000 6900 50  0001 C CNN
+F 4 "160-1447-1-ND" H 2000 6900 50  0001 C CNN "Field4"
 	1    2000 6900
 	-1   0    0    1   
 $EndComp
-Text GLabel 6500 1200 0    50   Input ~ 0
+Text GLabel 6400 1300 0    50   Input ~ 0
 D4
 Wire Wire Line
-	6500 1200 6650 1200
+	6400 1300 6550 1300
 Wire Wire Line
-	2100 3400 2100 3500
+	2150 3300 2150 3400
 Wire Wire Line
-	1200 3400 1200 3050
+	1250 3300 1250 2950
 Wire Wire Line
-	1200 3400 1450 3400
-Text GLabel 950  3050 0    50   Input ~ 0
+	1250 3300 1500 3300
+Text GLabel 1000 2950 0    50   Input ~ 0
 A0
 Wire Wire Line
-	950  3050 1200 3050
-Connection ~ 1200 3050
+	1000 2950 1250 2950
+Connection ~ 1250 2950
 Wire Wire Line
 	2150 6900 2500 6900
 $Comp
@@ -132,12 +133,12 @@ A6
 $Comp
 L Connector_Generic:Conn_01x02 J7
 U 1 1 5DC7C73C
-P 2350 3050
-F 0 "J7" H 2430 3042 50  0000 L CNN
-F 1 "FSR1" H 2430 2951 50  0000 L CNN
-F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 2350 3050 50  0001 C CNN
-F 3 "~" H 2350 3050 50  0001 C CNN
-	1    2350 3050
+P 2400 2950
+F 0 "J7" H 2480 2942 50  0000 L CNN
+F 1 "FSR1" H 2480 2851 50  0000 L CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 2400 2950 50  0001 C CNN
+F 3 "~" H 2400 2950 50  0001 C CNN
+	1    2400 2950
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
@@ -147,71 +148,71 @@ Wire Wire Line
 $Comp
 L Connector_Generic:Conn_01x03 J1
 U 1 1 5DCA5112
-P 6850 1100
-F 0 "J1" H 6930 1142 50  0000 L CNN
-F 1 "Servo1" H 6930 1051 50  0000 L CNN
-F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal" H 6850 1100 50  0001 C CNN
-F 3 "~" H 6850 1100 50  0001 C CNN
-	1    6850 1100
+P 6750 1200
+F 0 "J1" H 6830 1242 50  0000 L CNN
+F 1 "Servo1" H 6830 1151 50  0000 L CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0300_1x03_P3.00mm_Horizontal" H 6750 1200 50  0001 C CNN
+F 3 "~" H 6750 1200 50  0001 C CNN
+	1    6750 1200
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:GND #PWR05
 U 1 1 5DB1DE6D
-P 1000 1450
-F 0 "#PWR05" H 1000 1200 50  0001 C CNN
-F 1 "GND" H 1005 1277 50  0000 C CNN
-F 2 "" H 1000 1450 50  0001 C CNN
-F 3 "" H 1000 1450 50  0001 C CNN
-	1    1000 1450
+P 3650 1650
+F 0 "#PWR05" H 3650 1400 50  0001 C CNN
+F 1 "GND" H 3655 1477 50  0000 C CNN
+F 2 "" H 3650 1650 50  0001 C CNN
+F 3 "" H 3650 1650 50  0001 C CNN
+	1    3650 1650
 	-1   0    0    -1  
 $EndComp
-Text GLabel 1350 1050 0    50   Input ~ 0
+Text GLabel 4000 1250 0    50   Input ~ 0
 D3
-Text GLabel 1350 1550 0    50   Input ~ 0
+Text GLabel 4000 1750 0    50   Input ~ 0
 D2
 $Comp
 L power:GND #PWR06
 U 1 1 5DB0EAAF
-P 1000 950
-F 0 "#PWR06" H 1000 700 50  0001 C CNN
-F 1 "GND" H 1005 777 50  0000 C CNN
-F 2 "" H 1000 950 50  0001 C CNN
-F 3 "" H 1000 950 50  0001 C CNN
-	1    1000 950 
+P 3650 1150
+F 0 "#PWR06" H 3650 900 50  0001 C CNN
+F 1 "GND" H 3655 977 50  0000 C CNN
+F 2 "" H 3650 1150 50  0001 C CNN
+F 3 "" H 3650 1150 50  0001 C CNN
+	1    3650 1150
 	-1   0    0    -1  
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J3
 U 1 1 5DCC0B75
-P 1650 950
-F 0 "J3" H 1730 942 50  0000 L CNN
-F 1 "LS1" H 1730 851 50  0000 L CNN
-F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 1650 950 50  0001 C CNN
-F 3 "~" H 1650 950 50  0001 C CNN
-	1    1650 950 
+P 4300 1150
+F 0 "J3" H 4380 1142 50  0000 L CNN
+F 1 "LS1" H 4380 1051 50  0000 L CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 4300 1150 50  0001 C CNN
+F 3 "~" H 4300 1150 50  0001 C CNN
+	1    4300 1150
 	1    0    0    -1  
 $EndComp
 $Comp
 L Connector_Generic:Conn_01x02 J4
 U 1 1 5DCC16B0
-P 1650 1450
-F 0 "J4" H 1730 1442 50  0000 L CNN
-F 1 "LS2" H 1730 1351 50  0000 L CNN
-F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 1650 1450 50  0001 C CNN
-F 3 "~" H 1650 1450 50  0001 C CNN
-	1    1650 1450
+P 4300 1650
+F 0 "J4" H 4380 1642 50  0000 L CNN
+F 1 "LS2" H 4380 1551 50  0000 L CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 4300 1650 50  0001 C CNN
+F 3 "~" H 4300 1650 50  0001 C CNN
+	1    4300 1650
 	1    0    0    -1  
 $EndComp
 $Comp
 L power:+5V #PWR024
 U 1 1 5DCDD92C
-P 1950 3150
-F 0 "#PWR024" H 1950 3000 50  0001 C CNN
-F 1 "+5V" H 1965 3323 50  0000 C CNN
-F 2 "" H 1950 3150 50  0001 C CNN
-F 3 "" H 1950 3150 50  0001 C CNN
-	1    1950 3150
+P 2000 3050
+F 0 "#PWR024" H 2000 2900 50  0001 C CNN
+F 1 "+5V" H 2015 3223 50  0000 C CNN
+F 2 "" H 2000 3050 50  0001 C CNN
+F 3 "" H 2000 3050 50  0001 C CNN
+	1    2000 3050
 	-1   0    0    1   
 $EndComp
 $Comp
@@ -228,12 +229,12 @@ $EndComp
 $Comp
 L power:Vdrive #PWR01
 U 1 1 5DD49E07
-P 6250 1100
-F 0 "#PWR01" H 6050 950 50  0001 C CNN
-F 1 "Vdrive" H 6267 1273 50  0000 C CNN
-F 2 "" H 6250 1100 50  0001 C CNN
-F 3 "" H 6250 1100 50  0001 C CNN
-	1    6250 1100
+P 6150 1200
+F 0 "#PWR01" H 5950 1050 50  0001 C CNN
+F 1 "Vdrive" H 6167 1373 50  0000 C CNN
+F 2 "" H 6150 1200 50  0001 C CNN
+F 3 "" H 6150 1200 50  0001 C CNN
+	1    6150 1200
 	-1   0    0    1   
 $EndComp
 $Comp
@@ -304,7 +305,8 @@ P 10100 1500
 F 0 "C2" H 10215 1546 50  0000 L CNN
 F 1 "0.1 uF" H 10215 1455 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 10138 1350 50  0001 C CNN
-F 3 "" H 10100 1500 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/kemet/C0603C104M5RACTU/399-7845-1-ND/3471568" H 10100 1500 50  0001 C CNN
+F 4 "399-7845-1-ND" H 10100 1500 50  0001 C CNN "Field4"
 	1    10100 1500
 	1    0    0    -1  
 $EndComp
@@ -394,13 +396,13 @@ Wire Wire Line
 $Comp
 L RF:NRF24L01_Breakout U2
 U 1 1 5E524DFE
-P 1850 5700
-F 0 "U2" H 2230 5746 50  0000 L CNN
-F 1 "NRF24L01_Breakout" H 2230 5655 50  0000 L CNN
-F 2 "RF_Module:nRF24L01_Breakout" H 2000 6300 50  0001 L CIN
-F 3 "http://www.nordicsemi.com/eng/content/download/2730/34105/file/nRF24L01_Product_Specification_v2_0.pdf" H 1850 5600 50  0001 C CNN
-F 4 "https://www.amazon.ca/gp/product/B01C3YNGI8/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1" H 1850 5700 50  0001 C CNN "Link"
-	1    1850 5700
+P 1850 5200
+F 0 "U2" H 2230 5246 50  0000 L CNN
+F 1 "NRF24L01_Breakout" H 2230 5155 50  0000 L CNN
+F 2 "RF_Module:nRF24L01_Breakout" H 2000 5800 50  0001 L CIN
+F 3 "http://www.nordicsemi.com/eng/content/download/2730/34105/file/nRF24L01_Product_Specification_v2_0.pdf" H 1850 5100 50  0001 C CNN
+F 4 "https://www.amazon.ca/gp/product/B01C3YNGI8/ref=ppx_yo_dt_b_search_asin_title?ie=UTF8&psc=1" H 1850 5200 50  0001 C CNN "Link"
+	1    1850 5200
 	1    0    0    -1  
 $EndComp
 $Comp
@@ -408,10 +410,10 @@ L Device:R R5
 U 1 1 5EB1E9AD
 P 1550 6900
 F 0 "R5" V 1343 6900 50  0000 C CNN
-F 1 "-" V 1434 6900 50  0000 C CNN
+F 1 "220 ohm" V 1434 6900 50  0000 C CNN
 F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 1620 6809 50  0001 L CNN
-F 3 "" H 1550 6900 50  0001 C CNN
-F 4 "" V 1550 6900 50  0001 C CNN "DigiKey"
+F 3 "https://www.digikey.ca/product-detail/en/panasonic-electronic-components/ERJ-PA3J221V/P220BZCT-ND/5036283" H 1550 6900 50  0001 C CNN
+F 4 "P220BZCT-ND" V 1550 6900 50  0001 C CNN "Field4"
 	1    1550 6900
 	0    -1   -1   0   
 $EndComp
@@ -422,8 +424,8 @@ P 2000 7350
 F 0 "D2" H 1993 7566 50  0000 C CNN
 F 1 "G-LED" H 1993 7475 50  0000 C CNN
 F 2 "LED_SMD:LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 2000 7350 50  0001 C CNN
-F 3 "" H 2000 7350 50  0001 C CNN
-F 4 "" H 2000 7350 50  0001 C CNN "DigiKey"
+F 3 "https://www.digikey.ca/product-detail/en/lite-on-inc/LTST-C191GKT/160-1443-6-ND/1888655" H 2000 7350 50  0001 C CNN
+F 4 "160-1443-6-ND" H 2000 7350 50  0001 C CNN "Field4"
 	1    2000 7350
 	-1   0    0    1   
 $EndComp
@@ -502,7 +504,7 @@ F 4 "620-1641-1-ND" H 8900 1600 50  0001 C CNN "Field4"
 	1    8900 1600
 	1    0    0    -1  
 $EndComp
-Text Notes 8850 3900 0    50   ~ 0
+Text Notes 8850 3850 0    39   Italic 0
 Open 20 kHz\nClose 80 kHz
 Text Notes 8850 4850 0    59   ~ 0
 Current Sensor B
@@ -524,7 +526,8 @@ P 9400 5400
 F 0 "C3" H 9515 5446 50  0000 L CNN
 F 1 "0.1 uF" H 9515 5355 50  0000 L CNN
 F 2 "Capacitor_SMD:C_0603_1608Metric" H 9438 5250 50  0001 C CNN
-F 3 "" H 9400 5400 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/kemet/C0603C104M5RACTU/399-7845-1-ND/3471568" H 9400 5400 50  0001 C CNN
+F 4 "399-7845-1-ND" H 9400 5400 50  0001 C CNN "Field4"
 	1    9400 5400
 	0    -1   -1   0   
 $EndComp
@@ -603,21 +606,19 @@ Wire Wire Line
 	4450 7750 4450 7650
 Wire Wire Line
 	5350 7750 5350 7650
-Text Notes 1500 4700 0    59   ~ 0
-Communication
 $Comp
 L power:GND #PWR0108
 U 1 1 5EB28412
-P 1850 6400
-F 0 "#PWR0108" H 1850 6150 50  0001 C CNN
-F 1 "GND" H 1855 6227 50  0000 C CNN
-F 2 "" H 1850 6400 50  0001 C CNN
-F 3 "" H 1850 6400 50  0001 C CNN
-	1    1850 6400
+P 1850 5900
+F 0 "#PWR0108" H 1850 5650 50  0001 C CNN
+F 1 "GND" H 1855 5727 50  0000 C CNN
+F 2 "" H 1850 5900 50  0001 C CNN
+F 3 "" H 1850 5900 50  0001 C CNN
+	1    1850 5900
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1850 6400 1850 6300
+	1850 5900 1850 5800
 $Comp
 L Mechanical:MountingHole_Pad H3
 U 1 1 5EB3FBAE
@@ -666,103 +667,103 @@ Wire Wire Line
 	4450 7100 4450 7000
 Wire Wire Line
 	5350 7100 5350 7000
-Text Notes 6250 700  0    59   ~ 0
+Text Notes 6150 950  0    59   ~ 0
 Servo Out
-Text Notes 1050 750  0    59   ~ 0
+Text Notes 3700 950  0    59   ~ 0
 Limit Switches
-Text Notes 1050 2700 0    59   ~ 0
+Text Notes 1100 2600 0    59   ~ 0
 Force Sensitive Resistor (FSR)
-Text Notes 3600 750  0    59   ~ 0
+Text Notes 1400 1000 0    59   ~ 0
 Power in
 Wire Wire Line
-	3750 1150 4300 1150
+	1550 1400 2100 1400
 $Comp
 L Connector_Generic:Conn_01x02 J5
 U 1 1 5DD20618
-P 3550 1250
-F 0 "J5" H 3468 925 50  0000 C CNN
-F 1 "VCC/GND-IN" H 3468 1016 50  0000 C CNN
-F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 3550 1250 50  0001 C CNN
-F 3 "~" H 3550 1250 50  0001 C CNN
-	1    3550 1250
+P 1350 1500
+F 0 "J5" H 1268 1175 50  0000 C CNN
+F 1 "VCC/GND-IN" H 1268 1266 50  0000 C CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 1350 1500 50  0001 C CNN
+F 3 "~" H 1350 1500 50  0001 C CNN
+	1    1350 1500
 	-1   0    0    1   
 $EndComp
 $Comp
 L power:VCC #PWR018
 U 1 1 5DC34DAC
-P 4300 1350
-F 0 "#PWR018" H 4300 1200 50  0001 C CNN
-F 1 "VCC" H 4318 1523 50  0000 C CNN
-F 2 "" H 4300 1350 50  0001 C CNN
-F 3 "" H 4300 1350 50  0001 C CNN
-	1    4300 1350
+P 2100 1600
+F 0 "#PWR018" H 2100 1450 50  0001 C CNN
+F 1 "VCC" H 2118 1773 50  0000 C CNN
+F 2 "" H 2100 1600 50  0001 C CNN
+F 3 "" H 2100 1600 50  0001 C CNN
+	1    2100 1600
 	-1   0    0    1   
 $EndComp
 Wire Wire Line
-	4300 1150 4300 1350
+	2100 1400 2100 1600
 Wire Wire Line
-	4050 1250 4050 1350
+	1850 1500 1850 1600
 Wire Wire Line
-	3750 1250 4050 1250
+	1550 1500 1850 1500
 $Comp
 L power:GND #PWR011
 U 1 1 5DB12018
-P 4050 1350
-F 0 "#PWR011" H 4050 1100 50  0001 C CNN
-F 1 "GND" H 4055 1177 50  0000 C CNN
-F 2 "" H 4050 1350 50  0001 C CNN
-F 3 "" H 4050 1350 50  0001 C CNN
-	1    4050 1350
+P 1850 1600
+F 0 "#PWR011" H 1850 1350 50  0001 C CNN
+F 1 "GND" H 1855 1427 50  0000 C CNN
+F 2 "" H 1850 1600 50  0001 C CNN
+F 3 "" H 1850 1600 50  0001 C CNN
+	1    1850 1600
 	-1   0    0    -1  
 $EndComp
 $Comp
 L power:+3.3V #PWR0111
 U 1 1 5EB91A5C
-P 1850 5050
-F 0 "#PWR0111" H 1850 4900 50  0001 C CNN
-F 1 "+3.3V" H 1865 5223 50  0000 C CNN
-F 2 "" H 1850 5050 50  0001 C CNN
-F 3 "" H 1850 5050 50  0001 C CNN
-	1    1850 5050
+P 1850 4550
+F 0 "#PWR0111" H 1850 4400 50  0001 C CNN
+F 1 "+3.3V" H 1865 4723 50  0000 C CNN
+F 2 "" H 1850 4550 50  0001 C CNN
+F 3 "" H 1850 4550 50  0001 C CNN
+	1    1850 4550
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1850 5100 1850 5050
-Text GLabel 1200 5900 0    50   Input ~ 0
+	1850 4600 1850 4550
+Text GLabel 1200 5400 0    50   Input ~ 0
 CE
 Wire Wire Line
-	1200 5900 1350 5900
-Text GLabel 1200 5700 0    50   Input ~ 0
+	1200 5400 1350 5400
+Text GLabel 1200 5200 0    50   Input ~ 0
 CSN
 Wire Wire Line
-	1200 5700 1350 5700
-Text GLabel 1200 5600 0    50   Input ~ 0
+	1200 5200 1350 5200
+Text GLabel 1200 5100 0    50   Input ~ 0
 SCK
 Wire Wire Line
-	1200 5600 1350 5600
-Text GLabel 1200 5500 0    50   Input ~ 0
+	1200 5100 1350 5100
+Text GLabel 1200 5000 0    50   Input ~ 0
 MISO
 Wire Wire Line
-	1200 5500 1350 5500
-Text GLabel 1200 5400 0    50   Input ~ 0
+	1200 5000 1350 5000
+Text GLabel 1200 4900 0    50   Input ~ 0
 MOSI
 Wire Wire Line
-	1200 5400 1350 5400
+	1200 4900 1350 4900
 Wire Wire Line
-	1000 950  1450 950 
+	3650 1150 4100 1150
 Wire Wire Line
-	1350 1050 1450 1050
+	4000 1250 4100 1250
 Wire Wire Line
-	1000 1450 1450 1450
+	3650 1650 4100 1650
 Wire Wire Line
-	1450 1550 1350 1550
+	4100 1750 4000 1750
 Wire Wire Line
 	8600 5950 8900 5950
 Connection ~ 8600 5950
 Wire Wire Line
-	6050 1000 6650 1000
+	5950 1100 6550 1100
 Wire Wire Line
-	6250 1100 6650 1100
+	6150 1200 6550 1200
 $Comp
 L power:VDD #PWR0104
 U 1 1 5EB8FBEB
@@ -786,9 +787,9 @@ F 3 "" H 8600 5500 50  0001 C CNN
 	1    0    0    -1  
 $EndComp
 Wire Wire Line
-	1200 3050 2150 3050
+	1250 2950 2200 2950
 Wire Wire Line
-	1950 3150 2150 3150
+	2000 3050 2200 3050
 Text Notes 5050 2550 0    59   ~ 0
 Microcontroller
 Wire Wire Line
@@ -926,4 +927,10 @@ F 4 "https://www.amazon.ca/gp/product/B01N7I0W77/ref=ppx_od_dt_b_asin_title_s00?
 	1    5350 4350
 	1    0    0    -1  
 $EndComp
+Text Notes 1500 4250 0    59   ~ 0
+RF Communication
+Text Notes 1550 6600 0    59   ~ 0
+Indicators
+Text Notes 4900 6600 0    59   ~ 0
+Mounting
 $EndSCHEMATC

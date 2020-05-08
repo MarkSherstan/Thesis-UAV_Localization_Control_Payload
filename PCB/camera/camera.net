@@ -1,7 +1,7 @@
 (export (version D)
   (design
     (source "C:\\Users\\Mark Sherstan\\Documents\\GitHub Projects\\UAV-Sampling-Control-System\\PCB\\camera\\camera.sch")
-    (date "5/7/2020 10:14:07 PM")
+    (date "5/8/2020 12:16:12 AM")
     (tool "Eeschema (5.1.5)-3")
     (sheet (number 1) (name /) (tstamps /)
       (title_block
