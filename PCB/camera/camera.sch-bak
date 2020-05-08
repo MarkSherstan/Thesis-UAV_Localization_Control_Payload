@@ -203,9 +203,9 @@ F 3 "" H 2650 7050 50  0001 C CNN
 	1    2650 7050
 	1    0    0    -1  
 $EndComp
-Text GLabel 850  7550 0    50   Input ~ 0
-D9
 Text GLabel 850  6900 0    50   Input ~ 0
+D9
+Text GLabel 850  7550 0    50   Input ~ 0
 D10
 Text GLabel 4000 3850 0    50   Input ~ 0
 D9
@@ -254,10 +254,10 @@ Wire Wire Line
 	2650 7550 2650 7700
 Wire Wire Line
 	850  7550 1250 7550
-Text GLabel 4000 3350 0    50   Input ~ 0
-D4
+Text GLabel 4000 3550 0    50   Input ~ 0
+D6
 Wire Wire Line
-	4000 3350 4300 3350
+	4000 3550 4300 3550
 $Comp
 L Connector_Generic:Conn_01x02 J1
 U 1 1 5EB51CDD
@@ -372,10 +372,10 @@ Wire Wire Line
 	2000 1250 2000 1350
 Wire Wire Line
 	1500 1250 2000 1250
-Text GLabel 4000 3250 0    50   Input ~ 0
-D3
+Text GLabel 4000 3450 0    50   Input ~ 0
+D5
 Wire Wire Line
-	4000 3250 4300 3250
+	4000 3450 4300 3450
 $Comp
 L Connector_Generic:Conn_01x04 J2
 U 1 1 5EB4902B
@@ -410,10 +410,10 @@ F 3 "" H 7900 4950 50  0001 C CNN
 	1    7900 4950
 	1    0    0    -1  
 $EndComp
-Text GLabel 7400 4650 0    50   Input ~ 0
-D4
 Text GLabel 7800 4850 0    50   Input ~ 0
-D3
+D5
+Text GLabel 7400 4650 0    50   Input ~ 0
+D6
 Wire Wire Line
 	7800 4850 8050 4850
 Wire Wire Line
