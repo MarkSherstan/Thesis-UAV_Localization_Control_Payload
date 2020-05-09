@@ -1,0 +1,603 @@
+EESchema Schematic File Version 4
+EELAYER 30 0
+EELAYER END
+$Descr USLetter 11000 8500
+encoding utf-8
+Sheet 1 1
+Title "Camera"
+Date "2020-05-07"
+Rev "1"
+Comp "Mark Sherstan"
+Comment1 ""
+Comment2 ""
+Comment3 ""
+Comment4 ""
+$EndDescr
+$Comp
+L MCU_Module:Arduino_Nano_v3.x A1
+U 1 1 5EB2E547
+P 5400 3800
+F 0 "A1" H 5400 2711 50  0000 C CNN
+F 1 "Arduino_Nano_v3.x" H 5400 2620 50  0000 C CNN
+F 2 "Module:Arduino_Nano" H 5400 3800 50  0001 C CIN
+F 3 "http://www.mouser.com/pdfdocs/Gravitech_Arduino_Nano3_0.pdf" H 5400 3800 50  0001 C CNN
+	1    5400 3800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0101
+U 1 1 5EB2FAD6
+P 4900 4900
+F 0 "#PWR0101" H 4900 4650 50  0001 C CNN
+F 1 "GND" H 4905 4727 50  0000 C CNN
+F 2 "" H 4900 4900 50  0001 C CNN
+F 3 "" H 4900 4900 50  0001 C CNN
+	1    4900 4900
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4900 4900 4900 4800
+Wire Wire Line
+	5500 4800 5950 4800
+Wire Wire Line
+	5950 4800 5950 4900
+Wire Wire Line
+	4900 4800 5400 4800
+$Comp
+L power:GND #PWR0102
+U 1 1 5EB32798
+P 5950 4900
+F 0 "#PWR0102" H 5950 4650 50  0001 C CNN
+F 1 "GND" H 5955 4727 50  0000 C CNN
+F 2 "" H 5950 4900 50  0001 C CNN
+F 3 "" H 5950 4900 50  0001 C CNN
+	1    5950 4900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+5V #PWR0103
+U 1 1 5EB32869
+P 5600 2800
+F 0 "#PWR0103" H 5600 2650 50  0001 C CNN
+F 1 "+5V" H 5615 2973 50  0000 C CNN
+F 2 "" H 5600 2800 50  0001 C CNN
+F 3 "" H 5600 2800 50  0001 C CNN
+	1    5600 2800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0104
+U 1 1 5EB33F05
+P 5500 2500
+F 0 "#PWR0104" H 5500 2350 50  0001 C CNN
+F 1 "+3.3V" H 5515 2673 50  0000 C CNN
+F 2 "" H 5500 2500 50  0001 C CNN
+F 3 "" H 5500 2500 50  0001 C CNN
+	1    5500 2500
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:VCC #PWR0105
+U 1 1 5EB34843
+P 5300 2250
+F 0 "#PWR0105" H 5300 2100 50  0001 C CNN
+F 1 "VCC" H 5317 2423 50  0000 C CNN
+F 2 "" H 5300 2250 50  0001 C CNN
+F 3 "" H 5300 2250 50  0001 C CNN
+	1    5300 2250
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5300 2250 5300 2800
+Wire Wire Line
+	5500 2500 5500 2800
+Text GLabel 4600 3900 0    50   Input ~ 0
+CE
+Text GLabel 4600 4000 0    50   Input ~ 0
+CSN
+Text GLabel 4600 4300 0    50   Input ~ 0
+MOSI
+Text GLabel 4600 4400 0    50   Input ~ 0
+MISO
+Text GLabel 4600 4500 0    50   Input ~ 0
+SCK
+Wire Wire Line
+	4600 3900 4900 3900
+Wire Wire Line
+	4900 4000 4600 4000
+Wire Wire Line
+	4600 4300 4900 4300
+Wire Wire Line
+	4900 4400 4600 4400
+Wire Wire Line
+	4600 4500 4900 4500
+$Comp
+L RF:NRF24L01_Breakout U1
+U 1 1 5EB37153
+P 1750 4050
+F 0 "U1" H 2130 4096 50  0000 L CNN
+F 1 "NRF24L01_Breakout" H 2130 4005 50  0000 L CNN
+F 2 "RF_Module:nRF24L01_Breakout" H 1900 4650 50  0001 L CIN
+F 3 "http://www.nordicsemi.com/eng/content/download/2730/34105/file/nRF24L01_Product_Specification_v2_0.pdf" H 1750 3950 50  0001 C CNN
+	1    1750 4050
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0106
+U 1 1 5EB3CD7B
+P 1750 4800
+F 0 "#PWR0106" H 1750 4550 50  0001 C CNN
+F 1 "GND" H 1755 4627 50  0000 C CNN
+F 2 "" H 1750 4800 50  0001 C CNN
+F 3 "" H 1750 4800 50  0001 C CNN
+	1    1750 4800
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:+3.3V #PWR0107
+U 1 1 5EB3DDC5
+P 1750 3300
+F 0 "#PWR0107" H 1750 3150 50  0001 C CNN
+F 1 "+3.3V" H 1765 3473 50  0000 C CNN
+F 2 "" H 1750 3300 50  0001 C CNN
+F 3 "" H 1750 3300 50  0001 C CNN
+	1    1750 3300
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1750 3450 1750 3300
+Wire Wire Line
+	1750 4800 1750 4650
+Text GLabel 1050 3750 0    50   Input ~ 0
+MOSI
+Text GLabel 1050 3850 0    50   Input ~ 0
+MISO
+Text GLabel 1050 3950 0    50   Input ~ 0
+SCK
+Text GLabel 1050 4050 0    50   Input ~ 0
+CSN
+Text GLabel 1050 4250 0    50   Input ~ 0
+CE
+Wire Wire Line
+	1050 3750 1250 3750
+Wire Wire Line
+	1250 3850 1050 3850
+Wire Wire Line
+	1050 3950 1250 3950
+Wire Wire Line
+	1250 4050 1050 4050
+Wire Wire Line
+	1050 4250 1250 4250
+$Comp
+L Device:R R1
+U 1 1 5EB40232
+P 1400 6900
+F 0 "R1" V 1193 6900 50  0000 C CNN
+F 1 "220 ohm" V 1284 6900 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 1330 6900 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/panasonic-electronic-components/ERJ-PA3J221V/P220BZCT-ND/5036283" H 1400 6900 50  0001 C CNN
+F 4 "P220BZCT-ND" V 1400 6900 50  0001 C CNN "Field4"
+	1    1400 6900
+	0    1    1    0   
+$EndComp
+$Comp
+L Device:LED D1
+U 1 1 5EB407E9
+P 2050 6900
+F 0 "D1" H 2043 6645 50  0000 C CNN
+F 1 "R-LED" H 2043 6736 50  0000 C CNN
+F 2 "LED_SMD:LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 2050 6900 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/lite-on-inc/LTST-C191KRKT/160-1447-1-ND/386836" H 2050 6900 50  0001 C CNN
+F 4 "160-1447-1-ND" H 2050 6900 50  0001 C CNN "Field4"
+	1    2050 6900
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0108
+U 1 1 5EB42F6B
+P 2650 7050
+F 0 "#PWR0108" H 2650 6800 50  0001 C CNN
+F 1 "GND" H 2655 6877 50  0000 C CNN
+F 2 "" H 2650 7050 50  0001 C CNN
+F 3 "" H 2650 7050 50  0001 C CNN
+	1    2650 7050
+	1    0    0    -1  
+$EndComp
+Text GLabel 850  6900 0    50   Input ~ 0
+D9
+Text GLabel 850  7550 0    50   Input ~ 0
+D10
+Text GLabel 4600 4100 0    50   Input ~ 0
+D9
+Text GLabel 4600 4200 0    50   Input ~ 0
+D10
+Wire Wire Line
+	4600 4100 4900 4100
+Wire Wire Line
+	4900 4200 4600 4200
+Wire Wire Line
+	850  6900 1250 6900
+Wire Wire Line
+	1550 6900 1900 6900
+Wire Wire Line
+	2200 6900 2650 6900
+Wire Wire Line
+	2650 6900 2650 7050
+$Comp
+L Device:LED D2
+U 1 1 5EB48639
+P 2050 7550
+F 0 "D2" H 2043 7295 50  0000 C CNN
+F 1 "G-LED" H 2043 7386 50  0000 C CNN
+F 2 "LED_SMD:LED_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 2050 7550 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/lite-on-inc/LTST-C191GKT/160-1443-6-ND/1888655" H 2050 7550 50  0001 C CNN
+F 4 "160-1443-6-ND" H 2050 7550 50  0001 C CNN "Field4"
+	1    2050 7550
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0109
+U 1 1 5EB4863F
+P 2650 7700
+F 0 "#PWR0109" H 2650 7450 50  0001 C CNN
+F 1 "GND" H 2655 7527 50  0000 C CNN
+F 2 "" H 2650 7700 50  0001 C CNN
+F 3 "" H 2650 7700 50  0001 C CNN
+	1    2650 7700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	1550 7550 1900 7550
+Wire Wire Line
+	2200 7550 2650 7550
+Wire Wire Line
+	2650 7550 2650 7700
+Wire Wire Line
+	850  7550 1250 7550
+Text GLabel 4600 3800 0    50   Input ~ 0
+D6
+Wire Wire Line
+	4600 3800 4900 3800
+$Comp
+L Connector_Generic:Conn_01x02 J1
+U 1 1 5EB51CDD
+P 1300 1350
+F 0 "J1" H 1218 1025 50  0000 C CNN
+F 1 "Conn_01x02" H 1218 1116 50  0000 C CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 1300 1350 50  0001 C CNN
+F 3 "https://www.digikey.ca/products/en?keywords=0436500200" H 1300 1350 50  0001 C CNN
+F 4 "WM1860-ND" H 1300 1350 50  0001 C CNN "Field4"
+	1    1300 1350
+	-1   0    0    1   
+$EndComp
+$Comp
+L Mechanical:MountingHole_Pad H1
+U 1 1 5EB55153
+P 4400 6900
+F 0 "H1" H 4500 6949 50  0000 L CNN
+F 1 "MountingHole_Pad" H 4500 6858 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO14580_Pad" H 4400 6900 50  0001 C CNN
+F 3 "~" H 4400 6900 50  0001 C CNN
+	1    4400 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0111
+U 1 1 5EB55D99
+P 4400 7150
+F 0 "#PWR0111" H 4400 6900 50  0001 C CNN
+F 1 "GND" H 4405 6977 50  0000 C CNN
+F 2 "" H 4400 7150 50  0001 C CNN
+F 3 "" H 4400 7150 50  0001 C CNN
+	1    4400 7150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4400 7150 4400 7000
+$Comp
+L Mechanical:MountingHole_Pad H3
+U 1 1 5EB595D8
+P 5400 6900
+F 0 "H3" H 5500 6949 50  0000 L CNN
+F 1 "MountingHole_Pad" H 5500 6858 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO14580_Pad" H 5400 6900 50  0001 C CNN
+F 3 "~" H 5400 6900 50  0001 C CNN
+	1    5400 6900
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0112
+U 1 1 5EB595DE
+P 5400 7150
+F 0 "#PWR0112" H 5400 6900 50  0001 C CNN
+F 1 "GND" H 5405 6977 50  0000 C CNN
+F 2 "" H 5400 7150 50  0001 C CNN
+F 3 "" H 5400 7150 50  0001 C CNN
+	1    5400 7150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 7150 5400 7000
+$Comp
+L Mechanical:MountingHole_Pad H2
+U 1 1 5EB5A561
+P 4400 7550
+F 0 "H2" H 4500 7599 50  0000 L CNN
+F 1 "MountingHole_Pad" H 4500 7508 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO14580_Pad" H 4400 7550 50  0001 C CNN
+F 3 "~" H 4400 7550 50  0001 C CNN
+	1    4400 7550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0113
+U 1 1 5EB5A567
+P 4400 7800
+F 0 "#PWR0113" H 4400 7550 50  0001 C CNN
+F 1 "GND" H 4405 7627 50  0000 C CNN
+F 2 "" H 4400 7800 50  0001 C CNN
+F 3 "" H 4400 7800 50  0001 C CNN
+	1    4400 7800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	4400 7800 4400 7650
+$Comp
+L Mechanical:MountingHole_Pad H4
+U 1 1 5EB5AD99
+P 5400 7550
+F 0 "H4" H 5500 7599 50  0000 L CNN
+F 1 "MountingHole_Pad" H 5500 7508 50  0000 L CNN
+F 2 "MountingHole:MountingHole_3.2mm_M3_ISO14580_Pad" H 5400 7550 50  0001 C CNN
+F 3 "~" H 5400 7550 50  0001 C CNN
+	1    5400 7550
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0114
+U 1 1 5EB5AD9F
+P 5400 7800
+F 0 "#PWR0114" H 5400 7550 50  0001 C CNN
+F 1 "GND" H 5405 7627 50  0000 C CNN
+F 2 "" H 5400 7800 50  0001 C CNN
+F 3 "" H 5400 7800 50  0001 C CNN
+	1    5400 7800
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	5400 7800 5400 7650
+Wire Wire Line
+	1500 1350 1700 1350
+Wire Wire Line
+	2000 1250 2000 1350
+Wire Wire Line
+	1500 1250 2000 1250
+Text GLabel 4600 3700 0    50   Input ~ 0
+D5
+Wire Wire Line
+	4600 3700 4900 3700
+$Comp
+L Connector_Generic:Conn_01x04 J2
+U 1 1 5EB4902B
+P 8900 5300
+F 0 "J2" H 8980 5292 50  0000 L CNN
+F 1 "Conn_01x04" H 8980 5201 50  0000 L CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0400_1x04_P3.00mm_Horizontal" H 8900 5300 50  0001 C CNN
+F 3 "https://www.digikey.ca/products/en?keywords=43650-0400" H 8900 5300 50  0001 C CNN
+F 4 "WM1862-ND" H 8900 5300 50  0001 C CNN "Field4"
+	1    8900 5300
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:GND #PWR0115
+U 1 1 5EB4C016
+P 8400 5400
+F 0 "#PWR0115" H 8400 5150 50  0001 C CNN
+F 1 "GND" H 8405 5227 50  0000 C CNN
+F 2 "" H 8400 5400 50  0001 C CNN
+F 3 "" H 8400 5400 50  0001 C CNN
+	1    8400 5400
+	1    0    0    -1  
+$EndComp
+Text GLabel 8700 5500 0    50   Input ~ 0
+D5
+Text GLabel 8350 5300 0    50   Input ~ 0
+D6
+Wire Wire Line
+	8050 5200 8700 5200
+$Comp
+L power:VCC #PWR0116
+U 1 1 5EB5A6EF
+P 2000 1350
+F 0 "#PWR0116" H 2000 1200 50  0001 C CNN
+F 1 "VCC" H 2017 1523 50  0000 C CNN
+F 2 "" H 2000 1350 50  0001 C CNN
+F 3 "" H 2000 1350 50  0001 C CNN
+	1    2000 1350
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0117
+U 1 1 5EB5B719
+P 1700 1350
+F 0 "#PWR0117" H 1700 1100 50  0001 C CNN
+F 1 "GND" H 1705 1177 50  0000 C CNN
+F 2 "" H 1700 1350 50  0001 C CNN
+F 3 "" H 1700 1350 50  0001 C CNN
+	1    1700 1350
+	1    0    0    -1  
+$EndComp
+Text Notes 1400 900  0    50   ~ 0
+Power In
+Text Notes 1400 2950 0    50   ~ 0
+RF Communication
+Text Notes 5150 1900 0    50   ~ 0
+Microcontroller
+Text Notes 5000 6550 0    50   ~ 0
+Mounting
+Text Notes 8300 5000 0    50   ~ 0
+PWM Control
+Text Notes 8200 1150 0    50   ~ 0
+Camera Power
+$Comp
+L Regulator_Linear:LM7805_TO220 U2
+U 1 1 5EB67BEF
+P 8450 1700
+F 0 "U2" H 8450 1942 50  0000 C CNN
+F 1 "LM7805" H 8450 1851 50  0000 C CNN
+F 2 "Package_TO_SOT_SMD:SOT-223-3_TabPin2" H 8450 1925 50  0001 C CIN
+F 3 "https://www.digikey.ca/products/en?keywords=296-44517-1-ND" H 8450 1650 50  0001 C CNN
+F 4 "296-44517-1-ND" H 8450 1700 50  0001 C CNN "Field4"
+	1    8450 1700
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:C C1
+U 1 1 5EB6B1F1
+P 7750 1850
+F 0 "C1" H 7865 1896 50  0000 L CNN
+F 1 "0.22 uF" H 7865 1805 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 7788 1700 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/tdk-corporation/C1608X7R1H224M080AB/445-7409-1-ND/2733481" H 7750 1850 50  0001 C CNN
+F 4 "445-7409-1-ND" H 7750 1850 50  0001 C CNN "Field4"
+	1    7750 1850
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:VCC #PWR0118
+U 1 1 5EB6F0EF
+P 7350 1700
+F 0 "#PWR0118" H 7350 1550 50  0001 C CNN
+F 1 "VCC" H 7367 1873 50  0000 C CNN
+F 2 "" H 7350 1700 50  0001 C CNN
+F 3 "" H 7350 1700 50  0001 C CNN
+	1    7350 1700
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	7350 1700 7750 1700
+Connection ~ 7750 1700
+Wire Wire Line
+	7750 1700 8150 1700
+$Comp
+L Device:C C2
+U 1 1 5EB73AAE
+P 9050 1850
+F 0 "C2" H 9165 1896 50  0000 L CNN
+F 1 "0.1 uF" H 9165 1805 50  0000 L CNN
+F 2 "Capacitor_SMD:C_0603_1608Metric_Pad1.05x0.95mm_HandSolder" H 9088 1700 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/kemet/C0603C104M5RACTU/399-7845-1-ND/3471568" H 9050 1850 50  0001 C CNN
+F 4 "399-7845-1-ND" H 9050 1850 50  0001 C CNN "Field4"
+	1    9050 1850
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8750 1700 9050 1700
+$Comp
+L power:GND #PWR0119
+U 1 1 5EB77ACB
+P 8450 2150
+F 0 "#PWR0119" H 8450 1900 50  0001 C CNN
+F 1 "GND" H 8455 1977 50  0000 C CNN
+F 2 "" H 8450 2150 50  0001 C CNN
+F 3 "" H 8450 2150 50  0001 C CNN
+	1    8450 2150
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8450 2000 8450 2050
+Connection ~ 8450 2050
+Wire Wire Line
+	8450 2050 8450 2150
+Wire Wire Line
+	8450 2050 7750 2050
+Wire Wire Line
+	7750 2050 7750 2000
+Connection ~ 9050 1700
+Wire Wire Line
+	9050 1700 9650 1700
+Wire Wire Line
+	9050 2000 9050 2050
+Wire Wire Line
+	9050 2050 8450 2050
+$Comp
+L power:Vdrive #PWR0120
+U 1 1 5EB836DB
+P 9650 1700
+F 0 "#PWR0120" H 9450 1550 50  0001 C CNN
+F 1 "Vdrive" H 9667 1873 50  0000 C CNN
+F 2 "" H 9650 1700 50  0001 C CNN
+F 3 "" H 9650 1700 50  0001 C CNN
+	1    9650 1700
+	1    0    0    -1  
+$EndComp
+$Comp
+L power:Vdrive #PWR0121
+U 1 1 5EB846CC
+P 8300 2700
+F 0 "#PWR0121" H 8100 2550 50  0001 C CNN
+F 1 "Vdrive" H 8317 2873 50  0000 C CNN
+F 2 "" H 8300 2700 50  0001 C CNN
+F 3 "" H 8300 2700 50  0001 C CNN
+	1    8300 2700
+	-1   0    0    1   
+$EndComp
+$Comp
+L power:GND #PWR0122
+U 1 1 5EB856CF
+P 8000 2600
+F 0 "#PWR0122" H 8000 2350 50  0001 C CNN
+F 1 "GND" H 8005 2427 50  0000 C CNN
+F 2 "" H 8000 2600 50  0001 C CNN
+F 3 "" H 8000 2600 50  0001 C CNN
+	1    8000 2600
+	1    0    0    -1  
+$EndComp
+$Comp
+L Device:R R2
+U 1 1 5EB92A44
+P 1400 7550
+F 0 "R2" V 1193 7550 50  0000 C CNN
+F 1 "220 ohm" V 1284 7550 50  0000 C CNN
+F 2 "Resistor_SMD:R_0603_1608Metric_Pad1.05x0.95mm_HandSolder" V 1330 7550 50  0001 C CNN
+F 3 "https://www.digikey.ca/product-detail/en/panasonic-electronic-components/ERJ-PA3J221V/P220BZCT-ND/5036283" H 1400 7550 50  0001 C CNN
+F 4 "P220BZCT-ND" V 1400 7550 50  0001 C CNN "Field4"
+	1    1400 7550
+	0    1    1    0   
+$EndComp
+$Comp
+L Connector_Generic:Conn_01x02 J3
+U 1 1 5EB98EBE
+P 8850 2600
+F 0 "J3" H 8768 2275 50  0000 C CNN
+F 1 "Conn_01x02" H 8768 2366 50  0000 C CNN
+F 2 "Connector_Molex:Molex_Micro-Fit_3.0_43650-0200_1x02_P3.00mm_Horizontal" H 8850 2600 50  0001 C CNN
+F 3 "https://www.digikey.ca/products/en?keywords=0436500200" H 8850 2600 50  0001 C CNN
+F 4 "WM1860-ND" H 8850 2600 50  0001 C CNN "Field4"
+	1    8850 2600
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8000 2600 8650 2600
+Wire Wire Line
+	8300 2700 8650 2700
+Text Notes 1450 6450 0    50   ~ 0
+Indicators
+Text Notes 8050 5950 0    39   Italic 0
+To be mated with Digi-Key part numbers:\nH2184-ND‎\nH4BXT-10106-B8-ND
+$Comp
+L power:GND #PWR0110
+U 1 1 5EB4BBA3
+P 8050 5200
+F 0 "#PWR0110" H 8050 4950 50  0001 C CNN
+F 1 "GND" H 8055 5027 50  0000 C CNN
+F 2 "" H 8050 5200 50  0001 C CNN
+F 3 "" H 8050 5200 50  0001 C CNN
+	1    8050 5200
+	1    0    0    -1  
+$EndComp
+Wire Wire Line
+	8400 5400 8700 5400
+Wire Wire Line
+	8350 5300 8700 5300
+$EndSCHEMATC
