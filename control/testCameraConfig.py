@@ -1,23 +1,28 @@
 import cv2
+import time
 
-
+# Camera properties 
 cam = cv2.VideoCapture(0)
-cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1920)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 1080)
+cam.set(cv2.CAP_PROP_FPS, 10)
 
-
-            
-
+# Counting variables
+frameCount = 0
+startTime = time.time()
 
 while (True):
-	try:
+    try:
         _, frame = cam.read()
-        # print(frame)
-	except KeyboardInterrupt:
+        frameCount += 1
+    except KeyboardInterrupt:
         break
 
+endTime = time.time()
 
 
+height, width, _ = frame.shape 
+print('Width: ', width, ' Height: ', height)
 
-print 'Frames: ', V.frameCount, 'Time: ', time.time()-tt
-print 'FPS: ', V.frameCount / (time.time() - tt)
+print('Frames: ', frameCount, 'Time: ', (endTime - startTime))
+print('FPS: ', frameCount / (endTime - startTime))
