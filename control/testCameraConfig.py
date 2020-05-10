@@ -3,15 +3,18 @@ import time
 
 def main():
     # Set desired parameters
-    desiredWidth  = 1920
-    desiredHeight = 1080
-    desiredFPS  = 30
+    desiredWidth  = 640     # 1920, 1280, 800, 640
+    desiredHeight = 480     # 1080, 720, 600, 480
+    desiredFPS    = 30
+    autoFocus     = False
+    showFrame     = False
 
     # Camera properties 
-    cam = cv2.VideoCapture(0)
+    cam = cv2.VideoCapture(1)
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, desiredWidth)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, desiredHeight)
     cam.set(cv2.CAP_PROP_FPS, desiredFPS)
+    cam.set(cv2.CAP_PROP_AUTOFOCUS, autoFocus)
 
     # Counting variables
     frameCount = 0
@@ -22,6 +25,11 @@ def main():
     while (time.time() < startTime+10):
         _, frame = cam.read()
         frameCount += 1
+
+        if showFrame is True:
+            cv2.imshow('Test', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
 
     # Record final time and frame size
     endTime = time.time()
