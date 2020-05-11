@@ -20,6 +20,7 @@ class Vision:
         # Frame
         self.frame = None
         self.frameCount = 0
+        self.poseCount = 0
 
         # Camera config 
         self.desiredWidth  = desiredWidth
@@ -102,6 +103,7 @@ class Vision:
         # Process data until closed
         while(self.isRunPose):
             self.getPose()
+            self.poseCount += 1
             self.isReceivingPose = True
 
     def getPose(self):
