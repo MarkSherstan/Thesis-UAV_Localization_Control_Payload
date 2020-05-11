@@ -4,15 +4,23 @@ import glob
 import cv2
 import cv2.aruco as aruco
 
-class calibrateCamera:
-	def __init__(self):
+class CalibrateCamera:
+	def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0):
 		self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
 
+        # Camera config 
+        self.desiredWidth  = desiredWidth
+        self.desiredHeight = desiredHeight
+        self.desiredFPS    = desiredFPS   
+        self.autoFocus     = autoFocus 
+        
 		try:
-			self.cam = cv2.VideoCapture(0)
-			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
-			print('Camera start')
+            self.cam = cv2.VideoCapture(src)
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
+            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
+            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, self.autoFocus)
+            print('Camera start')
 		except:
 			print('Camera setup failed')
 
@@ -234,7 +242,14 @@ class calibrateCamera:
 
 
 def main():
-	CC = calibrateCamera()
+    # Set desired parameters
+    desiredWidth  = 640     # 1920, 1280, 800, 640
+    desiredHeight = 480     # 1080, 720,  600, 480
+    desiredFPS    = 30
+    autoFocus     = False
+    
+    # Initialize class
+	CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus)
 
 	# CC.generateCharucoBoard()
 
