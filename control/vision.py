@@ -6,7 +6,7 @@ import cv2
 import cv2.aruco as aruco
 
 class Vision:
-	def __init__(self):
+	def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0):
 		# Threading parameters
 		self.isReceivingFrame = False
 		self.isReceivingPose = False
@@ -20,8 +20,13 @@ class Vision:
 		# Frame
 		self.frame = None
 		self.frameCount = 0
-		self.frameTime = 0
 
+        # Camera config 
+        self.desiredWidth  = desiredWidth
+        self.desiredHeight = desiredHeight
+        self.desiredFPS    = desiredFPS   
+        self.autoFocus     = autoFocus    
+        
 		# Aruco dictionary to be used and pose processing parameters
 		self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
 		self.parm = aruco.DetectorParameters_create()
@@ -50,13 +55,15 @@ class Vision:
 		self.isReady = False
 
 		# Start the connection to the camera
-		try:
-			self.cam = cv2.VideoCapture(0)
-			self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-			self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 960)
-			print('Camera start')
-		except:
-			print('Camera setup failed')
+        try:
+            self.cam = cv2.VideoCapture(src)
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
+            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
+            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, self.autoFocus)
+            print('Camera start')
+        except:
+            print('Camera setup failed')
 
 	def startFrameThread(self):
 		# Create a thread
@@ -74,7 +81,6 @@ class Vision:
 		while(self.isRunFrame):
 			_, self.frame = self.cam.read()
 			self.frameCount += 1
-			self.frameTime = time.time()
 			self.isReceivingFrame = True
 
 	def startPoseThread(self):
