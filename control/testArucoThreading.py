@@ -1,63 +1,5 @@
-from threading import Thread
+from vision import *
 import time
-import cv2
-
-class threadCapture:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0):
-        # Threading parameters
-        self.isReceivingFrame = False
-        self.isRunFrame = True
-        self.frameThread = None
-
-        # Frame
-        self.frame = None
-        self.frameCount = 0
-
-        # Camera config 
-        self.desiredWidth  = desiredWidth
-        self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS   
-        self.autoFocus     = autoFocus    
-
-        # Start the connection to the camera
-        try:
-            self.cam = cv2.VideoCapture(src)
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
-            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
-            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, self.autoFocus)
-            print('Camera start')
-        except:
-            print('Camera setup failed')
-
-    def startFrameThread(self):
-        # Create a thread
-        if self.frameThread == None:
-            self.frameThread = Thread(target=self.acquireFrame)
-            self.frameThread.start()
-            print('Camera thread start')
-
-            # Block till we start receiving values
-            while self.isReceivingFrame != True:
-                time.sleep(0.1)
-
-    def acquireFrame(self):
-        # Acquire until closed
-        while(self.isRunFrame):
-            _, self.frame = self.cam.read()
-            self.frameCount += 1
-            self.isReceivingFrame = True
-
-    def close(self):
-        # Close the capture thread
-        self.isRunFrame = False
-        self.frameThread.join()
-        print('Camera thread closed')
-
-        # Release the camera connection
-        self.cam.release()
-        print('Camera closed')
-
 
 def main():    
     # Set desired parameters
@@ -68,15 +10,16 @@ def main():
     showFrame     = False
 
     # Camera properties 
-    v = threadCapture(desiredWidth, desiredHeight, desiredFPS, autoFocus)
+    v = Vision(desiredWidth, desiredHeight, desiredFPS, autoFocus)
     v.startFrameThread()
-
+    v.startPoseThread()
+ 
     # Counting variables
     startTime = time.time()
     loopCount = 0
 
     # Run test
-    print('Test running for 10 secounds')
+    print('Test running for 10 secounds\n')
     while (time.time() < startTime+10):
         loopCount += 1
         if showFrame is True:
@@ -91,8 +34,9 @@ def main():
     # Print results
     print('Frame Width\tD: ', desiredWidth, '\tA: ', actualWidth)
     print('Frame Height\tD: ', desiredHeight, '\tA: ', actualHeight)
-    print('FPS (true)\tD: ', desiredFPS, '\t\tA: ', round(v.frameCount / (endTime - startTime),2))
-    print('FPS (threaded)\tD: ', desiredFPS, '\t\tA: ', round(loopCount / (endTime - startTime),2))
+    print('Frame rate\tD: ', desiredFPS, '\t\tA: ', round(v.frameCount / (endTime - startTime),2))
+    print('Pose rate\tD: ', desiredFPS, '\t\tA: ', round(v.poseCount / (endTime - startTime),2))
+    print('Main process\tD: ', desiredFPS, '\t\tA: ', round(loopCount / (endTime - startTime),2))
 
     # Close any windows if there are any
     v.close()
