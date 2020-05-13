@@ -163,7 +163,7 @@ $ cmake -D CMAKE_BUILD_TYPE=RELEASE \
 The Odroid has a finite amount of ram and the install can hang and crash. To mititage this increase the swap storage, this should only be done temporarily as it can burn out the SD card. 
 
 ```
-$sudo apt-get install zram-config
+$ sudo apt-get install zram-config
 ````
 
 Enter the command `sudo nano /usr/bin/init-zram-swapping` and change the line
@@ -211,15 +211,6 @@ From there we need to create a sym-link to the compiled file.
 ln -s /usr/local/lib/python3.6/site-packages/cv2/python-3.6/cv2.so cv2.so
 ```
 
-Everything should be configured properly and we will get an output as seen below. 
-```
-$ workon cv
-$ python
->>> import cv2
->>> cv2.__version__
-'4.3.0'
-```
-
 Make sure change back the swap memory `sudo nano /usr/bin/init-zram-swapping` and change the line:
 
 ```
@@ -228,6 +219,15 @@ mem=$(((totalmem / ${NRDEVICES}) * 1024))
 Back to 
 ```
 mem=$(((totalmem / 2 / ${NRDEVICES}) * 1024))
+```
+
+Reboot the device with `sudo reboot -h now` and everything should be configured properly. Enter the commands as seen below to verify.
+```
+$ workon cv
+$ python
+>>> import cv2
+>>> cv2.__version__
+'4.3.0'
 ```
 
 If you run into any errors consider some of these resources: 
