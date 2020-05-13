@@ -133,14 +133,11 @@ class CalibrateCamera:
                 # If image size is still None, set it to the image size
                 if not imageSize:
                     imageSize = gray.shape[::-1]
-
-                # Display each image until a key is pressed
-                cv2.imshow(str(filePath), img)
-                cv2.waitKey(0)
+                    
             else:
                 # Error message
                 print('Error in: ' + str(filePath))
-                cv2.imshow('ERROR: ' + str(filePath), img)
+                cv2.imshow('ERROR: ' + str(filePath), img)                
                 cv2.waitKey(0)
 
         # Destroy any open windows
