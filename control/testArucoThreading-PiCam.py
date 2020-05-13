@@ -1,4 +1,4 @@
-from vision import *
+from visionPiCam import *
 import time
 
 def main():    
@@ -6,10 +6,9 @@ def main():
     desiredWidth  = 1280     # 1920, 1280, 640
     desiredHeight = 720      # 1080, 720,  480
     desiredFPS    = 30
-    autoFocus     = False
 
     # Camera properties 
-    v = Vision(desiredWidth, desiredHeight, desiredFPS, autoFocus)
+    v = VisionPiCam(desiredWidth, desiredHeight, desiredFPS)
     v.startFrameThread()
     v.startPoseThread()
  
