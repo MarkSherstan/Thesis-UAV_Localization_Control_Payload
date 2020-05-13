@@ -1,12 +1,14 @@
 from threading import Thread
+from picamera.array import PiRGBArray
+from picamera import PiCamera
 import numpy as np
 import math
 import time
 import cv2
 import cv2.aruco as aruco
 
-class Vision:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0):
+class VisionPiCam:
+    def __init__(self, desiredWidth, desiredHeight, desiredFPS):
         # Threading parameters
         self.isReceivingFrame = False
         self.isReceivingPose = False
@@ -25,8 +27,7 @@ class Vision:
         # Camera config 
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS   
-        self.autoFocus     = autoFocus    
+        self.desiredFPS    = desiredFPS     
         
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
@@ -34,35 +35,35 @@ class Vision:
         self.parm.adaptiveThreshConstant = 10
 
         # Calibration values  
-        # C270: 640x480
-        self.mtx = np.array([[821.08729420, 0.0000000000, 329.75642931],
-                             [0.0000000000, 820.81370137, 235.77898949],
-                             [0.0000000000, 0.000000e000, 1.0000000000]])
-        self.dist = np.array([[1.23116014e-01, -1.32202826e+00, -1.37712626e-03, 5.69880008e-03, 7.08258838e+00]])
+        # # C270: 640x480
+        # self.mtx = np.array([[821.08729420, 0.0000000000, 329.75642931],
+        #                      [0.0000000000, 820.81370137, 235.77898949],
+        #                      [0.0000000000, 0.000000e000, 1.0000000000]])
+        # self.dist = np.array([[1.23116014e-01, -1.32202826e+00, -1.37712626e-03, 5.69880008e-03, 7.08258838e+00]])
         
-        # C270: 1280x720
-        self.mtx = np.array([[1.39422292e+03, 0.00000000e+00, 6.42110040e+02],
-                             [0.00000000e+00, 1.39396841e+03, 3.03067657e+02],
-                             [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-        self.dist = np.array([[0.03632819, -0.28223148, -0.00964304, 0.00237123, 1.99747268]])
+        # # C270: 1280x720
+        # self.mtx = np.array([[1.39422292e+03, 0.00000000e+00, 6.42110040e+02],
+        #                      [0.00000000e+00, 1.39396841e+03, 3.03067657e+02],
+        #                      [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+        # self.dist = np.array([[0.03632819, -0.28223148, -0.00964304, 0.00237123, 1.99747268]])
                 
-        # C920: 640x480
-        self.mtx = np.array([[632.47602078, 0.0000000000, 322.06287257],
-                             [0.0000000000, 634.79038355, 261.59013669],
-                             [0.0000000000, 0.000000e000, 1.0000000000]])
-        self.dist = np.array([[1.36627983e-01, -1.46404481e+00,  6.49112090e-03, -8.68510828e-04, 4.91419701e+00]])
+        # # C920: 640x480
+        # self.mtx = np.array([[632.47602078, 0.0000000000, 322.06287257],
+        #                      [0.0000000000, 634.79038355, 261.59013669],
+        #                      [0.0000000000, 0.000000e000, 1.0000000000]])
+        # self.dist = np.array([[1.36627983e-01, -1.46404481e+00,  6.49112090e-03, -8.68510828e-04, 4.91419701e+00]])
         
-        # C920: 1280x720
-        self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
-                             [0.0000000000, 951.68543795, 389.81354980],
-                             [0.0000000000, 0.000000e000, 1.0000000000]])
-        self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
+        # # C920: 1280x720
+        # self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
+        #                      [0.0000000000, 951.68543795, 389.81354980],
+        #                      [0.0000000000, 0.000000e000, 1.0000000000]])
+        # self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
 
-        # C920: 1920x1080
-        self.mtx = np.array([[1.43643180e+03, 0.00000000e+00, 9.55889925e+02],
-                             [0.00000000e+00, 1.43772789e+03, 5.51182985e+02],
-                             [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-        self.dist = np.array([[4.94485823e-02, -2.49097156e-01, -6.81702545e-05, -6.06313917e-03, 3.34638915e-01]])
+        # # C920: 1920x1080
+        # self.mtx = np.array([[1.43643180e+03, 0.00000000e+00, 9.55889925e+02],
+        #                      [0.00000000e+00, 1.43772789e+03, 5.51182985e+02],
+        #                      [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+        # self.dist = np.array([[4.94485823e-02, -2.49097156e-01, -6.81702545e-05, -6.06313917e-03, 3.34638915e-01]])
 
         # Marker properties
         self.lengthMarker = 0.176
@@ -81,12 +82,13 @@ class Vision:
         self.isReady = False
 
         # Start the connection to the camera
-        try:
-            self.cam = cv2.VideoCapture(src)
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
-            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
-            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, self.autoFocus)
+        try:          
+            # initialize the camera and grab a reference to the raw camera capture
+            self.camera = PiCamera()
+            self.camera.resolution = (self.desiredWidth, self.desiredHeight)
+            self.camera.framerate = self.desiredFPS
+            self.rawCapture = PiRGBArray(self.camera, size=(self.desiredWidth, self.desiredHeight))
+            time.sleep(0.2)
             print('Camera start')
         except:
             print('Camera setup failed')
@@ -104,10 +106,20 @@ class Vision:
 
     def acquireFrame(self):
         # Acquire until closed
-        while(self.isRunFrame):
-            _, self.frame = self.cam.read()
+        for image in self.camera.capture_continuous(self.rawCapture, format="bgr", use_video_port=True):
+            # grab the raw NumPy array representing the image
+            self.frame = image.array
+            
+            # clear the stream in preparation for the next frame
+            self.rawCapture.truncate(0)
+            
+            # Count the frames
             self.frameCount += 1
+        
+            # Threading flags and exit condition
             self.isReceivingFrame = True
+            if self.isRunFrame is False:
+                break
 
     def startPoseThread(self):
         # Block until a frame has been acquired
@@ -200,7 +212,3 @@ class Vision:
         self.isRunFrame = False
         self.frameThread.join()
         print('Camera thread closed')
-
-        # Rlease the camera connection
-        self.cam.release()
-        print('Camera closed')
