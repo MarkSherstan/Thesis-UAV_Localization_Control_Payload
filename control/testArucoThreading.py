@@ -3,8 +3,8 @@ import time
 
 def main():    
     # Set desired parameters
-    desiredWidth  = 1280     # 1920, 1280, 800, 640
-    desiredHeight = 720     # 1080, 720,  600, 480
+    desiredWidth  = 1280     # 1920, 1280, 1280, 640
+    desiredHeight = 960      # 1080, 720,  960, 480
     desiredFPS    = 30
     autoFocus     = False
 
