@@ -1,0 +1,33 @@
+v4l2-ctl -d /dev/video0 --list-ctrls
+
+v4l2-ctl --list-formats-ext
+
+v4l2-ctl -d /dev/video0 -p 30
+
+
+
+
+
+v4l2-ctl -d /dev/video0 --set-ctrl=exposure_auto=1
+v4l2-ctl -d /dev/video0 --set-ctrl=focus_auto=0
+
+
+        try:
+            self.cam = cv2.VideoCapture(src, cv2.CAP_V4L)
+            self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
+            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
+            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            print('Camera start')
+        except:
+            print('Camera setup failed')
+
+
+
+https://elinux.org/Thread:Talk:Jetson/Cameras/How_to_do_I_change_the_USB_camera_resolution%3F/reply
+
+
+   v4l2-ctl --set-fmt-video=width=1920,height=1080,pixelformat=YUYV
+   v4l2-ctl --set-fmt-video=width=1920,height=1088,pixelformat=4   # For Raspberry Pi Cam
+   v4l2-ctl -v width=1280,height=720,pixelformat=BGR3
