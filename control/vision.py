@@ -6,7 +6,7 @@ import cv2
 import cv2.aruco as aruco
 
 class Vision:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0):
+    def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=0):
         # Threading parameters
         self.isReceivingFrame = False
         self.isReceivingPose = False
@@ -25,8 +25,7 @@ class Vision:
         # Camera config 
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS   
-        self.autoFocus     = autoFocus    
+        self.desiredFPS    = desiredFPS      
         
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
@@ -141,7 +140,6 @@ class Vision:
         # Process data until closed
         while(self.isRunPose):
             self.getPose()
-            self.poseCount += 1
             self.isReceivingPose = True
 
     def getPose(self):
@@ -168,11 +166,14 @@ class Vision:
                 R, _ = cv2.Rodrigues(rvec)
                 eulerAngles = self.rotationMatrixToEulerAngles(R)
                 self.Yaw = eulerAngles[1]
+
+                # Change state for controller class
+                self.isReady = True
+                                
+                # Only count processed frames
+                self.poseCount += 1
             else:
                 pass
-
-        # Change state for controller class
-        self.isReady = True
 
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
