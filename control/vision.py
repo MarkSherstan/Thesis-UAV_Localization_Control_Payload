@@ -6,7 +6,7 @@ import cv2
 import cv2.aruco as aruco
 
 class Vision:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, camera, src=0):
+    def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=0):
         # Threading parameters
         self.isReceivingFrame = False
         self.isReceivingPose = False
@@ -32,21 +32,21 @@ class Vision:
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
 
-        if camera == 1920:
+        if desiredWidth == 1920:
             # C920: 1920x1080
             self.mtx = np.array([[1.43643180e+03, 0.00000000e+00, 9.55889925e+02],
                                 [0.00000000e+00, 1.43772789e+03, 5.51182985e+02],
                                 [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
             self.dist = np.array([[4.94485823e-02, -2.49097156e-01, -6.81702545e-05, -6.06313917e-03, 3.34638915e-01]])
 
-        elif camera == 1280:
+        elif desiredWidth == 1280:
             # C920: 1280x720
             self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
                                 [0.0000000000, 951.68543795, 389.81354980],
                                 [0.0000000000, 0.000000e000, 1.0000000000]])
             self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
         
-        elif camera == 640:
+        elif desiredWidth == 640:
             # C920: 640x480
             self.mtx = np.array([[632.47602078, 0.0000000000, 322.06287257],
                                 [0.0000000000, 634.79038355, 261.59013669],
