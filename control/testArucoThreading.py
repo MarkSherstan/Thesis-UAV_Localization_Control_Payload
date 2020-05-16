@@ -4,8 +4,7 @@ import time
 
 ########################
 # Argparse
-# Example use: python plotter.py --input "C270"
-# Example use: python plotter.py --input "C920"
+# Example use: python plotter.py --input 1920 OR 1280 OR 640
 ########################
 parser = argparse.ArgumentParser()
 parser.add_argument("--input", help = "Camera selection")
