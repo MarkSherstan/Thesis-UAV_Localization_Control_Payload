@@ -7,18 +7,20 @@ import time
 # Example use: python plotter.py --input 1920 OR 1280 OR 640
 ########################
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", help = "Camera selection")
+parser.add_argument("--width", help = "Camera pixel width")
+parser.add_argument("--height", help = "Camera pixel height")
 args = parser.parse_args()
-camera = args.input
+desiredWidth = int(args.width)
+desiredHeight = int(args.height)
 
 def main():    
     # Set desired parameters
-    desiredWidth  = 1280     # 1920, 1280, 1280, 640
-    desiredHeight = 720      # 1080, 720,  960, 480
+    # desiredWidth  = 1280     # 1920, 1280, 1280, 640
+    # desiredHeight = 720      # 1080, 720,  960, 480
     desiredFPS    = 30
 
     # Camera properties 
-    v = Vision(desiredWidth, desiredHeight, desiredFPS, camera)
+    v = Vision(desiredWidth, desiredHeight, desiredFPS, desiredWidth)
     v.startFrameThread()
     v.startPoseThread()
  
