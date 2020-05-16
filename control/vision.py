@@ -53,10 +53,10 @@ class Vision:
         # self.dist = np.array([[1.36627983e-01, -1.46404481e+00,  6.49112090e-03, -8.68510828e-04, 4.91419701e+00]])
         
         # # C920: 1280x720
-        # self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
-        #                      [0.0000000000, 951.68543795, 389.81354980],
-        #                      [0.0000000000, 0.000000e000, 1.0000000000]])
-        # self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
+        self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
+                             [0.0000000000, 951.68543795, 389.81354980],
+                             [0.0000000000, 0.000000e000, 1.0000000000]])
+        self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
 
         # # C920: 1920x1080
         # self.mtx = np.array([[1.43643180e+03, 0.00000000e+00, 9.55889925e+02],
@@ -65,10 +65,10 @@ class Vision:
         # self.dist = np.array([[4.94485823e-02, -2.49097156e-01, -6.81702545e-05, -6.06313917e-03, 3.34638915e-01]])
 
         # DMM: 1280x960
-        self.mtx = np.array([[1.62622533e+03, 0.00000000e+00, 7.21126761e+02],
-                             [0.00000000e+00, 1.62764183e+03, 4.91122938e+02],
-                             [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
-        self.dist = np.array([[-4.99366898e-01, 3.26224162e-01, -1.77559683e-04, -1.30660490e-03, -8.66330728e-02]])
+        # self.mtx = np.array([[1.62622533e+03, 0.00000000e+00, 7.21126761e+02],
+        #                      [0.00000000e+00, 1.62764183e+03, 4.91122938e+02],
+        #                      [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+        # self.dist = np.array([[-4.99366898e-01, 3.26224162e-01, -1.77559683e-04, -1.30660490e-03, -8.66330728e-02]])
 
         # # DMM: 640x480
         # self.mtx = np.array([[1.65026648e+03, 0.00000000e+00, 7.16622395e+02],
@@ -94,11 +94,12 @@ class Vision:
 
         # Start the connection to the camera
         try:
-            self.cam = cv2.VideoCapture(src)
+            self.cam = cv2.VideoCapture(src, cv2.CAP_V4L)
+            self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
             self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
             self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, self.autoFocus)
+            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
             print('Camera setup failed')
