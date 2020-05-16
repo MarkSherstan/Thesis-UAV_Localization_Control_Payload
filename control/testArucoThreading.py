@@ -34,11 +34,10 @@ def main():
         actualHeight, actualWidth, _ = v.frame.shape 
 
         # Print results
-        print('Frame Width\tD: ', desiredWidth, '\tA: ', actualWidth)
-        print('Frame Height\tD: ', desiredHeight, '\tA: ', actualHeight)
+        print('Frame Width\tD: ', desiredWidth[ii], '\tA: ', actualWidth)
+        print('Frame Height\tD: ', desiredHeight[ii], '\tA: ', actualHeight)
         print('Frame rate\tD: ', desiredFPS, '\t\tA: ', round(v.frameCount / (endTime - startTime),2))
         print('Pose rate\tD: ', desiredFPS, '\t\tA: ', round(v.poseCount / (endTime - startTime),2))
-        print('Main process\tD: ', desiredFPS, '\t\tA: ', round(loopCount / (endTime - startTime),2))
 
         # Close threads and camera connection
         v.close()

@@ -6,7 +6,7 @@ import cv2
 import cv2.aruco as aruco
 
 class Vision:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=0):
+    def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=-1):
         # Threading parameters
         self.isReceivingFrame = False
         self.isReceivingPose = False
