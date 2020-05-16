@@ -1,15 +1,25 @@
 from vision import *
+import argparse
 import time
+
+########################
+# Argparse
+# Example use: python plotter.py --input "C270"
+# Example use: python plotter.py --input "C920"
+########################
+parser = argparse.ArgumentParser()
+parser.add_argument("--input", help = "Camera selection")
+args = parser.parse_args()
+camera = args.input
 
 def main():    
     # Set desired parameters
     desiredWidth  = 1280     # 1920, 1280, 1280, 640
     desiredHeight = 720      # 1080, 720,  960, 480
     desiredFPS    = 30
-    autoFocus     = False
 
     # Camera properties 
-    v = Vision(desiredWidth, desiredHeight, desiredFPS, autoFocus)
+    v = Vision(desiredWidth, desiredHeight, desiredFPS, camera)
     v.startFrameThread()
     v.startPoseThread()
  

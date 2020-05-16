@@ -6,7 +6,7 @@ import cv2
 import cv2.aruco as aruco
 
 class Vision:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=0):
+    def __init__(self, desiredWidth, desiredHeight, desiredFPS, camera, src=0):
         # Threading parameters
         self.isReceivingFrame = False
         self.isReceivingPose = False
@@ -32,6 +32,22 @@ class Vision:
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
 
+        if camera == "C270":
+            # C270: 1280x720
+            self.mtx = np.array([[1.39422292e+03, 0.00000000e+00, 6.42110040e+02],
+                                [0.00000000e+00, 1.39396841e+03, 3.03067657e+02],
+                                [0.00000000e+00, 0.00000000e+00, 1.00000000e+00]])
+            self.dist = np.array([[0.03632819, -0.28223148, -0.00964304, 0.00237123, 1.99747268]])
+        elif camera == "C920":
+            # C920: 1280x720
+            self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
+                                [0.0000000000, 951.68543795, 389.81354980],
+                                [0.0000000000, 0.000000e000, 1.0000000000]])
+            self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
+        else:
+            print('CAMERA ERROR')
+            exit()
+        
         # Calibration values  
         # # C270: 640x480
         # self.mtx = np.array([[821.08729420, 0.0000000000, 329.75642931],
@@ -52,10 +68,10 @@ class Vision:
         # self.dist = np.array([[1.36627983e-01, -1.46404481e+00,  6.49112090e-03, -8.68510828e-04, 4.91419701e+00]])
         
         # # C920: 1280x720
-        self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
-                             [0.0000000000, 951.68543795, 389.81354980],
-                             [0.0000000000, 0.000000e000, 1.0000000000]])
-        self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
+        # self.mtx = np.array([[949.45904321, 0.0000000000, 643.06473799],
+        #                      [0.0000000000, 951.68543795, 389.81354980],
+        #                      [0.0000000000, 0.000000e000, 1.0000000000]])
+        # self.dist = np.array([[0.04976768, -0.28103135, 0.0062585, -0.00345049, 0.43938616]])
 
         # # C920: 1920x1080
         # self.mtx = np.array([[1.43643180e+03, 0.00000000e+00, 9.55889925e+02],
