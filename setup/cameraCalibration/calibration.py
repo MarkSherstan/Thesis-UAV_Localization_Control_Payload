@@ -19,7 +19,7 @@ class CalibrateCamera:
             self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
             self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, self.autoFocus)
+            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
             print('Camera setup failed')
@@ -246,7 +246,7 @@ def main():
     autoFocus     = False
     
     # Initialize class
-    CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0)
+    # CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=1)
 
     # CC.generateCharucoBoard()
 
