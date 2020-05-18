@@ -32,7 +32,7 @@ class Controller:
 		self.thrust = 0.5
 
 		# Update rate to flight controller
-		self.duration = 0.05
+		self.duration = 1/30
 
 		# Constraints for roll, pitch, yaw and thrust
 		self.minValNE = -3.1415/12
