@@ -83,12 +83,12 @@ import cv2
         
 def f(q):
     # Camera set up 
-    cam = cv2.VideoCapture(-1)
+    cam = cv2.VideoCapture(0, cv2.CAP_V4L)
+    cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
     cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
     cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
     cam.set(cv2.CAP_PROP_FPS, 30)
     cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-    # time.sleep(1)
     
     # Initialize
     counter = 0
