@@ -8,13 +8,8 @@ import cv2.aruco as aruco
 class Vision:
     def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=0):
         # Threading parameters
-        self.isReceivingFrame = False
         self.isReceivingPose = False
-
-        self.isRunFrame = True
         self.isRunPose = True
-
-        self.frameThread = None
         self.poseThread = None
 
         # Frame
@@ -32,7 +27,7 @@ class Vision:
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
 
-        # 
+        # Camera calibration matrix 
         self.mtx = np.array([[904.1343822,   0.0,            650.03003509],
                              [0.0,           903.58516942,   352.54361217],
                              [0.0,           0.0,            1.0         ]])
@@ -66,24 +61,6 @@ class Vision:
             print('Camera start')
         except:
             print('Camera setup failed')
-
-    def startFrameThread(self):
-        # Create a thread
-        if self.frameThread == None:
-            self.frameThread = Thread(target=self.acquireFrame)
-            self.frameThread.start()
-            print('Camera thread start')
-
-            # Block till we start receiving values
-            while self.isReceivingFrame != True:
-                time.sleep(0.1)
-
-    def acquireFrame(self):
-        # Acquire until closed
-        while(self.isRunFrame):
-            _, self.frame = self.cam.read()
-            self.frameCount += 1
-            self.isReceivingFrame = True
 
     def startPoseThread(self):
         # Block until a frame has been acquired
