@@ -83,11 +83,11 @@ import cv2
         
 def f(q):
     # Camera set up 
-    # cam = cv2.VideoCapture(0)
-    # cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-    # cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-    # cam.set(cv2.CAP_PROP_FPS, 30)
-    # cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+    cam = cv2.VideoCapture(-1)
+    cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+    cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+    cam.set(cv2.CAP_PROP_FPS, 30)
+    cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
     # time.sleep(1)
     
     # Initialize
@@ -96,19 +96,23 @@ def f(q):
     # loop until broken 
     while(True):
         # Check if we can end the process
-        try:
-            data = q.get(False)  
-            if data == -1:
-                break
-        except queue.Empty:
-            pass
+        # try:
+        #     data = q.get(False)  
+        #     if data == -1:
+        #         break
+        # except queue.Empty:
+        #     pass
         
+        # data
+        _, frame = cam.read()
+        q.put(frame)
+
         # some infinite data    
-        counter += 1
-        q.put(counter)
+        # counter += 1
+        # q.put(counter)
 
     # end 
-    # cam.release()
+    cam.release()
 
 def main():
     q = Queue()
@@ -116,13 +120,14 @@ def main():
     p.start()
 
     startTime = time.time()
-    while(time.time() < startTime+5):
+    while(time.time() < startTime+10):
         data = q.get()
-        print(time.time()-startTime, data)
+        actualHeight, actualWidth, _ = data.shape  
+        print(actualHeight, actualWidth)
         time.sleep(0.5)
     
-    for ii in range(10):
-        q.put(-1)
+    # for ii in range(10):
+    q.put(-1)
     
     print('hello world')
     p.join()
