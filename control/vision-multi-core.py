@@ -1,16 +1,19 @@
-from threading import Thread
+from multiprocessing import Process, Queue
 import numpy as np
 import math
 import time
 import cv2
 import cv2.aruco as aruco
 
-class Vision:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=0):
-        # Threading parameters
+class VisionMultiCore:
+    def __init__(self, q, desiredWidth, desiredHeight, desiredFPS, src=0):
+        # The queue
+        self.q = q
+
+        # Processing parameters
         self.isReceivingPose = False
         self.isRunPose = True
-        self.poseThread = None
+        self.poseProcess = None
 
         # Frame
         self.frame = None
@@ -62,16 +65,12 @@ class Vision:
         except:
             print('Camera setup failed')
 
-    def startPoseThread(self):
-        # Block until a frame has been acquired
-        while self.frame is None:
-            time.sleep(0.1)
-
+    def startPoseProcess(self):
         # Create a thread
-        if self.poseThread == None:
-            self.poseThread = Thread(target=self.processFrame)
-            self.poseThread.start()
-            print('Frame processing thread start')
+        if self.poseProcess == None:
+            self.poseProcess = Process(target=self.processFrame)
+            self.poseProcess.start()
+            print('Computer vision process start')
 
             # Block till we start receiving values
             while (self.isReceivingPose != True):
@@ -80,10 +79,18 @@ class Vision:
     def processFrame(self):
         # Process data until closed
         while(self.isRunPose):
+            # Capture a frame
             _, self.frame = self.cam.read()
             self.frameCount += 1
 
+            # Process the frame
             self.getPose()
+
+            # Add data to the queue
+            dataOut = [self.North, self.East, self.Down, self.Yaw]
+            self.q.put(dataOut)
+
+            # Update receiving state
             self.isReceivingPose = True
 
     def getPose(self):
@@ -151,13 +158,8 @@ class Vision:
     def close(self):
         # Close the pose processing thread
         self.isRunPose = False
-        self.poseThread.join()
-        print('\nFrame processing thread closed')
-
-        # Close the capture thread
-        self.isRunFrame = False
-        self.frameThread.join()
-        print('Camera thread closed')
+        self.poseProcess.join()
+        print('\nComputer vision process closed')
 
         # Rlease the camera connection
         self.cam.release()
