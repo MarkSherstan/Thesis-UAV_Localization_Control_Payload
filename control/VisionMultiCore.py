@@ -6,7 +6,7 @@ import cv2
 import cv2.aruco as aruco
 
 class VisionMultiCore:
-    def __init__(self, q, desiredWidth, desiredHeight, desiredFPS, src=0):
+    def __init__(self, q, desiredWidth, desiredHeight, desiredFPS, src):
         # The queue
         self.q = q
 
@@ -20,16 +20,12 @@ class VisionMultiCore:
         self.frameCount = 0
         self.poseCount = 0
 
-        # Camera config 
+        # Camera config
+        self.cameraIdx     = src
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
         self.desiredFPS    = desiredFPS      
         
-        # Aruco dictionary to be used and pose processing parameters
-        self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
-        self.parm = aruco.DetectorParameters_create()
-        self.parm.adaptiveThreshConstant = 10
-
         # Camera calibration matrix 
         self.mtx = np.array([[904.1343822,   0.0,            650.03003509],
                              [0.0,           903.58516942,   352.54361217],
@@ -50,13 +46,29 @@ class VisionMultiCore:
         self.East  = 0
         self.Down  = 0
         self.Yaw   = 0
-        self.isReady = False
+
+    def startPoseProcess(self):
+        # Create a process 
+        if self.poseProcess == None:
+            self.poseProcess = Process(target=self.processFrame)
+            self.poseProcess.start()
+            print('Computer vision process start')
+
+            # Block till we start receiving values
+            # while (self.isReceivingPose != True):
+            #     time.sleep(0.1)
+
+    def processFrame(self):
+        # Aruco dictionary to be used and pose processing parameters
+        self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
+        self.parm = aruco.DetectorParameters_create()
+        self.parm.adaptiveThreshConstant = 10
 
         # Start the connection to the camera
         try:
-            # self.cam = cv2.VideoCapture(src, cv2.CAP_V4L)
+            # self.cam = cv2.VideoCapture(self.cameraIdx, cv2.CAP_V4L)
             # self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            self.cam = cv2.VideoCapture(src)
+            self.cam = cv2.VideoCapture(self.cameraIdx)
             self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
             self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
@@ -65,18 +77,6 @@ class VisionMultiCore:
         except:
             print('Camera setup failed')
 
-    def startPoseProcess(self):
-        # Create a thread
-        if self.poseProcess == None:
-            self.poseProcess = Process(target=self.processFrame)
-            self.poseProcess.start()
-            print('Computer vision process start')
-
-            # Block till we start receiving values
-            while (self.isReceivingPose != True):
-                time.sleep(0.1)
-
-    def processFrame(self):
         # Process data until closed
         while(self.isRunPose):
             # Capture a frame
@@ -90,8 +90,8 @@ class VisionMultiCore:
             dataOut = [self.North, self.East, self.Down, self.Yaw]
             self.q.put(dataOut)
 
-            # Update receiving state
-            self.isReceivingPose = True
+            # # Update receiving state
+            # self.isReceivingPose = True
 
     def getPose(self):
         # Get frame and convert to gray
@@ -118,9 +118,6 @@ class VisionMultiCore:
                 eulerAngles = self.rotationMatrixToEulerAngles(R)
                 self.Yaw = eulerAngles[1]
 
-                # Change state for controller class
-                self.isReady = True
-                                
                 # Only count processed frames
                 self.poseCount += 1
             else:
