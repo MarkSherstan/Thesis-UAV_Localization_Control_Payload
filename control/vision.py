@@ -17,10 +17,12 @@ class Vision:
         self.frameThread = None
         self.poseThread = None
 
-        # Frame
+        # Frame and timers
         self.frame = None
         self.frameCount = 0
         self.poseCount = 0
+        self.frameStartTime = None
+        self.poseStartTime = None
 
         # Camera config 
         self.desiredWidth  = desiredWidth
@@ -145,6 +147,9 @@ class Vision:
             while self.isReceivingFrame != True:
                 time.sleep(0.1)
 
+            # Start the timer 
+            self.frameStartTime = time.time()
+
     def acquireFrame(self):
         # Acquire until closed
         while(self.isRunFrame):
@@ -166,6 +171,9 @@ class Vision:
             # Block till we start receiving values
             while (self.isReceivingPose != True):
                 time.sleep(0.1)
+
+            # Start the timer
+            self.poseStartTime = time.time()
 
     def processFrame(self):
         # Process data until closed
@@ -239,12 +247,14 @@ class Vision:
         # Close the pose processing thread
         self.isRunPose = False
         self.poseThread.join()
-        print('\nFrame processing thread closed')
+        print('\Pose processing thread closed')
+        print('Pose rate: ', round(self.poseCount / (time.time() - self.poseStartTime),2))
 
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
         print('Camera thread closed')
+        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
 
         # Rlease the camera connection
         self.cam.release()
