@@ -1,67 +1,204 @@
-from multiprocessing import Queue
+# from multiprocessing import Process, Queue
+# import queue
+# from VisionMultiCore import *
+# import time
+# import cv2
+
+from multiprocessing import Process, Queue
+
+def f(q):
+    q.put([42, None, 'hello'])
+
+if __name__ == '__main__':
+    q = Queue.Queue()
+    p = Process(target=f, args=(q,))
+    p.start()
+    print(q.get())    # prints "[42, None, 'hello']"
+    p.join()
+
+
+import cv2
+
+# Required to communicate with USB capture device
+cam = cv2.VideoCapture(0)
+cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+cam.set(cv2.CAP_PROP_FPS, 30)
+cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+print('Camera start')
+
+# Get frame, resize, and display forever until someone enters q
+while(True):
+    ret,frame = cam.read()
+    frameNew = cv2.resize(frame, (1920,1080))
+    cv2.imshow('Window',frameNew)
+
+    if (cv2.waitKey(1) & 0xFF == ord('q')):
+        break
+
+# Clear connections and window
+cam.release()
+cv2.destroyAllWindows()
+
+# def processFrame(q):
+#     # Start the connection to the camera
+#     try:
+#         # self.cam = cv2.VideoCapture(self.cameraIdx, cv2.CAP_V4L)
+#         # self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+#         cam = cv2.VideoCapture(0)
+#         cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+#         cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+#         cam.set(cv2.CAP_PROP_FPS, 30)
+#         cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+#         print('Camera start')
+#     except:
+#         print('Camera setup failed')
+
+#     # Process data until closed
+#     while(True):
+#         # Check if we can end the process
+#         exitCode = q.get()
+#         if (exitCode == -1):
+#             break
+
+#         # Capture a frame
+#         _, frame = cam.read()
+
+#         # # Process the frame
+#         # self.getPose()
+
+#         # Add data to the queue
+#         q.put([1, 2, 3, 4])
+
+#     # Release the camera connection
+#     cam.release()
+#     print('Camera closed')
+
+
+# def main():    
+#     # # Set desired parameters
+#     # desiredWidth  = 1280
+#     # desiredHeight = 720
+#     # desiredFPS    = 30
+#     # cameraIdx     = 0
+
+#     # Initialize class 
+#     # v = VisionMultiCore(desiredWidth, desiredHeight, desiredFPS, cameraIdx)
+
+#     # Create a queue
+#     q = Queue()
+
+#     # Start a process
+#     p = Process(target=processFrame, args=(q,))
+#     p.start()
+
+#     # Block until there is data
+#     data = None
+#     while (data is None):
+#         try:
+#             data = q.get(False)  
+#         except queue.Empty:
+#             data = None
+
+#     # Run test
+#     print('Test running for 10 secounds\n')
+#     startTime = time.time()
+
+#     while (time.time() < startTime+10):
+#         print(q.get())
+
+#     q.put(-1)
+#     time.sleep(1)
+#     p.join()
+
+#     print('Complete')
+#     exit()
+
+        # Check if we can end the process
+        # exitCode = q.get()
+        # if (exitCode == -1):
+        #     break        
+        # try:
+        #     data = q.get(False)
+
+        #     if (data == -1):
+        #         break
+        #     else:
+        #         q.put(data)
+
+        # except queue.Empty:
+        #     data = None
+
+from multiprocessing import Process
 import queue
-from VisionMultiCore import *
 import time
 
-def main():    
-    # Set desired parameters
-    desiredWidth  = [1280]
-    desiredHeight = [720]
-    desiredFPS    = 30
+def f(q):
+    counter = 0
 
-    # Create a queue
-    q = Queue()
+    while(counter < 5000):
+        counter += 1
+        q.put(counter)
 
-    for ii in range(len(desiredWidth)):
-        # Camera properties 
-        v = VisionMultiCore(q, desiredWidth[ii], desiredHeight[ii], desiredFPS, 0)
-        v.startPoseProcess()
+
+if __name__ == '__main__':
+    q = queue.Queue()
+    p = Process(target=f, args=(q,))
+    p.start()
+    p.daemon = True
+
+    startTime = time.time()
+    while(time.time() < startTime + 1):
+        print(time.time()-startTime, q.get())
+
+    print('hello world')
+    q.join()
+    p.join()
+    print('hello world 2')
+
+
+
+
+
+#     # for ii in range(len(desiredWidth)):
+#     #     # Camera properties 
+#     #     v = VisionMultiCore(q, desiredWidth[ii], desiredHeight[ii], desiredFPS, 0)
+#     #     v.startPoseProcess()
  
-        # Block until there is data
-        data = None
-        while (data is None):
-            try:
-                data = q.get(False)  
-            except queue.Empty:
-                data = None
+#     #     # Block until there is data
+#     #     data = None
+#     #     while (data is None):
+#     #         try:
+#     #             data = q.get(False)  
+#     #         except queue.Empty:
+#     #             data = None
         
-        # Counting variables
-        startTime = time.time()
+#     #     # Counting variables
+#     #     startTime = time.time()
 
-        # Run test
-        print('Test running for 10 secounds\n')
-        while (time.time() < startTime+10):
+#     #     # Run test
+#     #     print('Test running for 10 secounds\n')
+#     #     while (time.time() < startTime+10):
             
-            # # Unpack the data
-            data = q.get()
+#     #         # # Unpack the data
+#     #         data = q.get()
 
-            print(time.time()-startTime, data)
-            # print('N: %0.2f E: %0.2f D: %0.2f Y: %0.2f' % (dataOut[0], dataOut[1, dataOut[2], dataOut[3]]))
-            time.sleep(0.5)
+#     #         print(time.time()-startTime, data)
+#     #         # print('N: %0.2f E: %0.2f D: %0.2f Y: %0.2f' % (dataOut[0], dataOut[1, dataOut[2], dataOut[3]]))
+#     #         time.sleep(0.5)
             
-            # Increment timer 
-            # loopCount += 1
 
-        print("end")
 
-        # Record final time and frame size            
-        # endTime = time.time()
-        # actualHeight, actualWidth, _ = v.frame.shape 
+#     #     print("end")
 
-        # Print results
-        # print('Frame Width\tD: ', desiredWidth[ii], '\tA: ', actualWidth)
-        # print('Frame Height\tD: ', desiredHeight[ii], '\tA: ', actualHeight)
-        # print('Frame rate\tD: ', desiredFPS, '\t\tA: ', round(v.frameCount / (endTime - startTime),2))
-        # print('Pose rate\tD: ', desiredFPS, '\t\tA: ', round(v.poseCount / (endTime - startTime),2))
-
-        # Close process and camera connection
-        v.close()
+#     #     # Close process and camera connection
+#     #     v.close()
         
-        print("yea the thread did not close")
-        # Small pause before next resolution test
-        time.sleep(1)
+#     #     print("yea the thread did not close")
+#     #     # Small pause before next resolution test
+#     #     time.sleep(1)
     
 # Main loop
-if __name__ == '__main__':
-    main()
+# if __name__ == '__main__':
+#     main()
     

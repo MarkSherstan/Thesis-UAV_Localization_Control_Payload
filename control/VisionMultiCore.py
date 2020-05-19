@@ -1,4 +1,3 @@
-from multiprocessing import Process, Queue
 import numpy as np
 import math
 import time
@@ -6,25 +5,12 @@ import cv2
 import cv2.aruco as aruco
 
 class VisionMultiCore:
-    def __init__(self, q, desiredWidth, desiredHeight, desiredFPS, src):
-        # The queue
-        self.q = q
-
-        # Processing parameters
-        self.isReceivingPose = False
-        self.isRunPose = True
-        self.poseProcess = None
-
-        # Frame
-        self.frame = None
-        self.frameCount = 0
-        self.poseCount = 0
-
+    def __init__(self, desiredWidth, desiredHeight, desiredFPS, cameraIdx):
         # Camera config
-        self.cameraIdx     = src
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS      
+        self.desiredFPS    = desiredFPS
+        self.cameraIdx     = cameraIdx      
         
         # Camera calibration matrix 
         self.mtx = np.array([[904.1343822,   0.0,            650.03003509],
@@ -41,24 +27,13 @@ class VisionMultiCore:
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output values
+        # Output variables 
         self.North = 0
         self.East  = 0
-        self.Down  = 0
-        self.Yaw   = 0
+        self.Down  = 0 
+        self.Yaw   = 0 
 
-    def startPoseProcess(self):
-        # Create a process 
-        if self.poseProcess == None:
-            self.poseProcess = Process(target=self.processFrame)
-            self.poseProcess.start()
-            print('Computer vision process start')
-
-            # Block till we start receiving values
-            # while (self.isReceivingPose != True):
-            #     time.sleep(0.1)
-
-    def processFrame(self):
+    def processFrame(self, q):
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
         self.parm = aruco.DetectorParameters_create()
@@ -68,30 +43,35 @@ class VisionMultiCore:
         try:
             # self.cam = cv2.VideoCapture(self.cameraIdx, cv2.CAP_V4L)
             # self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            self.cam = cv2.VideoCapture(self.cameraIdx)
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
-            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
-            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            cam = cv2.VideoCapture(0)
+            cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+            cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+            cam.set(cv2.CAP_PROP_FPS, 30)
+            cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
             print('Camera setup failed')
 
         # Process data until closed
-        while(self.isRunPose):
-            # Capture a frame
-            _, self.frame = self.cam.read()
-            self.frameCount += 1
+        while(True):
+            # Check if we can end the process
+            exitCode = q.get()
+            if (exitCode == -1):
+                break
 
-            # Process the frame
-            self.getPose()
+            # # Capture a frame
+            # _, self.frame = cam.read()
+
+            # # Process the frame
+            # self.getPose()
 
             # Add data to the queue
-            dataOut = [self.North, self.East, self.Down, self.Yaw]
-            self.q.put(dataOut)
+            q.put([self.North, self.East, self.Down, self.Yaw])
 
-            # # Update receiving state
-            # self.isReceivingPose = True
+        # Release the camera connection
+        cam.release()
+        print('Camera closed')
+
 
     def getPose(self):
         # Get frame and convert to gray
