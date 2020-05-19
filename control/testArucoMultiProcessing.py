@@ -4,41 +4,41 @@
 # import time
 # import cv2
 
-from multiprocessing import Process, Queue
+# from multiprocessing import Process, Queue
 
-def f(q):
-    q.put([42, None, 'hello'])
+# def f(q):
+#     q.put([42, None, 'hello'])
 
-if __name__ == '__main__':
-    q = Queue.Queue()
-    p = Process(target=f, args=(q,))
-    p.start()
-    print(q.get())    # prints "[42, None, 'hello']"
-    p.join()
+# if __name__ == '__main__':
+#     q = Queue()
+#     p = Process(target=f, args=(q,))
+#     p.start()
+#     print(q.get())    # prints "[42, None, 'hello']"
+#     p.join()
 
 
-import cv2
+# import cv2
 
-# Required to communicate with USB capture device
-cam = cv2.VideoCapture(0)
-cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-cam.set(cv2.CAP_PROP_FPS, 30)
-cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-print('Camera start')
+# # Required to communicate with USB capture device
+# cam = cv2.VideoCapture(0)
+# cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
+# cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
+# cam.set(cv2.CAP_PROP_FPS, 30)
+# cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+# print('Camera start')
 
-# Get frame, resize, and display forever until someone enters q
-while(True):
-    ret,frame = cam.read()
-    frameNew = cv2.resize(frame, (1920,1080))
-    cv2.imshow('Window',frameNew)
+# # Get frame, resize, and display forever until someone enters q
+# while(True):
+#     ret,frame = cam.read()
+#     frameNew = cv2.resize(frame, (1920,1080))
+#     cv2.imshow('Window',frameNew)
 
-    if (cv2.waitKey(1) & 0xFF == ord('q')):
-        break
+#     if (cv2.waitKey(1) & 0xFF == ord('q')):
+#         break
 
-# Clear connections and window
-cam.release()
-cv2.destroyAllWindows()
+# # Clear connections and window
+# cam.release()
+# cv2.destroyAllWindows()
 
 # def processFrame(q):
 #     # Start the connection to the camera
@@ -121,41 +121,53 @@ cv2.destroyAllWindows()
         # try:
         #     data = q.get(False)
 
-        #     if (data == -1):
-        #         break
-        #     else:
-        #         q.put(data)
+#         #     if (data == -1):
+#         #         break
+#         #     else:
+#         #         q.put(data)
 
-        # except queue.Empty:
-        #     data = None
+#         # except queue.Empty:
+#         #     data = None
 
-from multiprocessing import Process
+from multiprocessing import Process, Queue
 import queue
 import time
 
 def f(q):
+    # Initialize
     counter = 0
 
-    while(counter < 5000):
+    # loop until broken 
+    while(True):
+        # Check if we can end the process
+        try:
+            data = q.get(False)  
+            if data == -1:
+                break
+        except queue.Empty:
+            pass
+        
+        # some infinite data    
         counter += 1
         q.put(counter)
 
 
 if __name__ == '__main__':
-    q = queue.Queue()
+    q = Queue()
     p = Process(target=f, args=(q,))
     p.start()
-    p.daemon = True
 
     startTime = time.time()
-    while(time.time() < startTime + 1):
-        print(time.time()-startTime, q.get())
+    while(time.time() < startTime+0.1):
+        data = q.get()
+        print(time.time()-startTime, data)
 
+    q.put(-1)
+    
     print('hello world')
-    q.join()
     p.join()
     print('hello world 2')
-
+    
 
 
 
@@ -202,3 +214,41 @@ if __name__ == '__main__':
 # if __name__ == '__main__':
 #     main()
     
+
+
+
+
+# THIS WORKS
+
+# from multiprocessing import Process, Queue
+# import time
+
+# def f(q):
+#     counter = 0
+
+#     while(counter < 10000):
+#         counter += 1
+#         q.put(counter)
+
+#     q.put(-1)
+
+
+
+# if __name__ == '__main__':
+#     q = Queue()
+#     p = Process(target=f, args=(q,))
+#     p.start()
+
+#     startTime = time.time()
+#     while(True):
+#         data = q.get()
+#         print(time.time()-startTime, data)
+        
+#         if data == -1:
+#             break
+        
+        
+#     print('hello world')
+#     p.join()
+#     print('hello world 2')
+
