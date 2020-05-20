@@ -41,9 +41,8 @@ class VisionMultiCore:
 
         # Start the connection to the camera
         try:
-            # self.cam = cv2.VideoCapture(self.cameraIdx, cv2.CAP_V4L)
-            # self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            cam = cv2.VideoCapture(0)
+            cam = cv2.VideoCapture(0, cv2.CAP_V4L)
+            cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
             cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
             cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
             cam.set(cv2.CAP_PROP_FPS, 30)
@@ -52,22 +51,18 @@ class VisionMultiCore:
         except:
             print('Camera setup failed')
 
+        ii = 0
         # Process data until closed
         while(True):
-            # Check if we can end the process
-            exitCode = q.get()
-            if (exitCode == -1):
-                break
+            # Capture a frame
+            _, self.frame = cam.read()
 
-            # # Capture a frame
-            # _, self.frame = cam.read()
-
-            # # Process the frame
-            # self.getPose()
+            # Process the frame
+            self.getPose()
 
             # Add data to the queue
             q.put([self.North, self.East, self.Down, self.Yaw])
-
+            
         # Release the camera connection
         cam.release()
         print('Camera closed')
@@ -97,9 +92,6 @@ class VisionMultiCore:
                 R, _ = cv2.Rodrigues(rvec)
                 eulerAngles = self.rotationMatrixToEulerAngles(R)
                 self.Yaw = eulerAngles[1]
-
-                # Only count processed frames
-                self.poseCount += 1
             else:
                 pass
 
