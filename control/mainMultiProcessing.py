@@ -9,38 +9,38 @@ import datetime
 import queue
 import math
 
-def dispData(V, C, vehicle):
-	# Display data to user:
-	print('Vision ->\t', \
-		'\tN: ', round(V.North,1), \
-		'\tE: ', round(V.East,1), \
-		'\tD: ', round(V.Down,1), \
-		'\tY: ', round(math.degrees(V.Yaw),1))
+def dispData(C, vehicle):
+    # Display data to user:
+    print('Vision ->\t', \
+        '\tN: ', round(C.North,1), \
+        '\tE: ', round(C.East,1), \
+        '\tD: ', round(C.Down,1), \
+        '\tY: ', round(math.degrees(C.Yaw),1))
 
-	print('Controller ->\t', \
-		'\tR: ', round(math.degrees(C.rollAngle),1), \
-		'\tP: ', round(math.degrees(C.pitchAngle),1), \
-		'\tY: ', round(math.degrees(C.yawRate),1), \
-		'\tT: ', round(C.thrust,2))
+    print('Controller ->\t', \
+        '\tR: ', round(math.degrees(C.rollAngle),1), \
+        '\tP: ', round(math.degrees(C.pitchAngle),1), \
+        '\tY: ', round(math.degrees(C.yawRate),1), \
+        '\tT: ', round(C.thrust,2))
 
-	print('Attitude ->\t', \
-	  	'\tR: ', round(math.degrees(vehicle.attitude.roll),1), \
-	  	'\tP: ', round(math.degrees(vehicle.attitude.pitch),1), \
-	  	'\tY: ', round(math.degrees(vehicle.attitude.yaw),1), '\n')
+    print('Attitude ->\t', \
+        '\tR: ', round(math.degrees(vehicle.attitude.roll),1), \
+        '\tP: ', round(math.degrees(vehicle.attitude.pitch),1), \
+        '\tY: ', round(math.degrees(vehicle.attitude.yaw),1), '\n')
 
 def main():
-	# Flags and data rates
-	printFlag = True
-	printRate = 0.75
-	logFlag   = True
-	logRate   = 1/60
+    # Flags and data rates
+    printFlag = True
+    printRate = 0.75
+    logFlag   = True
+    logRate   = 1/60
 
-	# Connect to the Vehicle
-	connection_string = "/dev/ttyS0"
-	print('Connecting to vehicle on: %s\n' % connection_string)
-	vehicle = connect(connection_string, wait_ready=["attitude"], baud=57600)
+    # Connect to the Vehicle
+    connection_string = "/dev/ttyS1"
+    print('Connecting to vehicle on: %s\n' % connection_string)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=115200)
 
-	# Initialize the vision class
+    # Initialize the vision class
     v = VisionMultiCore()
 
     # Create an exit event for vision
@@ -51,69 +51,69 @@ def main():
     p = Process(target=v.processFrame, args=(q, quitVision))
     p.start()
 
-	# Start controller and thread
-	northDesired = 200
-	eastDesired  = 0
-	downDesired  = 0
-	C = Controller(vehicle, northDesired, eastDesired, downDesired)
-	C.controllerStart()
+    # Start controller and thread
+    northDesired = 200
+    eastDesired  = 0
+    downDesired  = 0
+    C = Controller(vehicle, northDesired, eastDesired, downDesired)
+    C.controllerStart()
 
-	# Run until broken by user
-	print('\nStarting...\n')
-	tempData = []
-	printTimer = time.time()
-	logTimer = time.time()
+    # Run until broken by user
+    print('\nStarting...\n')
+    tempData = []
+    printTimer = time.time()
+    logTimer = time.time()
 
-	try:
-		while(True):
-			# Unpack the data from vision
-			visionData = q.get()
+    try:
+        while(True):
+            # Unpack the data from vision
+            visionData = q.get()
 
-			C.North = visionData[0]
-			C.East  = visionData[1]
-			C.Down  = visionData[2]
-			C.Yaw   = visionData[3]
+            C.North = visionData[0]
+            C.East  = visionData[1]
+            C.Down  = visionData[2]
+            C.Yaw   = visionData[3]
 
-			# Print data
-			if (time.time() > printTimer + printRate) and (printFlag is True):
-				dispData(V, C, vehicle)
-				printTimer = time.time()
+            # Print data
+            if (time.time() > printTimer + printRate) and (printFlag is True):
+                dispData(C, vehicle)
+                printTimer = time.time()
 
-			# Log data
-			if (time.time() > logTimer + logRate) and (logFlag is True):
-				tempData.append([vehicle.mode.name, time.time(), \
-					math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
-					C.North, C.East, C.Down, math.degrees(C.Yaw), \
-					northDesired, eastDesired, downDesired, \
-					math.degrees(C.rollAngle), math.degrees(C.pitchAngle), math.degrees(C.yawRate), C.thrust])
-				logTimer = time.time()
+            # Log data
+            if (time.time() > logTimer + logRate) and (logFlag is True):
+                tempData.append([vehicle.mode.name, time.time(), \
+                    math.degrees(vehicle.attitude.roll), math.degrees(vehicle.attitude.pitch), math.degrees(vehicle.attitude.yaw), \
+                    C.North, C.East, C.Down, math.degrees(C.Yaw), \
+                    northDesired, eastDesired, downDesired, \
+                    math.degrees(C.rollAngle), math.degrees(C.pitchAngle), math.degrees(C.yawRate), C.thrust])
+                logTimer = time.time()
 
-	except KeyboardInterrupt:
-		# Close the threads
-		C.close()
-		vehicle.close()
+    except:
+        # Close the threads
+        C.close()
+        vehicle.close()
 
-		# Join the cores
-		quitVision.set()
-    	p.join()
+        # Join the cores
+        quitVision.set()
+        p.join()
 
-		# Write data to a file based on flag
-		if (logFlag is True):
-			# Create file name
-			now = datetime.datetime.now()
-			fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
+        # Write data to a file based on flag
+        if (logFlag is True):
+            # Create file name
+            now = datetime.datetime.now()
+            fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
 
-			# Write data to a data frame
-			df = pd.DataFrame(tempData, columns=['Mode', 'Time',
-								'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
-								'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
-								'North-Desired', 'East-Desired', 'Down-Desired',
-								'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control'])
+            # Write data to a data frame
+            df = pd.DataFrame(tempData, columns=['Mode', 'Time',
+                                'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
+                                'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
+                                'North-Desired', 'East-Desired', 'Down-Desired',
+                                'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control'])
 
-			# Save as CSV and display to user
-			df.to_csv(fileName, index=None, header=True)
-			print('File saved to:' + fileName)
+            # Save as CSV and display to user
+            df.to_csv(fileName, index=None, header=True)
+            print('File saved to:' + fileName)
 
 # Main loop
 if __name__ == '__main__':
-	main()
+    main()
