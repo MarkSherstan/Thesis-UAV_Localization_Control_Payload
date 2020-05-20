@@ -38,7 +38,7 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=115200)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=115200, rate=60)
 
     # Initialize the vision class
     v = VisionMultiCore()
