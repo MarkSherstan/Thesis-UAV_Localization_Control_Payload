@@ -1,31 +1,32 @@
 from multiprocessing import Process, Queue
+from VisionMultiCore import *
+import multiprocessing as mp
 import queue
 import time
-from VisionMultiCore import *
 import cv2
 
-
 def main():
+    # Set up the vision class
     v = VisionMultiCore(1280, 720, 30, 0)
 
+    # Create an exit event
+    quitVision = mp.Event()
+
+    # Initialize queue and start the computer vision core
     q = Queue()
-    p = Process(target=v.processFrame, args=(q,))
+    p = Process(target=v.processFrame, args=(q, quitVision))
     p.start()
 
+    # Run for 10 secounds 
     print("Starting")
     startTime = time.time()
     while(time.time() < startTime+10):
         print(q.get())
-        
-    
-    # for ii in range(10):
-    q.put(-1)
-    
-    print('hello world')
-    p.join()
-    print('hello world 2')
-    
 
+    # Close the thread 
+    quitVision.set()
+    p.join()
+    
 # Main loop
 if __name__ == '__main__':
     main()

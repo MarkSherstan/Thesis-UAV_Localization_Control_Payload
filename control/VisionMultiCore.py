@@ -1,8 +1,8 @@
+import cv2.aruco as aruco
 import numpy as np
 import math
 import time
 import cv2
-import cv2.aruco as aruco
 
 class VisionMultiCore:
     def __init__(self, desiredWidth, desiredHeight, desiredFPS, cameraIdx):
@@ -33,7 +33,7 @@ class VisionMultiCore:
         self.Down  = 0 
         self.Yaw   = 0 
 
-    def processFrame(self, q):
+    def processFrame(self, q, quitVision):
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
         self.parm = aruco.DetectorParameters_create()
@@ -43,30 +43,39 @@ class VisionMultiCore:
         try:
             cam = cv2.VideoCapture(0, cv2.CAP_V4L)
             cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-            cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-            cam.set(cv2.CAP_PROP_FPS, 30)
-            cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
+            cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
+            cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
+            cam.set(cv2.CAP_PROP_AUTOFOCUS, self.cameraIdx)
             print('Camera start')
         except:
             print('Camera setup failed')
 
-        ii = 0
+        # Start the performance metrics
+        counter = 0
+        startTime = time.time()
+
         # Process data until closed
-        while(True):
+        while not quitVision.is_set():
             # Capture a frame
             _, self.frame = cam.read()
 
             # Process the frame
-            self.getPose()
+            # self.getPose()
 
             # Add data to the queue
             q.put([self.North, self.East, self.Down, self.Yaw])
-            
-        # Release the camera connection
-        cam.release()
-        print('Camera closed')
 
+            # Increment the counter 
+            counter += 1
+
+        # End performance metrics 
+        endTime = time.time()
+        cam.release()
+
+        # Release the camera connection
+        print('Camera closed')
+        print('Performance rate: ', counter / (endTime - startTime))
 
     def getPose(self):
         # Get frame and convert to gray
