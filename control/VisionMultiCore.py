@@ -5,7 +5,7 @@ import time
 import cv2
 
 class VisionMultiCore:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, cameraIdx):
+    def __init__(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, cameraIdx=0):
         # Camera config
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
@@ -132,13 +132,3 @@ class VisionMultiCore:
 
         # Return roll, pitch, and yaw in some order
         return np.array([x, y, z])
-
-    def close(self):
-        # Close the pose processing thread
-        self.isRunPose = False
-        self.poseProcess.join()
-        print('\nComputer vision process closed')
-
-        # Rlease the camera connection
-        self.cam.release()
-        print('Camera closed')
