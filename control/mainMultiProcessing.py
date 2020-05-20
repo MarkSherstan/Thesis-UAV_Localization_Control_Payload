@@ -74,6 +74,9 @@ def main():
             C.Down  = visionData[2]
             C.Yaw   = visionData[3]
 
+            # Add small sleep 
+            time.sleep(0.02)
+
             # Print data
             if (time.time() > printTimer + printRate) and (printFlag is True):
                 dispData(C, vehicle)
