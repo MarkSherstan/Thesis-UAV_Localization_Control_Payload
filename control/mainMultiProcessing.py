@@ -87,8 +87,8 @@ def main():
                     northDesired, eastDesired, downDesired, \
                     math.degrees(C.rollAngle), math.degrees(C.pitchAngle), math.degrees(C.yawRate), C.thrust])
                 logTimer = time.time()
-
-    except:
+    
+    except KeyboardInterrupt:
         # Close the threads
         C.close()
         vehicle.close()
