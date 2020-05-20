@@ -61,7 +61,7 @@ class VisionMultiCore:
             _, self.frame = cam.read()
 
             # Process the frame
-            # self.getPose()
+            self.getPose()
 
             # Add data to the queue
             q.put([self.North, self.East, self.Down, self.Yaw])
