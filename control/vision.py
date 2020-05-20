@@ -244,18 +244,20 @@ class Vision:
         return np.array([x, y, z])
 
     def close(self):
+        # Print the results
+        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
+        print('Pose rate: ', round(self.poseCount / (time.time() - self.poseStartTime),2))
+
         # Close the pose processing thread
         self.isRunPose = False
         self.poseThread.join()
-        print('\Pose processing thread closed')
-        print('Pose rate: ', round(self.poseCount / (time.time() - self.poseStartTime),2))
+        print('\nPose processing thread closed')
 
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
         print('Camera thread closed')
-        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
-
-        # Rlease the camera connection
+       
+        # Release the camera connection
         self.cam.release()
-        print('Camera closed')
+        print('Camera closed\n')
