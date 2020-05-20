@@ -38,7 +38,7 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=115200)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=115200, rate=60)
 
     # Initialize the vision class
     v = VisionMultiCore()
@@ -74,6 +74,9 @@ def main():
             C.Down  = visionData[2]
             C.Yaw   = visionData[3]
 
+            # Add small sleep 
+            time.sleep(0.02)
+
             # Print data
             if (time.time() > printTimer + printRate) and (printFlag is True):
                 dispData(C, vehicle)
@@ -87,8 +90,8 @@ def main():
                     northDesired, eastDesired, downDesired, \
                     math.degrees(C.rollAngle), math.degrees(C.pitchAngle), math.degrees(C.yawRate), C.thrust])
                 logTimer = time.time()
-
-    except:
+    
+    except KeyboardInterrupt:
         # Close the threads
         C.close()
         vehicle.close()
