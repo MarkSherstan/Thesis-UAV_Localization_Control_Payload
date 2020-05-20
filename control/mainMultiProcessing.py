@@ -1,9 +1,12 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
+from multiprocessing import Process, Queue
 from pymavlink import mavutil
+from VisionMultiCore import *
 from controller import *
-from vision import *
+import multiprocessing as mp
 import pandas as pd
 import datetime
+import queue
 import math
 
 def dispData(V, C, vehicle):
@@ -37,14 +40,16 @@ def main():
 	print('Connecting to vehicle on: %s\n' % connection_string)
 	vehicle = connect(connection_string, wait_ready=["attitude"], baud=57600)
 
-	# Start vision class and the capture and pose threads
-	V = Vision()
-	V.startFrameThread()
-	V.startPoseThread()
+	# Initialize the vision class
+    v = VisionMultiCore()
 
-	# Do not proceed until vision processor is ready
-	while(V.isReady != True):
-		time.sleep(0.1)
+    # Create an exit event for vision
+    quitVision = mp.Event()
+
+    # Initialize queue and start the computer vision core
+    q = Queue()
+    p = Process(target=v.processFrame, args=(q, quitVision))
+    p.start()
 
 	# Start controller and thread
 	northDesired = 200
@@ -61,11 +66,13 @@ def main():
 
 	try:
 		while(True):
-			# Share data between the two classes
-			C.North = V.North
-			C.East  = V.East
-			C.Down  = V.Down
-			C.Yaw   = V.Yaw
+			# Unpack the data from vision
+			visionData = q.get()
+
+			C.North = visionData[0]
+			C.East  = visionData[1]
+			C.Down  = visionData[2]
+			C.Yaw   = visionData[3]
 
 			# Print data
 			if (time.time() > printTimer + printRate) and (printFlag is True):
@@ -82,10 +89,13 @@ def main():
 				logTimer = time.time()
 
 	except KeyboardInterrupt:
-		# Close the threads and any other connections
+		# Close the threads
 		C.close()
-		V.close()
 		vehicle.close()
+
+		# Join the cores
+		quitVision.set()
+    	p.join()
 
 		# Write data to a file based on flag
 		if (logFlag is True):

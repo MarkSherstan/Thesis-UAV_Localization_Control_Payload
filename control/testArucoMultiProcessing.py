@@ -7,7 +7,7 @@ import cv2
 
 def main():
     # Set up the vision class
-    v = VisionMultiCore(1280, 720, 30, 0)
+    v = VisionMultiCore()
 
     # Create an exit event
     quitVision = mp.Event()
@@ -23,7 +23,7 @@ def main():
     while(time.time() < startTime+10):
         print(q.get())
 
-    # Close the thread 
+    # Close the core 
     quitVision.set()
     p.join()
     
