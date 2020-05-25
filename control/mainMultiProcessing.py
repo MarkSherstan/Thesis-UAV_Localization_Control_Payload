@@ -38,7 +38,7 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=115200, rate=60)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=921600, rate=60)
 
     # Initialize the vision class
     v = VisionMultiCore()
@@ -52,7 +52,7 @@ def main():
     p.start()
 
     # Start controller and thread
-    northDesired = 200
+    northDesired = 225
     eastDesired  = 0
     downDesired  = 0
     C = Controller(vehicle, northDesired, eastDesired, downDesired)
@@ -75,7 +75,7 @@ def main():
             C.Yaw   = visionData[3]
 
             # Add small sleep 
-            time.sleep(0.02)
+            time.sleep(0.05)
 
             # Print data
             if (time.time() > printTimer + printRate) and (printFlag is True):
