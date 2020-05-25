@@ -32,8 +32,8 @@ class Controller:
 		self.yawRate = 0.0
 		self.thrust = 0.5
 
-		# Update rate to flight controller
-		self.duration = 1/30
+		# Update rate to flight controller (20 Hz - Tested)
+		self.duration = 0.05
 
 		# Constraints for roll, pitch, yaw and thrust
 		self.minValNE = -3.1415/12
@@ -127,19 +127,19 @@ class Controller:
 		# https://github.com/ArduPilot/ardupilot/issues/12782
 		# https://ardupilot.org/copter/docs/common-telemetry-port-setup.html
 
-		# msg = self.UAV.message_factory.command_long_encode(
-		# 	0, 0, #target system, target component
-		# 	mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, #command
-		# 	0, #confirmation
-		# 	30, #param 1
-		# 	300000, #param 2
-		# 	0, 0, 0, 0, 0) #param 3-7 not used
+		msg = self.UAV.message_factory.command_long_encode(
+			0, 0, # target system, target component
+			mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, # command
+			0, # confirmation
+			30, # param 1 (attitude)
+			30, # param 2 (data rate [Hz])
+			0, 0, 0, 0, 0) # param 3-7 not used
 		
-		msg = self.UAV.message_factory.request_data_stream_encode(
-			0, 0,
-			mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
-			30, # Rate (Hz)
-			1) # Turn on
+		# msg = self.UAV.message_factory.request_data_stream_encode(
+		# 	0, 0,
+		# 	mavutil.mavlink.MAV_DATA_STREAM_ALL,
+		# 	30, # Rate (Hz)
+		# 	1) # Turn on
 
 		self.UAV.send_mavlink(msg)
 

@@ -11,6 +11,8 @@ import math
 
 def dispData(C, vehicle):
     # Display data to user:
+    print("Armed: ", vehicle.armed, " Mode: ", vehicle.mode.name)
+
     print('Vision ->\t', \
         '\tN: ', round(C.North,1), \
         '\tE: ', round(C.East,1), \
@@ -38,7 +40,7 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=921600, rate=60)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=921600, rate=30)
 
     # Initialize the vision class
     v = VisionMultiCore()
@@ -57,6 +59,10 @@ def main():
     downDesired  = 0
     C = Controller(vehicle, northDesired, eastDesired, downDesired)
     C.controllerStart()
+    
+    time.sleep(0.1)
+    C.setDataRate()
+    time.sleep(0.1)
 
     # Run until broken by user
     print('\nStarting...\n')
