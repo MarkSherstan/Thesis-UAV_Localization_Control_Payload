@@ -5,12 +5,34 @@ import asyncio
 from mavsdk import System
 from mavsdk import (Attitude, OffboardError)
 
+# https://github.com/mavlink/MAVSDK-Python/issues/155
 
 async def run():
     """ Does Offboard control using attitude commands. """
+    
+    # start_mavlink(connection_url="udp://127.0.0.1:14541")
+    # drone = mavsdk_connect(host="127.0.0.1")
 
+    # drone = System(mavsdk_server_address="127.0.0.1", port=14541)
+    
+    # drone = System(mavsdk_server_address="localhost", port=5760)
     drone = System()
-    await drone.connect(system_address="udp://:14540")
+    await drone.connect(system_address="udp://:14551") #system_address="tcp://:14541"            system_address="tcp://:5760"
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    # drone = System()
+    # await drone.connect(system_address="udp://:5502")
+            #    - Serial: serial:///path/to/serial/dev[:baudrate]
+            #    - UDP: udp://[bind_host][:bind_port]
+            #    - TCP: tcp://[server_host][:server_port]
 
     print("Waiting for drone to connect...")
     async for state in drone.core.connection_state():
