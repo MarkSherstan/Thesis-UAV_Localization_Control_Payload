@@ -14,8 +14,14 @@ async def print_attitude(drone):
 
 async def run():
     """ Does Offboard control using attitude commands. """
-    drone = System()
-    await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600") #serial://[Dev_Node][:Baudrate]
+    # Mac OS
+    # drone = System()
+    # await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600") #serial://[Dev_Node][:Baudrate]
+
+    # Linux - Ubunutu 
+    # https://github.com/mavlink/MAVSDK-Python/issues/189#issuecomment-629145662
+    drone = System(mavsdk_server_address='localhost', port=50051)
+    await drone.connect()
 
     print("Waiting for drone to connect...")
     async for state in drone.core.connection_state():
