@@ -40,12 +40,65 @@ sudo reboot -h now
 
 
 
-
+tmux (or tmux attach)
 cd /home/odroid/MAVSDK/build/default/src/backend/src
-
-
-
 ./mavsdk_server -p 50051 serial:///dev/ttyS1:921600
+cntrl+b 
+d
+
+workon cv
+cd /home/odroid/Desktop/UAV-Sampling-Control-System/control
+python mainMAVSDK.py
 
 
 
+
+
+
+cd
+git clone https://github.com/mavlink/MAVSDK-Python --recursive
+cd MAVSDK-Python
+
+cd proto/pb_plugins
+pip3 install -r requirements.txt
+sudo pip3 install -e .
+
+cd ../..
+pip3 install -r requirements.txt -r requirements-dev.txt
+(takes forever)
+
+./other/tools/run_protoc.sh
+
+
+cp /home/odroid/MAVSDK/build/default/src/backend/src/mavsdk_server /home/odroid/MAVSDK-Python/mavsdk/bin
+
+
+# https://discuss.px4.io/t/talking-to-a-px4-fmu-with-a-rpi-via-serial-nousb/14119
+# This doesent seem to work...   
+python3 setup.py build
+
+pip3 install -e .
+
+
+Add it to our virtual environment:
+
+workon cv
+cd /home/odroid/MAVSDK-Python
+pip install -e .
+
+
+
+
+
+
+
+
+
+
+Remove if not required in 1 day:
+cd /home/odroid/.virtualenvs/cv/lib/python3.8/site-packages
+ln -s /usr/local/lib/python3.8/dist-packages/mavsdk.egg-link mavsdk.egg-link 
+
+/usr/local/lib/python3.8/dist-packages/mavsdk.egg-link 
+
+/home/odroid/.virtualenvs/cv/lib/python3.8/site-packages
