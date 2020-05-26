@@ -1,0 +1,51 @@
+https://mavsdk.mavlink.io/develop/en/contributing/build.html
+
+sudo apt-get update -y
+sudo apt-get install cmake build-essential colordiff git doxygen -y
+
+cd
+git clone https://github.com/mavlink/MAVSDK.git
+cd MAVSDK
+
+
+git checkout master
+git submodule update --init --recursive
+
+cmake -DCMAKE_BUILD_TYPE=Debug -DBUILD_SHARED_LIBS=ON -Bbuild/default -H.
+cmake --build build/default
+
+
+
+
+sudo cmake --build build/default --target install # sudo is required to install to system directories!
+
+# First installation only
+sudo ldconfig  # update linker cache
+
+
+
+
+
+
+cd MAVSDK
+cmake -DCMAKE_BUILD_TYPE=Release -DBUILD_BACKEND=ON -Bbuild/default -H.
+cmake --build build/default
+
+
+
+sudo cmake --build build/default --target install # sudo is required to install to system directories!
+sudo ldconfig  # update linker cache
+
+sudo reboot -h now 
+
+
+
+
+cd /home/odroid/MAVSDK/build/default/src/backend/src
+
+
+
+./mavsdk_server -p 50051 serial:///dev/ttyS1:921600
+
+
+
