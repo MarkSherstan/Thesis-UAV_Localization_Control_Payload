@@ -5,14 +5,9 @@ from mavsdk import (Action)
 async def run():
     # Mac OS
     # drone = System()
-    # await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600") #serial://[Dev_Node][:Baudrate]
+    # await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600")
 
-    # Linux (look to automate starting steps)
-        # tmux (or tmux attach)
-        # cd /home/odroid/MAVSDK/build/default/src/backend/src
-        # ./mavsdk_server -p 50051 serial:///dev/ttyS1:921600
-        # cntrl+b 
-        # d
+    # Ubuntu
     drone = System(mavsdk_server_address='localhost', port=50051)
     await drone.connect()
 
