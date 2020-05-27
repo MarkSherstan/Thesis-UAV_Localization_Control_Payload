@@ -13,3 +13,8 @@ cd /home/odroid/MAVSDK/build/default/src/backend/src
 cntrl+b 
 d
 ```
+
+
+Set parameter SRx_EXTRA1 and reboot, the following does not appear to do anything:
+    # drone.telemetry.set_rate_attitude(20)
+    # await asyncio.sleep(3)
