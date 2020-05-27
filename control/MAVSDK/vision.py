@@ -5,7 +5,7 @@ import math
 import time
 import cv2
 
-class VisionMultiCore:
+class Vision:
     def __init__(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, cameraIdx=0):
         # Camera config
         self.desiredWidth  = desiredWidth
@@ -90,16 +90,19 @@ class VisionMultiCore:
         startTime = time.time()
 
         # Process data until closed
-        while not quitVision.is_set():
-            # Process a frame
-            self.getPose()
+        try: 
+            while(True):
+                # Process a frame
+                self.getPose()
 
-            # Add data to the queue
-            q.put([self.North, self.East, self.Down, self.Yaw])
+                # Add data to the queue
+                q.put([self.North, self.East, self.Down, self.Yaw])
 
-            # Increment the counter 
-            counter += 1
-
+                # Increment the counter 
+                counter += 1
+        except KeyboardInterrupt:
+            pass
+            
         # End performance metrics 
         endTime = time.time()
 
@@ -109,7 +112,7 @@ class VisionMultiCore:
 
         # Release the camera connection
         print('Camera closed')
-        print('Performance rate: ', counter / (endTime - startTime))
+        print('Performance rate: ', round(counter / (endTime - startTime),2))
 
     def getPose(self):
         # Get frame and convert to gray
