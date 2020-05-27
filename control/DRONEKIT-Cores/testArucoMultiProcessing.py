@@ -20,13 +20,14 @@ def main():
     # Run for 10 secounds 
     print("Starting")
     startTime = time.time()
-    while(time.time() < startTime+10):
-        print(q.get())
-
-    # Close the core 
-    quitVision.set()
-    p.join()
-    
+    try:
+        while(True):
+            print(q.get())
+    except:
+        # Close the core 
+        quitVision.set()
+        p.join()
+        
 # Main loop
 if __name__ == '__main__':
     main()
