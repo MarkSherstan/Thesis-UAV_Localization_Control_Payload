@@ -64,7 +64,7 @@ class Vision:
             self.frameCount += 1
             self.isReceivingFrame = True
 
-    def processFrame(self, q, quitVision):
+    def processFrame(self, q):
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
         self.parm = aruco.DetectorParameters_create()
