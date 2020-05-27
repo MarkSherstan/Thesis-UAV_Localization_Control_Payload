@@ -26,7 +26,7 @@ async def run():
             print(f"Drone discovered with UUID: {state.uuid}")
             break
 
-    # Set initial set point
+    # Set initial set point for attitiude (required)
     await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
 
     # Start offboard (is this even required?) -> test
@@ -72,5 +72,3 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("The end")    
         # print(storage)    
-    finally:
-        loop.close()
