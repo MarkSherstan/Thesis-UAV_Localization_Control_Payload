@@ -1,4 +1,5 @@
 import numpy as np
+import asyncio
 import time
 import math
 
@@ -49,7 +50,7 @@ class Controller:
 		D = self.kd * ((error - errorPrev) / dt)
 		return (P + I + D), I
 
-	def positionControl(self, northActual, eastActual, downActual, yawActual):
+	async def positionControl(self, northActual, eastActual, downActual, yawActual):
 		# Error calculations and conversion to meters
 		errorNorth = (self.northDesired - northActual) * 0.01
 		errorEast = (self.eastDesired - eastActual) * 0.01

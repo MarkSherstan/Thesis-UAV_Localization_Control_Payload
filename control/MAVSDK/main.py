@@ -4,6 +4,9 @@ import time
 from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
 
+from controller import Controller
+
+
 # Global storage variable
 storage = []
 
@@ -38,7 +41,11 @@ async def run():
         print("-- Disarming")
         await drone.action.disarm()
         return
-
+  
+    # Connect to control scheme 
+    C = Controller(250, 0, 0)
+    C.startTime = time.time()
+    
     # Start timer 
     timer = time.time()
     global storage
@@ -51,6 +58,9 @@ async def run():
         # Get current attitude
         roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
 
+        # Quick test of controller class
+        rollAngle, pitchAngle, yawRate, thrust = await C.positionControl(20, 30, 10, 4)
+        
         # Log data and print
         print(1/(time.time()-timer), roll, pitch, yaw)
         timer = time.time()
