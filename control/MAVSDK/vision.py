@@ -1,10 +1,11 @@
+from threading import Thread
 import cv2.aruco as aruco
 import numpy as np
 import math
 import time
 import cv2
 
-class Vision:
+class VisionMultiCore:
     def __init__(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, cameraIdx=0):
         # Camera config
         self.desiredWidth  = desiredWidth
@@ -12,6 +13,15 @@ class Vision:
         self.desiredFPS    = desiredFPS
         self.cameraIdx     = cameraIdx      
         
+        # Capture threading parameters
+        self.isReceivingFrame = False
+        self.isRunFrame = True
+        self.frameThread = None
+
+        # Performance parameters
+        self.frameCount = 0
+        self.frameStartTime = None
+
         # Camera calibration matrix 
         self.mtx = np.array([[904.1343822,   0.0,            650.03003509],
                              [0.0,           903.58516942,   352.54361217],
@@ -33,6 +43,27 @@ class Vision:
         self.Down  = 0 
         self.Yaw   = 0 
 
+    def startFrameThread(self, cam):
+        # Create a thread
+        if self.frameThread == None:
+            self.frameThread = Thread(target=self.acquireFrame, args=(cam,))
+            self.frameThread.start()
+            print('Capture thread start')
+
+            # Block till we start receiving values
+            while self.isReceivingFrame != True:
+                time.sleep(0.1)
+
+            # Start the timer 
+            self.frameStartTime = time.time()
+
+    def acquireFrame(self, cam):
+        # Acquire until closed
+        while(self.isRunFrame):
+            _, self.frame = cam.read()
+            self.frameCount += 1
+            self.isReceivingFrame = True
+
     def processFrame(self, q, quitVision):
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
@@ -51,16 +82,16 @@ class Vision:
         except:
             print('Camera setup failed')
 
+        # Start the capture thread
+        self.startFrameThread(cam)
+
         # Start the performance metrics
         counter = 0
         startTime = time.time()
 
         # Process data until closed
         while not quitVision.is_set():
-            # Capture a frame
-            _, self.frame = cam.read()
-
-            # Process the frame
+            # Process a frame
             self.getPose()
 
             # Add data to the queue
@@ -71,6 +102,9 @@ class Vision:
 
         # End performance metrics 
         endTime = time.time()
+
+        # Close the capture thread and camera 
+        self.close()
         cam.release()
 
         # Release the camera connection
@@ -132,3 +166,12 @@ class Vision:
 
         # Return roll, pitch, and yaw in some order
         return np.array([x, y, z])
+
+    def close(self):
+        # Print the results
+        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
+
+        # Close the capture thread
+        self.isRunFrame = False
+        self.frameThread.join()
+        print('Camera thread closed')
