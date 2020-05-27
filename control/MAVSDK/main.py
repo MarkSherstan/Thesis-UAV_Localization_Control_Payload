@@ -2,7 +2,7 @@ import asyncio
 import time 
 
 from mavsdk import System
-from mavsdk import (Attitude, OffboardError, Telemetry)
+from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
 
 # Global storage variable
 storage = []
@@ -46,6 +46,7 @@ async def run():
     while(True):
         # Send attitude command
         await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.6))
+        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, 0.0, 0.6))
                 
         # Get current attitude
         roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
