@@ -5,19 +5,11 @@ import time
 import math
 
 class Controller:
-	def __init__(self, vehicle, northDesired, eastDesired, downDesired):
-		# Connect to the vehicle class
-		self.UAV = vehicle
-
+	def __init__(self, northDesired, eastDesired, downDesired):
 		# Desired position
 		self.northDesired = northDesired
 		self.eastDesired = eastDesired
 		self.downDesired = downDesired
-
-		# Threading parameters
-		self.isReceiving = False
-		self.isRun = True
-		self.thread = None
 
 		# Real time data from vision class
 		self.North = 0
@@ -29,19 +21,15 @@ class Controller:
 		self.rollAngle = 0.0
 		self.pitchAngle = 0.0
 		self.yawAngle = 0.0
-		self.yawRate = 0.0
 		self.thrust = 0.5
 
-		# Update rate to flight controller (20 Hz - Tested)
-		self.duration = 0.05
-
 		# Constraints for roll, pitch, yaw and thrust
-		self.minValNE = -3.1415/12
-		self.maxValNE = 3.1415/12
-		self.minValD = -1
-		self.maxValD = 1
-		self.minValYaw = -3.1415/4
-		self.maxValYaw = 3.1415/4
+		self.minValNE = -3.1415/12		# - 15 Degrees
+		self.maxValNE = 3.1415/12	    # + 15 Degrees
+		self.minValD = -1				# 
+		self.maxValD = 1				#
+		self.minValYaw = -3.1415/4		#
+		self.maxValYaw = 3.1415/4		#
 
 		# Controller PID Gains
 		self.kp = 0.3
@@ -64,100 +52,6 @@ class Controller:
 		self.kYaw = 2
 		self.yawConstrained = [-3.1415/4, -3.1415/90, 3.1415/90, 3.1415/4]
 		self.yawRateInterp  = [-3.1415/2, 0, 0, 3.1415/2]
-
-	def controllerStart(self):
-		# Create a thread
-		if self.thread == None:
-			self.thread = Thread(target=self.control)
-			self.thread.start()
-			print('Controller thread start')
-
-			# Block till we start receiving values
-			while (self.isReceiving != True):
-				time.sleep(0.1)
-
-	def control(self):
-		# Start a timer
-		self.startTime = time.time()
-
-		# Run control until closed
-		while(self.isRun):
-			self.positionControl()
-			self.isReceiving = True
-
-	def sendAttitudeTarget(self):
-		# https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
-		#
-		# thrust: 0 <= thrust <= 1, as a fraction of maximum vertical thrust.
-		#         Note that as of Copter 3.5, thrust = 0.5 triggers a special case in
-		#         the code for maintaining current altitude.
-		#             Thrust >  0.5: Ascend
-		#             Thrust == 0.5: Hold the altitude
-		#             Thrust <  0.5: Descend
-		#
-		# Mappings: If any of these bits are set, the corresponding input should be ignored.
-		# bit 1: body roll rate, bit 2: body pitch rate, bit 3: body yaw rate.
-		# bit 4-bit 6: reserved, bit 7: throttle, bit 8: attitude
-
-		# Prevent none type error on yaw
-		self.yawAngle = self.UAV.attitude.yaw
-
-		# Create the mavlink message
-		msg = self.UAV.message_factory.set_attitude_target_encode(
-			0, # time_boot_ms
-			0, # Target system
-			0, # Target component
-			0b00000000, # If bit is set corresponding input ignored (mappings)
-			self.euler2quaternion(self.rollAngle, self.pitchAngle, self.yawAngle), # Quaternion
-			0, # Body roll rate in radian
-			0, # Body pitch rate in radian
-			self.yawRate, # Body yaw rate in radian/second
-			self.thrust # Thrust
-		)
-
-		# Send the constructed message
-		self.UAV.send_mavlink(msg)
-
-	def setDataRate(self):
-		# https://github.com/dronekit/dronekit-python/issues/822
-		# https://ardupilot.org/dev/docs/mavlink-requesting-data.html?highlight=interval
-		# https://stackoverflow.com/questions/50123680/implementing-mav-cmd-set-message-interval-on-dronekit
-		# https://discuss.ardupilot.org/t/set-stream-rate-for-a-specific-message/20504/4
-		# https://github.com/ArduPilot/ardupilot/issues/3880
-		# https://github.com/ArduPilot/ardupilot/issues/12782
-		# https://ardupilot.org/copter/docs/common-telemetry-port-setup.html
-
-		msg = self.UAV.message_factory.command_long_encode(
-			0, 0, # target system, target component
-			mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, # command
-			0, # confirmation
-			30, # param 1 (attitude)
-			30, # param 2 (data rate [Hz])
-			0, 0, 0, 0, 0) # param 3-7 not used
-		
-		# msg = self.UAV.message_factory.request_data_stream_encode(
-		# 	0, 0,
-		# 	mavutil.mavlink.MAV_DATA_STREAM_ALL,
-		# 	30, # Rate (Hz)
-		# 	1) # Turn on
-
-		self.UAV.send_mavlink(msg)
-
-	def euler2quaternion(self, roll, pitch, yaw):
-		# Euler angles (rad) to quaternion
-		yc = math.cos(yaw * 0.5)
-		ys = math.sin(yaw * 0.5)
-		rc = math.cos(roll * 0.5)
-		rs = math.sin(roll * 0.5)
-		pc = math.cos(pitch * 0.5)
-		ps = math.sin(pitch * 0.5)
-
-		q0 = yc * rc * pc + ys * rs * ps
-		q1 = yc * rs * pc - ys * rc * ps
-		q2 = yc * rc * ps + ys * rs * pc
-		q3 = ys * rc * pc - yc * rs * ps
-
-		return [q0, q1, q2, q3]
 
 	def constrain(self, val, minVal, maxVal):
 		return max(min(maxVal, val), minVal)
@@ -193,13 +87,3 @@ class Controller:
 		self.pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
 		self.yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 		self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
-
-		# Send the command with small buffer
-		self.sendAttitudeTarget()
-		time.sleep(self.duration)
-
-	def close(self):
-		# Close the processing thread
-		self.isRun = False
-		self.thread.join()
-		print('Controller thread closed')
