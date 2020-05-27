@@ -16,12 +16,12 @@ async def getAttitude(drone):
 
 async def run():
     # Mac OS
-    drone = System()
-    await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600")
+    # drone = System()
+    # await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600")
 
     # Linux
-    # drone = System(mavsdk_server_address='localhost', port=50051)
-    # await drone.connect()
+    drone = System(mavsdk_server_address='localhost', port=50051)
+    await drone.connect()
 
     print("Waiting for drone to connect...")
     async for state in drone.core.connection_state():
@@ -32,16 +32,6 @@ async def run():
     # Set initial set point for attitiude (required)
     await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
 
-    # Start offboard (is this even required?) -> test
-    try:
-        await drone.offboard.start()
-    except OffboardError as error:
-        print(f"Starting offboard mode failed with error code: \
-              {error._result.result}")
-        print("-- Disarming")
-        await drone.action.disarm()
-        return
-  
     # Connect to control scheme 
     C = Controller(250, 0, 0)
     C.startTime = time.time()
@@ -66,14 +56,6 @@ async def run():
         timer = time.time()
         # storage.append([time.time(), 1/(time.time()-timer), roll, pitch, yaw])
         # time.sleep(0.001)
-        
-    # print("-- Stopping offboard")
-    # try:
-    #     await drone.offboard.stop()
-    # except OffboardError as error:
-    #     print(f"Stopping offboard mode failed with error code: \
-    #           {error._result.result}")
-
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()

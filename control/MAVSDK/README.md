@@ -20,9 +20,7 @@ Set parameter SRx_EXTRA1 and reboot, the following does not appear to do anythin
 
 
 TO DO:
-    # Test if actual control is achieved
     # Need to run a simulation 
-    # Is drone offboard even required? 
     # YAPPI profile: https://github.com/sumerc/yappi
     # Thread imaging
     # Link imaging 
