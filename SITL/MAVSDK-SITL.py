@@ -4,7 +4,7 @@ import utm
 
 from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
-
+from controller import Controller
 
 async def getAttitude(drone):
     async for bodyAttitude in drone.telemetry.attitude_euler():
@@ -14,11 +14,14 @@ async def getPos(drone, xCal=0, yCal=0):
     async for pos in drone.telemetry.position():
         lat, lon, z = pos.latitude_deg, pos.longitude_deg, pos.relative_altitude_m
         x, y, _, _ = utm.from_latlon(lat, lon)
-        return x-xCal, y-yCal, z 
+        return (x-xCal)*1000, (y-yCal)*1000, z*1000
 
 async def run(drone):
     # Connect to drone
     await drone.connect(system_address="udp://:14540")
+
+    # Connect to control scheme 
+    C = Controller(250, 0, 0)
 
     # Connect to UAV
     print("Waiting for drone to connect...")
@@ -63,22 +66,33 @@ async def run(drone):
     #     await drone.action.disarm()
     #     return
 
-    while(True):
-        # Get current attitude
-        # await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.5))
-        
-        # roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
-        # h = await asyncio.ensure_future(getAltitude(drone))
-        # print(h, roll, pitch, yaw)
+    # Start controller timer
+    C.startTime = time.time()
 
+    while(True):
+        # Get data 
+        _, _, yaw = await asyncio.ensure_future(getAttitude(drone))
         x, y, z = await asyncio.ensure_future(getPos(drone, xCal=xZero, yCal=yZero))
+
+        # Run control 
+        rollControl, pitchControl, yawControl, thrustControl = await C.positionControl(x, y, z, yaw)         
+
+        # Execute control
+        await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, 0.0, thrustControl))
+        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
+        
+        # Print results
         print(x, y, z)
+        print(rollControl, pitchControl, yawControl, thrustControl)
+        print()
         await asyncio.sleep(0.1)
-   
-    # Get current NED points 
-    # Run control in while loop here
-    # Once reached break... (look at adding the buffer idea here)
-  
+        
+    # Once desired (with tolerance) reached -> break... (look at adding the buffer idea here)
+    # Double check sampling rates 
+    
+    # Set attitude
+    # await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.5))
+       
     # print("-- Landing")
     # await drone.action.land()
     # await asyncio.sleep(1)

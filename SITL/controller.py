@@ -52,9 +52,9 @@ class Controller:
 
 	async def positionControl(self, northActual, eastActual, downActual, yawActual):
 		# Error calculations and conversion to meters
-		errorNorth = (self.northDesired - northActual) * 0.01
-		errorEast = (self.eastDesired - eastActual) * 0.01
-		errorDown = (self.downDesired - downActual) * 0.01
+		errorNorth = (self.northDesired - northActual)
+		errorEast = (self.eastDesired - eastActual)
+		errorDown = (self.downDesired - downActual)
 
 		# Get time delta
 		dt = time.time() - self.startTime
