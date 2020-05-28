@@ -22,6 +22,9 @@ Set parameter SRx_EXTRA1 and reboot, the following does not appear to do anythin
 TO DO:
     # Need to run a simulation 
     # YAPPI profile: https://github.com/sumerc/yappi
-    # Thread imaging
-    # Link imaging 
+
+    # Startup shell script for server -> add to Python?
+
+    # Crashing after 30 secounds... 
+    # Old FC has very irregular data rates... 
     
