@@ -1,5 +1,6 @@
 import asyncio
 import time
+import utm
 
 from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
@@ -9,9 +10,11 @@ async def getAttitude(drone):
     async for bodyAttitude in drone.telemetry.attitude_euler():
         return bodyAttitude.roll_deg, bodyAttitude.pitch_deg, bodyAttitude.yaw_deg
 
-async def getPosition(drone):
+async def getPos(drone, xCal=0, yCal=0):
     async for pos in drone.telemetry.position():
-        return pos.relative_altitude_m
+        lat, lon, z = pos.latitude_deg, pos.longitude_deg, pos.relative_altitude_m
+        x, y, _, _ = utm.from_latlon(lat, lon)
+        return x-xCal, y-yCal, z 
 
 async def run():
     # Connect to SITL
@@ -36,11 +39,22 @@ async def run():
 
     print("-- Taking off")
     await drone.action.takeoff()
+    await asyncio.sleep(5)
 
-    # print("-- Setting initial setpoint")
-    # await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
+    # Zero initial position
+    xZero = 0
+    yZero = 0
+    for _ in range(100):
+        tempX, tempY, _ = await asyncio.ensure_future(getPos(drone))
+        xZero += tempX
+        yZero += tempY
 
+    xZero /= 100
+    yZero /= 100
+
+    # # Start offboard
     # print("-- Starting offboard")
+    # await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.5))
     # try:
     #     await drone.offboard.start()
     # except OffboardError as error:
@@ -50,19 +64,18 @@ async def run():
     #     await drone.action.disarm()
     #     return
 
-    for _ in range(100):
+    while(True):
         # Get current attitude
-        roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
-        h = await asyncio.ensure_future(getPosition(drone))
-        print(h, roll, pitch, yaw)
+        # await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.5))
+        
+        # roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
+        # h = await asyncio.ensure_future(getAltitude(drone))
+        # print(h, roll, pitch, yaw)
+
+        x, y, z = await asyncio.ensure_future(getPos(drone, xCal=xZero, yCal=yZero))
+        print(x, y, z)
         await asyncio.sleep(0.1)
-    
-    # await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.6))
-    # await asyncio.sleep(2)
-
-    # https://mavsdk.mavlink.io/develop/en/api_reference/structmavsdk_1_1_telemetry_1_1_position_body.html
-    # https://mavsdk.mavlink.io/develop/en/api_reference/structmavsdk_1_1_telemetry_1_1_position_ned.html
-
+   
     # Get current NED points 
     # Run control in while loop here
     # Once reached break... (look at adding the buffer idea here)
