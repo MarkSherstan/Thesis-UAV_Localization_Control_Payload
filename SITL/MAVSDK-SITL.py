@@ -40,6 +40,7 @@ async def run(drone):
     await drone.action.arm()
 
     print("-- Taking off")
+    await drone.action.set_takeoff_altitude(2)
     await drone.action.takeoff()
     await asyncio.sleep(5)
 
@@ -81,7 +82,11 @@ async def run(drone):
         await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, 0.0, thrustControl))
         await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
         
+        # Get current flight mode
+        flightMode = await drone.telemetry.flight_mode()
+        
         # Print results
+        print(flightMode)
         print(x, y, z)
         print(rollControl, pitchControl, yawControl, thrustControl)
         print()
