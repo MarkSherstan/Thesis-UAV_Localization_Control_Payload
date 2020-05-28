@@ -16,9 +16,8 @@ async def getPos(drone, xCal=0, yCal=0):
         x, y, _, _ = utm.from_latlon(lat, lon)
         return x-xCal, y-yCal, z 
 
-async def run():
-    # Connect to SITL
-    drone = System()
+async def run(drone):
+    # Connect to drone
     await drone.connect(system_address="udp://:14540")
 
     # Connect to UAV
@@ -79,14 +78,19 @@ async def run():
     # Get current NED points 
     # Run control in while loop here
     # Once reached break... (look at adding the buffer idea here)
-    # land 
+  
+    # print("-- Landing")
+    # await drone.action.land()
+    # await asyncio.sleep(1)
 
-    # time.sleep(4)
-    # await asyncio.sleep(5)
-
-    print("-- Landing")
-    await drone.action.land()
 
 if __name__ == "__main__":
+    # Connect to SITL
+    drone = System()
+
+    # Run the main program
     loop = asyncio.get_event_loop()
-    loop.run_until_complete(run())
+    try:
+        loop.run_until_complete(run(drone))
+    except KeyboardInterrupt:
+        print("Closing")    
