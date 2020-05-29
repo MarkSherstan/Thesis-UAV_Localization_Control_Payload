@@ -10,32 +10,29 @@ class Controller:
 		self.eastDesired = eastDesired
 		self.downDesired = downDesired
 
-		# Constraints for roll, pitch, yaw and thrust
+		# Constraints for NED and yaw
 		self.minValNE = -3.1415/12		# -15 Deg
 		self.maxValNE = 3.1415/12	    # +15 Deg
-		self.minValD = -1				# m
+		self.minValD = 0				# m
 		self.maxValD = 1				# m
 		self.minValYaw = -3.1415/4		# -45 Deg/s
 		self.maxValYaw = 3.1415/4		# +45 Deg/s
 
 		# Controller PID Gains
-		self.kp = 0.3
-		self.ki = 0
-		self.kd = 0.2
+		self.kp = 0.0015  # 0.0015 		0.003
+		self.ki = 0.00
+		self.kd = 0.002   # 0.00055 	0.001
 
-		# PID variables
+		# PID variables (NED)
 		self.northPreviousError = 0
 		self.eastPreviousError = 0
+		self.downPreviousError = 0
 		self.northI = 0
 		self.eastI = 0
-		self.startTime = None
+		self.downI = 0
+		self.timer = None
 
-		# Thrust Control
-		self.kThrottle = 0.5
-		self.one2one = [-1, -0.04, 0.04, 1]
-		self.zero2one = [0, 0.5, 0.5, 1]
-
-		# Yaw control
+		# Yaw control -> Fix this 
 		self.kYaw = 2
 		self.yawConstrained = [-3.1415/4, -3.1415/90, 3.1415/90, 3.1415/4] 	# [-45, -2, 2, 45] deg/s
 		self.yawRateInterp  = [-3.1415/2, 0, 0, 3.1415/2]					# [-90,  0, 0, 90] deg/s	
@@ -51,29 +48,34 @@ class Controller:
 		return (P + I + D), I
 
 	async def positionControl(self, northActual, eastActual, downActual, yawActual):
-		# Error calculations and conversion to meters
+		# Error calculations [mm]
 		errorNorth = (self.northDesired - northActual)
 		errorEast = (self.eastDesired - eastActual)
 		errorDown = (self.downDesired - downActual)
 
 		# Get time delta
-		dt = time.time() - self.startTime
+		dt = time.time() - self.timer
+		self.timer = time.time()
 
 		# Run some control
 		rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
 		pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
+		thrustControl, self.downI = self.PID(errorDown, self.downPreviousError, self.downI, dt)
 		yawControl = self.constrain(yawActual * self.kYaw, self.minValYaw, self.maxValYaw)
-		thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
 
 		# Update previous error
 		self.northPreviousError = errorNorth
 		self.eastPreviousError = errorEast
+		self.downPreviousError = errorDown
 
-		# Set the controller values
+		# Set and constrain the controller values
 		rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 		pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
+		thrust = self.constrain(thrustControl, self.minValD, self.maxValD)
 		yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
-		thrust = np.interp(thrustControl, self.one2one, self.zero2one)
+
+		# Print values for error hacking
+		print(round(1/dt), round(errorDown,2), round(thrustControl,2), round(thrust,2))
 
 		# Return the value
 		return rollAngle, pitchAngle, yawRate, thrust
