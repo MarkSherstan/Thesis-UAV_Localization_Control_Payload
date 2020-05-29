@@ -16,6 +16,18 @@ async def getPos(drone, xCal=0, yCal=0):
         x, y, _, _ = utm.from_latlon(lat, lon)
         return (x-xCal), (y-yCal), z
 
+async def stabilizeLoop(stabilizeTimer):
+    # Set parameters 
+    totalLoopTime = 1/25
+
+    # Find current loop time and execute corresponding delay
+    timeDiff = time.time() - stabilizeTimer
+
+    if (timeDiff >= totalLoopTime):
+        pass
+    else:
+        await asyncio.sleep(totalLoopTime - timeDiff)
+
 async def run(drone):
     # Connect to drone
     await drone.connect(system_address="udp://:14540")
@@ -70,6 +82,7 @@ async def run(drone):
     # Start timers
     C.timer = time.time()
     startTime = time.time()
+    stabilizeTimer = time.time()
 
     while(time.time() < startTime+8):
         # Get data 
@@ -83,7 +96,9 @@ async def run(drone):
         await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, thrustControl))
         await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, 0.0, thrustControl))
                 
-        await asyncio.sleep(0.02)
+        # Stabilize the sampling rate
+        await stabilizeLoop(stabilizeTimer)
+        stabilizeTimer = time.time()
         
     # Once desired (with tolerance) reached -> break... (look at adding the buffer idea here)
     # Double check sampling rates 
