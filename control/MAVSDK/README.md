@@ -28,6 +28,11 @@ TO DO:
     # Crashing after 30 secounds... 
     # Old FC has very irregular data rates... 
 
+    # Try with PX4
+    # Add ground 
+    # Re-test rates with laptop
+    # Serial rate of connection? Increase -> add wait somewhere?
+
 
 
 ## Install Steps (Clean this up)
