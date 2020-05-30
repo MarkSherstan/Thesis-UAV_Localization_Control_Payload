@@ -10,18 +10,21 @@ class Controller:
 		self.eastDesired = eastDesired
 		self.downDesired = downDesired
 
-		# Constraints for NED and yaw
+		# Constraints for North, East and Yaw
 		self.minValNE = -3.1415/12		# -15 Deg
 		self.maxValNE = 3.1415/12	    # +15 Deg
-		self.minValD = 0				# m
-		self.maxValD = 1				# m
 		self.minValYaw = -3.1415/4		# -45 Deg/s
 		self.maxValYaw = 3.1415/4		# +45 Deg/s
 
+		# Constraints for Down
+		self.minValD = -5				# [ ]
+		self.maxValD =  5				# [ ]
+		self.outputD = [0, 1]			# [ ]
+
 		# Controller PID Gains
-		self.kp = 0.0015  # 0.0015 		0.003
-		self.ki = 0.00
-		self.kd = 0.002   # 0.00055 	0.001
+		self.kp = 0.002 		# 0.0002, 0.0025, 0.007  w/ -1,1
+		self.ki = 0 
+		self.kd = 0.00			# 0.0002, 0.0006 w/ -1,1
 
 		# PID variables (NED)
 		self.northPreviousError = 0
@@ -71,7 +74,7 @@ class Controller:
 		# Set and constrain the controller values
 		rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 		pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-		thrust = self.constrain(thrustControl, self.minValD, self.maxValD)
+		thrust = np.interp(self.constrain(thrustControl, self.minValD, self.maxValD), [self.minValD, self.maxValD], self.outputD)
 		yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 
 		# Print values for error hacking
