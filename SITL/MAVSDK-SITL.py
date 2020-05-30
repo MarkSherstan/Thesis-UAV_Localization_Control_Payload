@@ -6,6 +6,17 @@ from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
 from controller import Controller
 
+def plotter(data):
+    # Import required package
+    import matplotlib.pyplot as plt
+
+    # Plot the results
+    fig, ax = plt.subplots()
+    ax.plot(data)
+
+    # Show the plot
+    plt.show()
+
 async def getAttitude(drone):
     async for bodyAttitude in drone.telemetry.attitude_euler():
         return bodyAttitude.roll_deg, bodyAttitude.pitch_deg, bodyAttitude.yaw_deg
@@ -51,10 +62,10 @@ async def run(drone):
     print("-- Arming")
     await drone.action.arm()
 
-    # print("-- Taking off")
-    # await drone.action.set_takeoff_altitude(2)
-    # await drone.action.takeoff()
-    # await asyncio.sleep(5)
+    print("-- Taking off")
+    await drone.action.set_takeoff_altitude(1.5)
+    await drone.action.takeoff()
+    time.sleep(5)
 
     # Zero initial position
     xZero = 0
@@ -79,6 +90,9 @@ async def run(drone):
         await drone.action.disarm()
         return
 
+    # Data array 
+    zData = []
+
     # Start timers
     C.timer = time.time()
     startTime = time.time()
@@ -90,22 +104,33 @@ async def run(drone):
         x, y, z = await asyncio.ensure_future(getPos(drone, xCal=xZero, yCal=yZero))
 
         # Run control 
-        rollControl, pitchControl, yawControl, thrustControl = await C.positionControl(x*1000, y*1000, z*1000, yaw)         
+        rollControl, pitchControl, yawControl, thrustControl = C.positionControl(x*1000, y*1000, z*1000, yaw)         
 
         # Execute control
         await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, thrustControl))
         await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, 0.0, thrustControl))
                 
-        # Stabilize the sampling rate
+        # Stabilize the sampling rate and save data
         await stabilizeLoop(stabilizeTimer)
         stabilizeTimer = time.time()
+        zData.append(z)
         
     # Once desired (with tolerance) reached -> break... (look at adding the buffer idea here)
     # Double check sampling rates 
-       
+
+    print("-- Stopping offboard")
+    try:
+        await drone.offboard.stop()
+    except OffboardError as error:
+        print(f"Stopping offboard mode failed with error code: \
+              {error._result.result}")
+
     print("-- Landing")
     await drone.action.land()
     await asyncio.sleep(2)
+
+    # Plot the results
+    plotter(zData)
 
 
 if __name__ == "__main__":
