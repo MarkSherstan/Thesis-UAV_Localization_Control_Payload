@@ -77,3 +77,33 @@ A specific firmware can be tested, to see all the releases enter `git tag -l` an
 
 ## Software in the Loop
 TBD
+
+## ERROR
+```
+Traceback (most recent call last):
+  File "/home/mark/Documents/UAV-Sampling-Control-System/SITL/MAVSDK-SITL.py", line 118, in <module>
+    loop.run_until_complete(run(drone))
+  File "/usr/lib/python3.8/asyncio/base_events.py", line 616, in run_until_complete
+    return future.result()
+  File "/home/mark/Documents/UAV-Sampling-Control-System/SITL/MAVSDK-SITL.py", line 90, in run
+    x, y, z = await asyncio.ensure_future(getPos(drone, xCal=xZero, yCal=yZero))
+  File "/home/mark/Documents/UAV-Sampling-Control-System/SITL/MAVSDK-SITL.py", line 14, in getPos
+    async for pos in drone.telemetry.position():
+  File "/home/mark/.local/lib/python3.8/site-packages/mavsdk/generated/telemetry.py", line 2841, in position
+    async for response in position_stream:
+  File "/home/mark/.local/lib/python3.8/site-packages/aiogrpc/utils.py", line 138, in __anext__
+    return await asyncio.shield(self._next_future, loop=self._loop)
+  File "/usr/lib/python3.8/concurrent/futures/thread.py", line 57, in run
+    result = self.fn(*self.args, **self.kwargs)
+  File "/home/mark/.local/lib/python3.8/site-packages/aiogrpc/utils.py", line 126, in _next
+    return next(self._iterator)
+  File "/home/mark/.local/lib/python3.8/site-packages/grpc/_channel.py", line 416, in __next__
+    return self._next()
+  File "/home/mark/.local/lib/python3.8/site-packages/grpc/_channel.py", line 706, in _next
+    raise self
+grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that terminated with:
+        status = StatusCode.UNAVAILABLE
+        details = "Socket closed"
+        debug_error_string = "{"created":"@1590816025.317082745","description":"Error received from peer ipv6:[::1]:50051","file":"src/core/lib/surface/call.cc","file_line":1056,"grpc_message":"Socket closed","grpc_status":14}"
+>
+```
