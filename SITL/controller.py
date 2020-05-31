@@ -16,15 +16,10 @@ class Controller:
 		self.minValYaw = -3.1415/4		# -45 Deg/s
 		self.maxValYaw = 3.1415/4		# +45 Deg/s
 
-		# Constraints for Down
-		self.minValD = -5				# [ ]
-		self.maxValD =  5				# [ ]
-		self.outputD = [0, 1]			# [ ]
-
 		# Controller PID Gains
-		self.kp = 0.002 		# 0.0002, 0.0025, 0.007  w/ -1,1
-		self.ki = 0 
-		self.kd = 0.00			# 0.0002, 0.0006 w/ -1,1
+		self.kp = 0.0010
+		self.ki = 0.0002
+		self.kd = 0.0005
 
 		# PID variables (NED)
 		self.northPreviousError = 0
@@ -45,12 +40,15 @@ class Controller:
 
 	def PID(self, error, errorPrev, I, dt):
 		# Run the PD controller
-		P = self.kp * error
-		I = self.ki * (I + error * dt)
-		D = self.kd * ((error - errorPrev) / dt)
-		return (P + I + D), I
+		P = error
+		I = I + error * dt
+		D = (error - errorPrev) / dt
+		PID = (self.kp * P) + (self.ki * I) + (self.kd * D)
 
-	async def positionControl(self, northActual, eastActual, downActual, yawActual):
+		print('{:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, P*self.kp, I*self.ki, D*self.kd, (PID)))
+		return PID, I
+
+	def positionControl(self, northActual, eastActual, downActual, yawActual):
 		# Error calculations [mm]
 		errorNorth = (self.northDesired - northActual)
 		errorEast = (self.eastDesired - eastActual)
@@ -61,10 +59,12 @@ class Controller:
 		self.timer = time.time()
 
 		# Run some control
-		rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
-		pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
+		# rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
+		# pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
 		thrustControl, self.downI = self.PID(errorDown, self.downPreviousError, self.downI, dt)
 		yawControl = self.constrain(yawActual * self.kYaw, self.minValYaw, self.maxValYaw)
+		rollControl = 0
+		pitchControl = 0
 
 		# Update previous error
 		self.northPreviousError = errorNorth
@@ -74,11 +74,10 @@ class Controller:
 		# Set and constrain the controller values
 		rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 		pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-		thrust = np.interp(self.constrain(thrustControl, self.minValD, self.maxValD), [self.minValD, self.maxValD], self.outputD)
-		yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
+		thrust = self.constrain(thrustControl, 0, 1)
 
-		# Print values for error hacking
-		print(round(1/dt), round(errorDown,2), round(thrustControl,2), round(thrust,2))
+		# thrust = np.interp(thrustControl, [self.minValD, self.maxValD], self.outputD)
+		yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
 
 		# Return the value
 		return rollAngle, pitchAngle, yawRate, thrust
