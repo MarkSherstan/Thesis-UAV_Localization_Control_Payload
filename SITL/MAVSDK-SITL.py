@@ -6,13 +6,16 @@ from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
 from controller import Controller
 
-def plotter(data):
+zData = []
+timeData = []
+
+def plotter(xData, yData):
     # Import required package
     import matplotlib.pyplot as plt
 
     # Plot the results
     fig, ax = plt.subplots()
-    ax.plot(data)
+    ax.plot(xData, yData)
 
     # Show the plot
     plt.show()
@@ -62,10 +65,10 @@ async def run(drone):
     print("-- Arming")
     await drone.action.arm()
 
-    print("-- Taking off")
-    await drone.action.set_takeoff_altitude(1.5)
-    await drone.action.takeoff()
-    time.sleep(5)
+    # print("-- Taking off")
+    # await drone.action.set_takeoff_altitude(1.5)
+    # await drone.action.takeoff()
+    # time.sleep(5)
 
     # Zero initial position
     xZero = 0
@@ -81,6 +84,7 @@ async def run(drone):
     # Start offboard
     print("-- Starting offboard")
     await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
+
     try:
         await drone.offboard.start()
     except OffboardError as error:
@@ -91,7 +95,8 @@ async def run(drone):
         return
 
     # Data array 
-    zData = []
+    global zData
+    global timeData
 
     # Start timers
     C.timer = time.time()
@@ -114,6 +119,7 @@ async def run(drone):
         await stabilizeLoop(stabilizeTimer)
         stabilizeTimer = time.time()
         zData.append(z)
+        timeData.append(time.time()-startTime)
         
     # Once desired (with tolerance) reached -> break... (look at adding the buffer idea here)
     # Double check sampling rates 
@@ -129,9 +135,6 @@ async def run(drone):
     await drone.action.land()
     await asyncio.sleep(2)
 
-    # Plot the results
-    plotter(zData)
-
 
 if __name__ == "__main__":
     # Connect to SITL
@@ -142,4 +145,7 @@ if __name__ == "__main__":
     try:
         loop.run_until_complete(run(drone))
     except KeyboardInterrupt:
-        print("Closing")    
+        print("Closing")
+    finally:    
+        # Plot the results
+        plotter(timeData, zData)
