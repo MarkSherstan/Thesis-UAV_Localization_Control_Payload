@@ -4,52 +4,56 @@ import time
 import math
 
 class Controller:
-	def __init__(self, northDesired, eastDesired, downDesired):
+	def __init__(self, northDesired, eastDesired, downDesired, yawDesired=0):
 		# Desired position
 		self.northDesired = northDesired
-		self.eastDesired = eastDesired
-		self.downDesired = downDesired
+		self.eastDesired  = eastDesired
+		self.downDesired  = downDesired
+		self.yawDesired   = yawDesired
 
-		# Constraints for North, East and Yaw
-		self.minValNE = -3.1415/12		# -15 Deg
-		self.maxValNE = 3.1415/12	    # +15 Deg
-		self.minValYaw = -3.1415/4		# -45 Deg/s
-		self.maxValYaw = 3.1415/4		# +45 Deg/s
+		# Constraints
+		self.minValNE =   -15	# Deg
+		self.maxValNE =    15   # Deg
+		self.minValD =	    0	# Normalized
+		self.maxValD =      1	# Normalized
+		self.minYawRate = -45	# Deg/s
+		self.maxYawRate =  45	# Deg/s
 
-		# Controller PID Gains: NORTH
+		# PID Gains: NORTH
 		self.kp_NORTH = 0.0
 		self.ki_NORTH = 0.0
 		self.kd_NORTH = 0.0
 
-		# Controller PID Gains: EAST
+		# PID Gains: EAST
 		self.kp_EAST = self.kp_NORTH
 		self.ki_EAST = self.ki_NORTH
 		self.kd_EAST = self.kd_NORTH
 
-		# Controller PID Gains: DOWN
+		# PID Gains: DOWN
 		self.kp_DOWN = 0.0010
 		self.ki_DOWN = 0.0005
 		self.kd_DOWN = 0.0005
 
-		# Controller PID Gains: DOWN
+		# PID Gains: YAW
 		self.kp_YAW = 0.0
 		self.ki_YAW = 0.0
 		self.kd_YAW = 0.0
 
-		# PID variables (NED)
+		# Previous errors
 		self.northPrevError = 0
 		self.eastPrevError = 0
 		self.downPrevError = 0
+		self.yawPrevError = 0
+
+		# Integral tracking
 		self.northI = 0
 		self.eastI = 0
 		self.downI = 0
+		self.yawI = 0
+
+		# Timing
 		self.timer = None
-
-		# Yaw control -> Fix this 
-		self.kYaw = 2
-		self.yawConstrained = [-3.1415/4, -3.1415/90, 3.1415/90, 3.1415/4] 	# [-45, -2, 2, 45] deg/s
-		self.yawRateInterp  = [-3.1415/2, 0, 0, 3.1415/2]					# [-90,  0, 0, 90] deg/s	
-
+	
 	def constrain(self, val, minVal, maxVal):
 		return max(min(maxVal, val), minVal)
 
@@ -68,10 +72,11 @@ class Controller:
 		return PID, I
 
 	def positionControl(self, northActual, eastActual, downActual, yawActual):
-		# Error calculations [mm]
+		# Error calculations
 		errorNorth = (self.northDesired - northActual)
-		errorEast = (self.eastDesired - eastActual)
-		errorDown = (self.downDesired - downActual)
+		errorEast  = (self.eastDesired - eastActual)
+		errorDown  = (self.downDesired - downActual)
+		errorYaw   = (self.yawDesired - yawActual)
 
 		# Get time delta
 		dt = time.time() - self.timer
@@ -81,18 +86,19 @@ class Controller:
 		rollControl, self.eastI = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
 		pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
 		thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-		yawControl = self.constrain(yawActual * self.kYaw, self.minValYaw, self.maxValYaw)
-
+		yawControl, self.yawI = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW, debug=True)
+		
 		# Update previous error
 		self.northPrevError = errorNorth
 		self.eastPrevError = errorEast
 		self.downPrevError = errorDown
+		self.yawPrevError = yawActual
 
 		# Set and constrain the controller values
 		rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
 		pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-		thrust = self.constrain(thrustControl, 0, 1)
-		yawRate = np.interp(yawControl, self.yawConstrained, self.yawRateInterp)
+		thrust = self.constrain(thrustControl, self.minValD, self.maxValD)
+		yawRate = self.constrain(yawControl, self.minYawRate, self.maxYawRate)
 
 		# Return the values
 		return rollAngle, pitchAngle, yawRate, thrust
