@@ -23,17 +23,37 @@ def plotter(rawData):
     # Unpack the data
     for ii in range(len(rawData)):
         timeData.append(rawData[ii][0]) 
-        xData.append(rawData[ii][1])
-        yData.append(rawData[ii][2])
+        xData.append(rawData[ii][2])
+        yData.append(rawData[ii][1])
         zData.append(rawData[ii][3])
         yawData.append(rawData[ii][4])
 
-    # Plot the results
-    _, ax = plt.subplots()
-    ax.plot(timeData, xData, timeData, yData, timeData, zData)
-    ax.legend(['X', 'Y', 'Z'])
-    ax.set_xlabel('Time [s]')
-    ax.set_ylabel('Position [m]')
+    # Prep for plotting
+    _, (ax1, ax2) = plt.subplots(2)
+
+    # Plot x, y, z
+    ax1.axhline(y=0.5, color='tab:green')
+    ax1.plot(timeData, xData, color='tab:green', linestyle='--')
+
+    ax1.axhline(y=1.5, color='tab:orange')
+    ax1.plot(timeData, yData, color='tab:orange', linestyle='--')
+
+    ax1.axhline(y=1.0, color='tab:blue')
+    ax1.plot(timeData, zData, color='tab:blue', linestyle='--')
+
+    # Format the plot
+    ax1.legend(['X Desired', 'X Actual', 'Y Desired', 'Y Actual', 'Z Desired', 'Z Actual'], ncol=3, loc='upper center')
+    ax1.set_xlabel('Time [s]')
+    ax1.set_ylabel('Position [m]')
+    ax1.set_ylim(top=3)
+
+    # Plot yaw
+    ax2.axhline(y=0, color='k')
+    ax2.plot(timeData, yawData, color='k', linestyle='--')
+    ax2.legend(['Yaw Desired', 'Yaw Actual'])
+    ax2.set_xlabel('Time [s]')
+    ax2.set_ylabel('Angle [deg]')
+    ax2.set_ylim(-5,5)
 
     # Show the plot
     plt.show()
@@ -73,7 +93,7 @@ async def run(drone):
     await drone.connect(system_address="udp://:14540")
 
     # Connect to control scheme 
-    C = Controller(1000, 1000, 1000)
+    C = Controller(500, 1500, 1000)
 
     # Connect to UAV
     print("Waiting for drone to connect...")
@@ -83,7 +103,8 @@ async def run(drone):
             break
 
     # Set message rate
-    await drone.telemetry.set_rate_attitude(50)
+    await drone.telemetry.set_rate_attitude(30)
+    await drone.telemetry.set_rate_position(30)
 
     # Connect to "camera" -> GPS
     print("Waiting for drone to have a global position estimate...")
@@ -125,15 +146,18 @@ async def run(drone):
         await drone.action.disarm()
         return
 
+    # Small pause before starting
+    await asyncio.sleep(1)
+
     # Data array 
     global data
 
     # Start timers
     C.timer = time.time()
     startTime = time.time()
-    stabilizeTimer = time.time()
+    # stabilizeTimer = time.time()
 
-    while(time.time() < startTime+8):
+    while(time.time() < startTime+10):
         # Get data 
         _, _, yaw = await getAttitude(drone)
         await asyncio.sleep(0.005)
