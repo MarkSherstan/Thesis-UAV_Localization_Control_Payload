@@ -16,13 +16,13 @@ class Controller:
 		self.maxValNE =    15   # Deg
 		self.minValD =	    0	# Normalized
 		self.maxValD =      1	# Normalized
-		self.minYawRate = -45	# Deg/s
-		self.maxYawRate =  45	# Deg/s
+		self.minYawRate = -30	# Deg/s
+		self.maxYawRate =  30	# Deg/s
 
 		# PID Gains: NORTH
-		self.kp_NORTH = 0.0
-		self.ki_NORTH = 0.0
-		self.kd_NORTH = 0.0
+		self.kp_NORTH = 0.0090
+		self.ki_NORTH = 0.0001
+		self.kd_NORTH = 0.0100
 
 		# PID Gains: EAST
 		self.kp_EAST = self.kp_NORTH
@@ -30,14 +30,14 @@ class Controller:
 		self.kd_EAST = self.kd_NORTH
 
 		# PID Gains: DOWN
-		self.kp_DOWN = 0.0010
-		self.ki_DOWN = 0.0005
-		self.kd_DOWN = 0.0005
+		self.kp_DOWN = 0.0006
+		self.ki_DOWN = 0.0006
+		self.kd_DOWN = 0.0002
 
 		# PID Gains: YAW
-		self.kp_YAW = 0.1
-		self.ki_YAW = 0.0
-		self.kd_YAW = 0.01
+		self.kp_YAW = 0.0100
+		self.ki_YAW = 0.0001
+		self.kd_YAW = 0.0050
 
 		# Previous errors
 		self.northPrevError = 0
@@ -86,7 +86,7 @@ class Controller:
 		rollControl, self.eastI = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
 		pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
 		thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-		yawControl, self.yawI = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW, debug=True)
+		yawControl, self.yawI = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
 		
 		# Update previous error
 		self.northPrevError = errorNorth
@@ -101,4 +101,4 @@ class Controller:
 		yawRate = self.constrain(yawControl, self.minYawRate, self.maxYawRate)
 
 		# Return the values
-		return rollAngle, pitchAngle, yawRate, thrust
+		return rollAngle, -pitchAngle, yawRate, thrust
