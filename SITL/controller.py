@@ -35,9 +35,9 @@ class Controller:
 		self.kd_DOWN = 0.0005
 
 		# PID Gains: YAW
-		self.kp_YAW = 0.0
+		self.kp_YAW = 0.1
 		self.ki_YAW = 0.0
-		self.kd_YAW = 0.0
+		self.kd_YAW = 0.01
 
 		# Previous errors
 		self.northPrevError = 0
@@ -66,7 +66,7 @@ class Controller:
 
 		# Debugging
 		if debug is True:
-			print('{:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, P*kp, I*ki, D*kd, (PID)))
+			print('{:<8.0f} {:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, 1/dt, P*kp, I*ki, D*kd, (PID)))
 		
 		# Return values 
 		return PID, I
