@@ -6,29 +6,55 @@ from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
 from controller import Controller
 
+# Global variable(s)
 data = []
-timeData = []
 
-def plotter(xData, yData):
+def plotter(rawData):
     # Import required package
     import matplotlib.pyplot as plt
 
+    # Local variables
+    timeData = []
+    xData = []
+    yData = []
+    zData = []
+    yawData = []
+
+    # Unpack the data
+    for ii in range(len(rawData)):
+        timeData.append(rawData[ii][0]) 
+        xData.append(rawData[ii][1])
+        yData.append(rawData[ii][2])
+        zData.append(rawData[ii][3])
+        yawData.append(rawData[ii][4])
+
     # Plot the results
-    fig, ax = plt.subplots()
-    ax.plot(xData, yData)
+    _, ax = plt.subplots()
+    ax.plot(timeData, xData, timeData, yData, timeData, zData)
+    ax.legend(['X', 'Y', 'Z'])
+    ax.set_xlabel('Time [s]')
+    ax.set_ylabel('Position [m]')
 
     # Show the plot
     plt.show()
 
 async def getAttitude(drone):
-    async for bodyAttitude in drone.telemetry.attitude_euler():
-        return bodyAttitude.roll_deg, bodyAttitude.pitch_deg, bodyAttitude.yaw_deg
+    try:
+        async for bodyAttitude in drone.telemetry.attitude_euler():
+            return bodyAttitude.roll_deg, bodyAttitude.pitch_deg, bodyAttitude.yaw_deg
+    except:
+        print('ERROR: Get Attitude')
+        return 0, 0, 0
 
 async def getPos(drone, xCal=0, yCal=0):
-    async for pos in drone.telemetry.position():
-        lat, lon, z = pos.latitude_deg, pos.longitude_deg, pos.relative_altitude_m
-        x, y, _, _ = utm.from_latlon(lat, lon)
-        return (x-xCal), (y-yCal), z
+    try:
+        async for pos in drone.telemetry.position():
+            lat, lon, z = pos.latitude_deg, pos.longitude_deg, pos.relative_altitude_m
+            x, y, _, _ = utm.from_latlon(lat, lon)
+            return (x-xCal), (y-yCal), z
+    except:
+        print('ERROR: Get Position')
+        return 0, 0, 0
 
 async def stabilizeLoop(stabilizeTimer):
     # Set parameters 
@@ -47,7 +73,7 @@ async def run(drone):
     await drone.connect(system_address="udp://:14540")
 
     # Connect to control scheme 
-    C = Controller(0, 0, 1000)
+    C = Controller(1000, 1000, 1000)
 
     # Connect to UAV
     print("Waiting for drone to connect...")
@@ -57,7 +83,7 @@ async def run(drone):
             break
 
     # Set message rate
-    drone.telemetry.set_rate_attitude(30)
+    await drone.telemetry.set_rate_attitude(50)
 
     # Connect to "camera" -> GPS
     print("Waiting for drone to have a global position estimate...")
@@ -77,13 +103,13 @@ async def run(drone):
     # Zero initial position
     xZero = 0
     yZero = 0
-    # for _ in range(100):
-    #     tempX, tempY, _ = await asyncio.ensure_future(getPos(drone))
-    #     xZero += tempX
-    #     yZero += tempY
+    for _ in range(100):
+        tempX, tempY, _ = await getPos(drone)
+        xZero += tempX
+        yZero += tempY
 
-    # xZero /= 100
-    # yZero /= 100
+    xZero /= 100
+    yZero /= 100
 
     # Start offboard
     print("-- Starting offboard")
@@ -101,7 +127,6 @@ async def run(drone):
 
     # Data array 
     global data
-    global timeData
 
     # Start timers
     C.timer = time.time()
@@ -110,22 +135,30 @@ async def run(drone):
 
     while(time.time() < startTime+8):
         # Get data 
-        _, _, yaw = await asyncio.ensure_future(getAttitude(drone))
-        x, y, z = await asyncio.ensure_future(getPos(drone, xCal=xZero, yCal=yZero))
+        _, _, yaw = await getAttitude(drone)
+        await asyncio.sleep(0.005)
+        x, y, z = await getPos(drone, xCal=xZero, yCal=yZero)
+        await asyncio.sleep(0.005)
 
         # Run control 
-        rollControl, pitchControl, yawControl, thrustControl = C.positionControl(x*1000, y*1000, z*1000, yaw)         
+        rollControl, pitchControl, yawControl, thrustControl = C.positionControl(y*1000, x*1000, z*1000, yaw)         
 
         # Execute control
-        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, thrustControl))
-        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
+        try:
+            await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, 0.0, thrustControl))
+            await asyncio.sleep(0.005)
+            await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
+            await asyncio.sleep(0.005)
+        except:
+            print('ERROR: Execute Control')
 
-        # Stabilize the sampling rate and save data
-        await stabilizeLoop(stabilizeTimer)
-        stabilizeTimer = time.time()
-        data.append(yaw)
-        timeData.append(time.time()-startTime)
-        
+        # Save data for plotting
+        data.append([time.time()-startTime, x, y, z, yaw])
+
+        # Stabilize the sampling rate
+        # await stabilizeLoop(stabilizeTimer)
+        # stabilizeTimer = time.time()
+
     # Once desired (with tolerance) reached -> break... (look at adding the buffer idea here)
     # Double check sampling rates 
 
@@ -154,4 +187,4 @@ if __name__ == "__main__":
         print("Closing")
     finally:
         # Plot the results
-        plotter(timeData, data)
+        plotter(data)
