@@ -16,8 +16,8 @@ class Controller:
 		self.maxValNE =    15   # Deg
 		self.minValD =	    0	# Normalized
 		self.maxValD =      1	# Normalized
-		self.minYawRate = -30	# Deg/s
-		self.maxYawRate =  30	# Deg/s
+		self.minYawRate = -10	# Deg/s
+		self.maxYawRate =  10	# Deg/s
 
 		# PID Gains: NORTH
 		self.kp_NORTH = 0.0090
@@ -35,9 +35,9 @@ class Controller:
 		self.kd_DOWN = 0.0002
 
 		# PID Gains: YAW
-		self.kp_YAW = 0.0100
-		self.ki_YAW = 0.0001
-		self.kd_YAW = 0.0050
+		self.kp_YAW = 0.100
+		self.ki_YAW = 0.001
+		self.kd_YAW = 0.050
 
 		# Previous errors
 		self.northPrevError = 0
