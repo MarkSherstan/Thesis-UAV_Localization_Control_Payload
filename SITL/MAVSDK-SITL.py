@@ -76,18 +76,6 @@ async def getPos(drone, xCal=0, yCal=0):
         print('ERROR: Get Position')
         return 0, 0, 0
 
-async def stabilizeLoop(stabilizeTimer):
-    # Set parameters 
-    totalLoopTime = 1/30
-
-    # Find current loop time and execute corresponding delay
-    timeDiff = time.time() - stabilizeTimer
-
-    if (timeDiff >= totalLoopTime):
-        pass
-    else:
-        await asyncio.sleep(totalLoopTime - timeDiff)
-
 async def run(drone):
     # Connect to drone
     await drone.connect(system_address="udp://:14540")
@@ -103,8 +91,8 @@ async def run(drone):
             break
 
     # Set message rate
-    await drone.telemetry.set_rate_attitude(30)
-    await drone.telemetry.set_rate_position(30)
+    await drone.telemetry.set_rate_attitude(35)
+    await drone.telemetry.set_rate_position(35)
 
     # Connect to "camera" -> GPS
     print("Waiting for drone to have a global position estimate...")
@@ -134,8 +122,8 @@ async def run(drone):
 
     # Start offboard
     print("-- Starting offboard")
-    for _ in range(200):
-        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
+    for _ in range(10):
+        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 5.0, 0.0))
 
     try:
         await drone.offboard.start()
@@ -155,7 +143,7 @@ async def run(drone):
     # Start timers
     C.timer = time.time()
     startTime = time.time()
-    # stabilizeTimer = time.time()
+    loopTimer = time.time()
 
     while(time.time() < startTime+10):
         # Get data 
@@ -164,12 +152,12 @@ async def run(drone):
         x, y, z = await getPos(drone, xCal=xZero, yCal=yZero)
         await asyncio.sleep(0.005)
 
-        # Run control 
+        # Run control scheme 
         rollControl, pitchControl, yawControl, thrustControl = C.positionControl(y*1000, x*1000, z*1000, yaw)         
 
         # Execute control
         try:
-            await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, 0.0, thrustControl))
+            await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, yaw, thrustControl))
             await asyncio.sleep(0.005)
             await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
             await asyncio.sleep(0.005)
@@ -179,12 +167,9 @@ async def run(drone):
         # Save data for plotting
         data.append([time.time()-startTime, x, y, z, yaw])
 
-        # Stabilize the sampling rate
-        # await stabilizeLoop(stabilizeTimer)
-        # stabilizeTimer = time.time()
-
-    # Once desired (with tolerance) reached -> break... (look at adding the buffer idea here)
-    # Double check sampling rates 
+        # Display sampling rate
+        print(round(1 / (time.time() - loopTimer)))
+        loopTimer = time.time()
 
     print("-- Stopping offboard")
     try:
