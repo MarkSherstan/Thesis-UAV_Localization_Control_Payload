@@ -10,43 +10,44 @@ from controller import Controller
 # Global variable(s)
 data = []
 
-def plotter(rawData):
+def plotter(rawData, desiredNorth, desiredEast, desiredDown):
     # Import required package
     import matplotlib.pyplot as plt
 
     # Local variables
     timeData = []
-    xData = []
-    yData = []
-    zData = []
+    north = []
+    east = []
+    down = []
     yawData = []
 
     # Unpack the data
     for ii in range(len(rawData)):
         timeData.append(rawData[ii][0]) 
-        xData.append(rawData[ii][2])
-        yData.append(rawData[ii][1])
-        zData.append(rawData[ii][3])
+        east.append(rawData[ii][1])
+        north.append(rawData[ii][2])
+        down.append(rawData[ii][3])
         yawData.append(rawData[ii][4])
 
     # Prep for plotting
     _, (ax1, ax2) = plt.subplots(2)
 
-    # Plot x, y, z
-    ax1.axhline(y=0.5, color='tab:green')
-    ax1.plot(timeData, xData, color='tab:green', linestyle='--')
+    # Plot NED
+    ax1.axhline(y=desiredNorth/1000, color='tab:orange')
+    ax1.plot(timeData, north, color='tab:orange', linestyle='--')
 
-    ax1.axhline(y=1.5, color='tab:orange')
-    ax1.plot(timeData, yData, color='tab:orange', linestyle='--')
+    ax1.axhline(y=desiredEast/1000, color='tab:green')
+    ax1.plot(timeData, east, color='tab:green', linestyle='--')
 
-    ax1.axhline(y=1.0, color='tab:blue')
-    ax1.plot(timeData, zData, color='tab:blue', linestyle='--')
+    ax1.axhline(y=desiredDown/1000, color='tab:blue')
+    ax1.plot(timeData, down, color='tab:blue', linestyle='--')
 
     # Format the plot
-    ax1.legend(['X Desired', 'X Actual', 'Y Desired', 'Y Actual', 'Z Desired', 'Z Actual'], ncol=3, loc='upper center')
+    ax1.legend(['N Desired', 'N Actual', 'E Desired', 'E Actual', 'D Desired', 'D Actual'], ncol=3, loc='upper center')
     ax1.set_xlabel('Time [s]')
     ax1.set_ylabel('Position [m]')
-    ax1.set_ylim(top=3)
+    _, ymax = ax1.get_ylim()
+    ax1.set_ylim(top=ymax+1)
 
     # Plot yaw
     ax2.axhline(y=0, color='k')
@@ -77,12 +78,12 @@ async def getPos(drone, xCal=0, yCal=0):
         print('ERROR: Get Position')
         return 0, 0, 0
 
-async def run(drone):
+async def run(drone, setNorth, setEast, setDown):
     # Connect to drone
     await drone.connect(system_address="udp://:14540")
 
     # Connect to control scheme 
-    C = Controller(500, 1500, 1000)
+    C = Controller(setNorth, setEast, setDown)
 
     # Connect to UAV
     print("Waiting for drone to connect...")
@@ -155,7 +156,7 @@ async def run(drone):
         x, y, z = await getPos(drone, xCal=xZero, yCal=yZero)
         await asyncio.sleep(sleepRate)
 
-        # Run control scheme 
+        # Run control scheme (y is North, x is East at 0 heading)
         rollControl, pitchControl, yawControl, thrustControl = C.positionControl(y*1000, x*1000, z*1000, yaw)         
 
         # Execute control
@@ -192,16 +193,21 @@ async def run(drone):
     print("Standard dev: ", round(statistics.stdev(freqList), 2))
 
 if __name__ == "__main__":
+    # Set desired position
+    setNorth = 0
+    setEast  = 0
+    setDown  = 1000
+
     # Connect to SITL
     drone = System()
 
     # Run the main program
     loop = asyncio.get_event_loop()
     try:
-        loop.run_until_complete(run(drone))
+        loop.run_until_complete(run(drone, setNorth, setEast, setDown))
     except KeyboardInterrupt:
         # Display message
         print("Closing")
     finally:
         # Plot the results
-        plotter(data)
+        plotter(data, setNorth, setEast, setDown)
