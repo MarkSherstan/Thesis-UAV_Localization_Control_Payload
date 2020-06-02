@@ -1,3 +1,4 @@
+from pymavlink import mavutil
 from threading import Thread
 import numpy as np
 import time
@@ -31,7 +32,7 @@ class Controller:
 		self.yawRate = 0.0
 		self.thrust = 0.5
 
-		# Update rate to flight controller
+		# Update rate to flight controller (20 Hz - Tested)
 		self.duration = 0.05
 
 		# Constraints for roll, pitch, yaw and thrust
@@ -115,6 +116,31 @@ class Controller:
 		)
 
 		# Send the constructed message
+		self.UAV.send_mavlink(msg)
+
+	def setDataRate(self):
+		# https://github.com/dronekit/dronekit-python/issues/822
+		# https://ardupilot.org/dev/docs/mavlink-requesting-data.html?highlight=interval
+		# https://stackoverflow.com/questions/50123680/implementing-mav-cmd-set-message-interval-on-dronekit
+		# https://discuss.ardupilot.org/t/set-stream-rate-for-a-specific-message/20504/4
+		# https://github.com/ArduPilot/ardupilot/issues/3880
+		# https://github.com/ArduPilot/ardupilot/issues/12782
+		# https://ardupilot.org/copter/docs/common-telemetry-port-setup.html
+
+		msg = self.UAV.message_factory.command_long_encode(
+			0, 0, # target system, target component
+			mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, # command
+			0, # confirmation
+			30, # param 1 (attitude)
+			30, # param 2 (data rate [Hz])
+			0, 0, 0, 0, 0) # param 3-7 not used
+		
+		# msg = self.UAV.message_factory.request_data_stream_encode(
+		# 	0, 0,
+		# 	mavutil.mavlink.MAV_DATA_STREAM_ALL,
+		# 	30, # Rate (Hz)
+		# 	1) # Turn on
+
 		self.UAV.send_mavlink(msg)
 
 	def euler2quaternion(self, roll, pitch, yaw):

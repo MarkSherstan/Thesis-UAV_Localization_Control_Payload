@@ -30,7 +30,7 @@ def main():
 	printFlag = True
 	printRate = 0.75
 	logFlag   = True
-	logRate   = 1/50
+	logRate   = 1/60
 
 	# Connect to the Vehicle
 	connection_string = "/dev/ttyS0"
@@ -47,7 +47,7 @@ def main():
 		time.sleep(0.1)
 
 	# Start controller and thread
-	northDesired = 150
+	northDesired = 200
 	eastDesired  = 0
 	downDesired  = 0
 	C = Controller(vehicle, northDesired, eastDesired, downDesired)
