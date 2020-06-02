@@ -36,9 +36,9 @@ async def run():
             print(f"Drone discovered with UUID: {state.uuid}")
             break
 
-    # Set message rate
-    await drone.telemetry.set_rate_attitude(35)
-    await asyncio.sleep(1) 
+    # Set message rate (only works with PX4)
+    # await drone.telemetry.set_rate_attitude(35)
+    # await asyncio.sleep(1) 
     
     # Connect to control scheme 
     C = Controller(250, 0, 0)
@@ -87,11 +87,11 @@ async def run():
         freqLocal = (1 / (time.time() - loopTimer))
         freqList.append(freqLocal)
         print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.0f}'.format(freqLocal, northV, eastV, downV, yawV))
-		print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+        print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
         loopTimer = time.time()
         
         # Log data
-        data.append([time.time-startTime, freqLocal, northV, eastV, downV, yawV ])
+        data.append([time.time()-startTime, freqLocal, northV, eastV, downV, yawV, roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl])
         
           
 if __name__ == "__main__":
@@ -101,8 +101,7 @@ if __name__ == "__main__":
         loop.run_until_complete(run())
     except KeyboardInterrupt:
         print("Closing...") 
-        print("Average loop rate: ", round(statistics.mean(freqList),2))
-        print("Standard dev: ", round(statistics.stdev(freqList), 2))
+        print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
         
         # print(data) -> Add pandas logging here 
 
