@@ -1,3 +1,4 @@
+import statistics
 import asyncio
 import time
 import utm
@@ -134,11 +135,13 @@ async def run(drone):
         await drone.action.disarm()
         return
 
-    # Small pause before starting
+    # Small pause before starting and set sleep rates
     await asyncio.sleep(1)
+    sleepRate = 0.01
 
-    # Data array 
+    # Data variables 
     global data
+    freqList = []
 
     # Start timers
     C.timer = time.time()
@@ -148,9 +151,9 @@ async def run(drone):
     while(time.time() < startTime+10):
         # Get data 
         _, _, yaw = await getAttitude(drone)
-        await asyncio.sleep(0.005)
+        await asyncio.sleep(sleepRate)
         x, y, z = await getPos(drone, xCal=xZero, yCal=yZero)
-        await asyncio.sleep(0.005)
+        await asyncio.sleep(sleepRate)
 
         # Run control scheme 
         rollControl, pitchControl, yawControl, thrustControl = C.positionControl(y*1000, x*1000, z*1000, yaw)         
@@ -158,17 +161,19 @@ async def run(drone):
         # Execute control
         try:
             await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, yaw, thrustControl))
-            await asyncio.sleep(0.005)
+            await asyncio.sleep(sleepRate)
             await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
-            await asyncio.sleep(0.005)
+            await asyncio.sleep(sleepRate)
         except:
             print('ERROR: Execute Control')
 
         # Save data for plotting
         data.append([time.time()-startTime, x, y, z, yaw])
 
-        # Display sampling rate
-        print(round(1 / (time.time() - loopTimer)))
+        # Record and display sampling rate
+        freqLocal = (1 / (time.time() - loopTimer))
+        freqList.append(freqLocal)
+        print(round(freqLocal))
         loopTimer = time.time()
 
     print("-- Stopping offboard")
@@ -182,6 +187,9 @@ async def run(drone):
     await drone.action.land()
     await asyncio.sleep(2)
 
+    # Print samling rate info
+    print("Average loop rate: ", round(statistics.mean(freqList),2))
+    print("Standard dev: ", round(statistics.stdev(freqList), 2))
 
 if __name__ == "__main__":
     # Connect to SITL
