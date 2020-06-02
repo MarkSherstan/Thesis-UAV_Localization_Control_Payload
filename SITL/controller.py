@@ -20,14 +20,14 @@ class Controller:
 		self.maxYawRate =  10	# Deg/s
 
 		# PID Gains: NORTH
-		self.kp_NORTH = 0.0090
-		self.ki_NORTH = 0.0001
-		self.kd_NORTH = 0.0100
+		self.kp_NORTH = 0.008
+		self.ki_NORTH = 0.002
+		self.kd_NORTH = 0.010
 
 		# PID Gains: EAST
-		self.kp_EAST = self.kp_NORTH
-		self.ki_EAST = self.ki_NORTH
-		self.kd_EAST = self.kd_NORTH
+		self.kp_EAST = 0.009
+		self.ki_EAST = 0.002
+		self.kd_EAST = 0.010
 
 		# PID Gains: DOWN
 		self.kp_DOWN = 0.0006
@@ -35,9 +35,9 @@ class Controller:
 		self.kd_DOWN = 0.0002
 
 		# PID Gains: YAW
-		self.kp_YAW = 0.100
-		self.ki_YAW = 0.001
-		self.kd_YAW = 0.050
+		self.kp_YAW = 0.080
+		self.ki_YAW = 0.004
+		self.kd_YAW = 0.040
 
 		# Previous errors
 		self.northPrevError = 0

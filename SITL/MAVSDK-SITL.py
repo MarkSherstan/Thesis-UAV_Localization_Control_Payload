@@ -55,7 +55,7 @@ def plotter(rawData, desiredNorth, desiredEast, desiredDown):
     ax2.legend(['Yaw Desired', 'Yaw Actual'])
     ax2.set_xlabel('Time [s]')
     ax2.set_ylabel('Angle [deg]')
-    ax2.set_ylim(-5,5)
+    ax2.set_ylim(-10,10)
 
     # Show the plot
     plt.show()
@@ -194,8 +194,8 @@ async def run(drone, setNorth, setEast, setDown):
 
 if __name__ == "__main__":
     # Set desired position
-    setNorth = 0
-    setEast  = 0
+    setNorth = 750
+    setEast  = 500
     setDown  = 1000
 
     # Connect to SITL
