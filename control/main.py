@@ -31,6 +31,7 @@ async def run():
             break
 
     # Set initial set point for attitiude (required)
+    # Client code must specify a setpoint before starting offboard mode.
     await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
 
     # Connect to control scheme 
@@ -72,3 +73,15 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("The end")    
         # print(storage)    
+
+
+# Usage
+#   tmux (or tmux attach)
+#   cd /home/odroid/MAVSDK/build/default/src/backend/src
+#   ./mavsdk_server -p 50051 serial:///dev/ttyS1:921600
+#   cntrl+b 
+#   d
+#
+#   workon cv
+#   cd ~/UAV-Sampling-Control-System/control
+#   python main.py
