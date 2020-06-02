@@ -4,8 +4,9 @@ import time
 from mavsdk import System
 from mavsdk import (Attitude, AttitudeRate, OffboardError, Telemetry)
 
+from multiprocessing import Process, Queue
 from controller import Controller
-
+from vision import Vision
 
 # Global storage variable
 storage = []
@@ -30,29 +31,39 @@ async def run():
             break
 
     # Set initial set point for attitiude (required)
+    # Client code must specify a setpoint before starting offboard mode.
     await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
-  
+
     # Connect to control scheme 
     C = Controller(250, 0, 0)
     C.startTime = time.time()
     
+    # Connect to vision, create the queue, and start the core
+    V = Vision()
+    Q = Queue()
+    P = Process(target=V.processFrame, args=(Q, ))
+    P.start()
+
     # Start timer 
     timer = time.time()
     global storage
     
     while(True):
         # Send attitude command
-        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.5))
-        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, -45, 0.0))
+        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.6))
+        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, 0.0, 0.6))
+                
+        # Get current attitude
+        roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
+
+        # Quick test of controller class
+        rollAngle, pitchAngle, yawRate, thrust = await C.positionControl(20, 30, 10, 4)
         
-        # print(drone.)
-
-        time.sleep(1)
-
-        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.5))
-        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, 45, 0.0))
-
-        time.sleep(1)
+        # Log data and print
+        print(1/(time.time()-timer), roll, pitch, yaw, Q.get())
+        timer = time.time()
+        # storage.append([time.time(), 1/(time.time()-timer), roll, pitch, yaw])
+        # time.sleep(0.001)
 
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
@@ -62,3 +73,15 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         print("The end")    
         # print(storage)    
+
+
+# Usage
+#   tmux (or tmux attach)
+#   cd /home/odroid/MAVSDK/build/default/src/backend/src
+#   ./mavsdk_server -p 50051 serial:///dev/ttyS1:921600
+#   cntrl+b 
+#   d
+#
+#   workon cv
+#   cd ~/UAV-Sampling-Control-System/control
+#   python main.py
