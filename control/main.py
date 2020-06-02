@@ -1,3 +1,4 @@
+import statistics
 import asyncio
 import time 
 
@@ -8,19 +9,24 @@ from multiprocessing import Process, Queue
 from controller import Controller
 from vision import Vision
 
-# Global storage variable
-storage = []
+# Global data variable
+data = []
+freqList = []
 
 async def getAttitude(drone):
-    async for bodyAttitude in drone.telemetry.attitude_euler():
-        return bodyAttitude.roll_deg, bodyAttitude.pitch_deg, bodyAttitude.yaw_deg
+    try:
+        async for bodyAttitude in drone.telemetry.attitude_euler():
+            return bodyAttitude.roll_deg, bodyAttitude.pitch_deg, bodyAttitude.yaw_deg
+    except:
+        print('ERROR: Get Attitude')
+        return -1, -1, -1
 
+def getVision(Q):
+    temp = Q.get()
+    return temp[0], temp[1], temp[2], temp[3]
+    
 async def run():
-    # Mac OS
-    # drone = System()
-    # await drone.connect(system_address="serial:///dev/cu.usbmodem14101:921600")
-
-    # Linux
+    # Connect to the drone
     drone = System(mavsdk_server_address='localhost', port=50051)
     await drone.connect()
 
@@ -30,49 +36,75 @@ async def run():
             print(f"Drone discovered with UUID: {state.uuid}")
             break
 
-    # Set initial set point for attitiude (required)
-    # Client code must specify a setpoint before starting offboard mode.
-    await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
-
+    # Set message rate
+    await drone.telemetry.set_rate_attitude(35)
+    await asyncio.sleep(1) 
+    
     # Connect to control scheme 
     C = Controller(250, 0, 0)
-    C.startTime = time.time()
-    
+ 
     # Connect to vision, create the queue, and start the core
     V = Vision()
     Q = Queue()
     P = Process(target=V.processFrame, args=(Q, ))
     P.start()
 
-    # Start timer 
-    timer = time.time()
-    global storage
+    # Client code must specify a setpoint before starting offboard mode.
+    for _ in range(10):
+        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.0))
+
+    # Variables
+    global data
+    global freqList
+    sleepRate = 0.01
+    
+    # Start timers
+    startTime = time.time()
+    loopTimer = time.time()
+    C.timer = time.time()
     
     while(True):
-        # Send attitude command
-        await drone.offboard.set_attitude(Attitude(0.0, 0.0, 0.0, 0.6))
-        await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, 0.0, 0.6))
-                
-        # Get current attitude
-        roll, pitch, yaw = await asyncio.ensure_future(getAttitude(drone))
-
-        # Quick test of controller class
-        rollAngle, pitchAngle, yawRate, thrust = await C.positionControl(20, 30, 10, 4)
+        # Get vision data
+        northV, eastV, downV, yawV = getVision(Q)
         
-        # Log data and print
-        print(1/(time.time()-timer), roll, pitch, yaw, Q.get())
-        timer = time.time()
-        # storage.append([time.time(), 1/(time.time()-timer), roll, pitch, yaw])
-        # time.sleep(0.001)
+        # Calculate controller outputs
+        rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
 
+        # Execute control
+        try:
+            await drone.offboard.set_attitude(Attitude(rollControl, pitchControl, yaw, thrustControl))
+            await asyncio.sleep(sleepRate)
+            await drone.offboard.set_attitude_rate(AttitudeRate(0.0, 0.0, yawControl, thrustControl))
+            await asyncio.sleep(sleepRate)
+        except:
+            print('ERROR: Execute Control')
+        
+        # Get current attitude
+        roll, pitch, yaw = await getAttitude(drone)
+        await asyncio.sleep(sleepRate)
+
+        # Print data
+        freqLocal = (1 / (time.time() - loopTimer))
+        freqList.append(freqLocal)
+        print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.0f}'.format(freqLocal, northV, eastV, downV, yawV))
+		print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+        loopTimer = time.time()
+        
+        # Log data
+        data.append([time.time-startTime, freqLocal, northV, eastV, downV, yawV ])
+        
+          
 if __name__ == "__main__":
     loop = asyncio.get_event_loop()
 
     try:
         loop.run_until_complete(run())
     except KeyboardInterrupt:
-        print("The end")    
-        # print(storage)    
+        print("Closing...") 
+        print("Average loop rate: ", round(statistics.mean(freqList),2))
+        print("Standard dev: ", round(statistics.stdev(freqList), 2))
+        
+        # print(data) -> Add pandas logging here 
 
 
 # Usage
