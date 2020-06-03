@@ -47,7 +47,7 @@ async def run():
     # await asyncio.sleep(1) 
     
     # Connect to control scheme
-    northDesired = 250
+    northDesired = 500
     eastDesired = 0
     downDesired = 0
     C = Controller(northDesired, eastDesired, downDesired)
@@ -73,8 +73,10 @@ async def run():
     C.timer = time.time()
     
     while(True):
-        # Get vision data
+        # Get vision data and clear the queue
         northV, eastV, downV, yawV = getVision(Q)
+        while not Q.empty():
+            Q.get()
         
         # Calculate controller outputs
         rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
