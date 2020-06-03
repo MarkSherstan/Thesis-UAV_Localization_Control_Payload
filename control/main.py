@@ -1,4 +1,6 @@
+import pandas as pd
 import statistics
+import datetime
 import asyncio
 import time 
 
@@ -21,6 +23,10 @@ async def getAttitude(drone):
         print('ERROR: Get Attitude')
         return -1, -1, -1
 
+async def getFlightMode(drone):
+    async for flightMode in drone.telemetry.flight_mode():
+        return flightMode
+
 def getVision(Q):
     temp = Q.get()
     return temp[0], temp[1], temp[2], temp[3]
@@ -40,8 +46,11 @@ async def run():
     # await drone.telemetry.set_rate_attitude(35)
     # await asyncio.sleep(1) 
     
-    # Connect to control scheme 
-    C = Controller(250, 0, 0)
+    # Connect to control scheme
+    northDesired = 250
+    eastDesired = 0
+    downDesired = 0
+    C = Controller(northDesired, eastDesired, downDesired)
  
     # Connect to vision, create the queue, and start the core
     V = Vision()
@@ -91,7 +100,11 @@ async def run():
         loopTimer = time.time()
         
         # Log data
-        data.append([time.time()-startTime, freqLocal, northV, eastV, downV, yawV, roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl])
+        data.append([time.time()-startTime, freqLocal, 
+                    northV, eastV, downV, yawV, 
+                    northDesired, eastDesired, downDesired, 
+                    roll, pitch, yaw, 
+                    rollControl, pitchControl, yawControl, thrustControl])
         
           
 if __name__ == "__main__":
@@ -100,10 +113,22 @@ if __name__ == "__main__":
     try:
         loop.run_until_complete(run())
     except KeyboardInterrupt:
+        # Print closing remarks
         print("Closing...") 
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
-        
-        # print(data) -> Add pandas logging here 
+
+        # Write data to a data frame
+        df = pd.DataFrame(data, columns=['Time', 'Freq',
+                            'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
+                            'North-Desired', 'East-Desired', 'Down-Desired',
+                            'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
+                            'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control'])
+
+        # Save data to CSV
+        now = datetime.datetime.now()
+        fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
+        df.to_csv(fileName, index=None, header=True)
+        print('File saved to:' + fileName)
 
 
 # Usage
@@ -114,5 +139,5 @@ if __name__ == "__main__":
 #   d
 #
 #   workon cv
-#   cd ~/UAV-Sampling-Control-System/control
+#   cd /home/odroid/Desktop/UAV-Sampling-Control-System/control
 #   python main.py
