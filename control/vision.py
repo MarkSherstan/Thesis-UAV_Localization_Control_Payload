@@ -130,9 +130,9 @@ class Vision:
                 rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist)
 
                 # Save the distances
-                self.North = (tvec[0][0][2]*100 - self.offsetNorth)
-                self.East  = (tvec[0][0][0]*100 - self.offsetEast)
-                self.Down  = (tvec[0][0][1]*100 - self.offsetDown)
+                self.North = (tvec[0][0][2]*1000 - self.offsetNorth)
+                self.East  = (tvec[0][0][0]*1000 - self.offsetEast)
+                self.Down  = (tvec[0][0][1]*1000 - self.offsetDown)
 
                 # Convert to rotation matrix and extract yaw
                 R, _ = cv2.Rodrigues(rvec)
