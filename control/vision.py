@@ -137,7 +137,7 @@ class Vision:
                 # Convert to rotation matrix and extract yaw
                 R, _ = cv2.Rodrigues(rvec)
                 eulerAngles = self.rotationMatrixToEulerAngles(R)
-                self.Yaw = eulerAngles[1]
+                self.Yaw = math.degrees(eulerAngles[1])
             else:
                 pass
 
