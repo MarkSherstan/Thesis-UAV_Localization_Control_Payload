@@ -65,7 +65,7 @@ async def run():
     # Variables
     global data
     global freqList
-    sleepRate = 0.01
+    sleepRate = 0.02
     
     # Start timers
     startTime = time.time()
@@ -95,7 +95,7 @@ async def run():
         # Print data
         freqLocal = (1 / (time.time() - loopTimer))
         freqList.append(freqLocal)
-        print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.0f}'.format(freqLocal, northV, eastV, downV, yawV))
+        print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.2f}'.format(freqLocal, northV, eastV, downV, yawV))
         print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
         loopTimer = time.time()
         
@@ -115,6 +115,9 @@ if __name__ == "__main__":
     except KeyboardInterrupt:
         # Print closing remarks
         print("Closing...") 
+        time.sleep(1)
+    finally:
+        # Post some sampling data
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
         # Write data to a data frame
