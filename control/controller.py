@@ -9,8 +9,8 @@ class Controller:
 		self.yawDesired   = yawDesired
 
 		# Constraints
-		self.minValNE =   -15	# Deg
-		self.maxValNE =    15   # Deg
+		self.minValNE =   -10	# Deg
+		self.maxValNE =    10   # Deg
 		self.minValD =	    0	# Normalized
 		self.maxValD =      1	# Normalized
 		self.minYawRate = -10	# Deg/s
@@ -63,7 +63,7 @@ class Controller:
 
 		# Debugging
 		if debug is True:
-			print('{:<8.0f} {:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, 1/dt, P*kp, I*ki, D*kd, (PID)))
+			print('{:<8.0f} {:<8.0f} {:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, 1/dt, I, P*kp, I*ki, D*kd, (PID)))
 		
 		# Return values 
 		return PID, I
@@ -85,6 +85,12 @@ class Controller:
 		thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
 		yawControl, self.yawI = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
 		
+		# Constrain I terms to prevent integral windup
+		# self.northI = self.constrain(self.northI, self.minValNE/2, self.maxValNE/2) 
+		# self.eastI  = self.constrain(self.eastI, self.minValNE/2, self.maxValNE/2)
+		# self.downI  = self.constrain(self.downI, self.min)
+		# self.yawI   = self.constrain(self.yawI, )
+
 		# Update previous error
 		self.northPrevError = errorNorth
 		self.eastPrevError = errorEast
