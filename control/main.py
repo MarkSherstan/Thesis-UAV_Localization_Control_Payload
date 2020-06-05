@@ -25,14 +25,14 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000) #, source_system=1, source_component=1)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000)
 
     # Set attitude request message rate (everything else is default 4 Hz)
     msg = vehicle.message_factory.request_data_stream_encode(
-    0, 0,
-    mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
-    100, # Rate (Hz)
-    1)  # Turn on
+        0, 0,
+        mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
+        100, # Rate (Hz)
+        1)  # Turn on
     vehicle.send_mavlink(msg)    
     
     # Connect to vision, create the queue, and start the core
@@ -54,7 +54,7 @@ def main():
     # Loop timer
     startTime = time.time()
     loopTimer = time.time()
-    C.startTimers()
+    C.startController()
     
     try:
         while(True):
@@ -84,10 +84,7 @@ def main():
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
-    finally:
-        # Get message rate
-        C.close()
-        
+    finally:        
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 

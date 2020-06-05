@@ -5,8 +5,6 @@ class Controller:
     def __init__(self, northDesired, eastDesired, downDesired, vehicle, yawDesired=0):
         # Vehicle class
         self.UAV = vehicle
-        self.msgCounter = 0 
-        self.msgTimer = None
         
         # Desired position
         self.northDesired = northDesired
@@ -57,8 +55,7 @@ class Controller:
         # Timing
         self.timer = None
     
-    def startTimers(self):
-        self.msgTimer = time.time()
+    def startController(self):
         self.timer = time.time()
     
     def euler2quaternion(self, roll, pitch, yaw):
@@ -104,9 +101,6 @@ class Controller:
         
         # Send the constructed message
         self.UAV.send_mavlink(msg)
-        
-        # Log messages sent
-        self.msgCounter += 1
     
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
@@ -165,6 +159,3 @@ class Controller:
         
         # Return the values
         return rollAngle, -pitchAngle, yawRate, thrust
-
-    def close(self):
-        print('Message rate: ', round((self.msgCounter / (time.time() - self.msgTimer))))
