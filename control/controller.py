@@ -162,6 +162,9 @@ class Controller:
 
         # Send the values
         self.sendAttitudeTarget(rollAngle, -pitchAngle, yawRate, thrust)
+        
+        # Return the values
+        return rollAngle, -pitchAngle, yawRate, thrust
 
     def close(self):
         print('Message rate: ', round((self.msgCounter / (time.time() - self.msgTimer))))
