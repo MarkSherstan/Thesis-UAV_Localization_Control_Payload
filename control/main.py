@@ -1,5 +1,5 @@
-from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
 from multiprocessing import Process, Queue
+from dronekit import connect, VehicleMode
 from controller import Controller
 from pymavlink import mavutil
 from vision import Vision
@@ -51,6 +51,11 @@ def main():
     freqList = []
     data = []
     
+    # Wait till we switch modes to prevent integral windup
+    while(vehicle.mode.name != 'GUIDED_NOGPS'):
+        print(vehicle.mode.name)
+        time.sleep(0.2)
+
     # Loop timer
     startTime = time.time()
     loopTimer = time.time()
@@ -59,7 +64,7 @@ def main():
     try:
         while(True):
             # Get vision data
-            northV, eastV, downV, yawV = getVision(Q) # Check these loop rates. Do we need to clear the q?
+            northV, eastV, downV, yawV = getVision(Q)
             
             # Calculate control and execture
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
@@ -70,12 +75,12 @@ def main():
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
-            print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.2f}'.format(freqLocal, northV, eastV, downV, yawV))
-            print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.2f}'.format(freqLocal, northV, eastV, downV, yawV))
+            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             loopTimer = time.time()
 
             # Log data
-            data.append([time.time()-startTime, freqLocal, 
+            data.append([vehicle.mode.name, time.time()-startTime, freqLocal, 
                         northV, eastV, downV, yawV, 
                         northDesired, eastDesired, downDesired, 
                         roll, pitch, yaw, 
@@ -89,7 +94,7 @@ def main():
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
         # Write data to a data frame
-        df = pd.DataFrame(data, columns=['Time', 'Freq',
+        df = pd.DataFrame(data, columns=['Mode', 'Time', 'Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
