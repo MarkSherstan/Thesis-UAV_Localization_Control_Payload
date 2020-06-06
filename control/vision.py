@@ -29,7 +29,7 @@ class Vision:
         self.dist = np.array([[0.08141624, -0.19751567, -0.00318761, 0.01176431, 0.16102671]])
 
         # Marker properties
-        self.lengthMarker = 0.176
+        self.lengthMarker = 0.247 #0.176
         self.markerID = 17
 
         # Offset values in cm
