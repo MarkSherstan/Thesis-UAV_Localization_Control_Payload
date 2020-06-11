@@ -139,7 +139,7 @@ class Vision:
 
                 # Convert from vector to rotation matrix and then transform to body frame
                 R, _ = cv2.Rodrigues(rvec)
-                R, t = self.transform2Body(R, tvec)
+                R, t = self.transform2Body(R, tvec[0])
 
                 # Get yaw
                 _, _, yaw = self.rotationMatrix2EulerAngles(R)
