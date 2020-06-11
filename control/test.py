@@ -3,6 +3,7 @@ from controller import Controller
 from pymavlink import mavutil
 import time
 import math
+import pandas as pd
 
 class TEST:
     def __init__(self, vehicle):
@@ -53,6 +54,9 @@ class TEST:
         # Send the constructed message
         self.UAV.send_mavlink(msg)
 
+        print(roll, pitch)
+        
+
 
 def main():
     # Connect to the Vehicle
@@ -71,16 +75,25 @@ def main():
     # Connect to class 
     t = TEST(vehicle)
     
-    # ramp test
+    # ramp test (deg)
+    ii = -7
+    data = []
+
+    # Wait till we switch modes to prevent integral windup
+    while(vehicle.mode.name != 'GUIDED_NOGPS'):
+        print(vehicle.mode.name)
+        time.sleep(0.2)
+
+    # Start timers
     startTime = time.time()
-    ii = -0.2
     
     # Try this
     try:
         while(time.time() < startTime + 10):
-            t.sendAttitudeTarget(ii, 0, 0, 0)
-            time.sleep(1/40)
-            ii += 0.001
+            data.append([time.time(), ii])
+            t.sendAttitudeTarget(ii, 0, 0, 0.53)
+            time.sleep(1/30)
+            ii += 0.05
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
@@ -89,6 +102,10 @@ def main():
         vehicle.close()
         print('Vehicle closed')
 
+        df = pd.DataFrame(data, columns=['time', 'input'])
+        fileName = "test.csv"
+        df.to_csv(fileName, index=None, header=True)
+        print('File saved to:' + fileName)
 
 if __name__ == "__main__":
     main()
