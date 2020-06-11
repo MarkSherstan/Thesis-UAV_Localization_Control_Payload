@@ -21,6 +21,7 @@ class Vision:
 
         # Performance parameters
         self.frameCount = 0
+        self.poseCount = 0
         self.frameStartTime = None
 
         # Camera calibration matrix 
@@ -113,7 +114,8 @@ class Vision:
 
         # Release the camera connection
         print('Camera closed')
-        print('Performance rate: ', round(counter / (endTime - startTime),2))
+        print('Vision loop rate: ', round(counter / (endTime - startTime),2))
+        print('Pose rate: ', round(self.poseCount / (endTime - startTime),2))
 
     def getPose(self):
         # Convert frame to gray and rotate to normal
@@ -143,6 +145,9 @@ class Vision:
                 self.East  = t[1]
                 self.Down  = t[2]
                 self.Yaw   = -(yaw - 90)
+
+                # Increment counter 
+                self.poseCount += 1
             else:
                 pass
 
