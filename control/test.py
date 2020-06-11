@@ -71,18 +71,23 @@ def main():
     # Connect to class 
     t = TEST(vehicle)
     
+    # ramp test
+    startTime = time.time()
+    ii = -0.2
+    
     # Try this
     try:
-        while(True):
-            t.sendAttitudeTarget(0, 0, 0, 0.2)
+        while(time.time() < startTime + 10):
+            t.sendAttitudeTarget(ii, 0, 0, 0)
             time.sleep(1/40)
-            
+            ii += 0.001
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
     finally:     
         # End and disconnect          
         vehicle.close()
+        print('Vehicle closed')
 
 
 if __name__ == "__main__":
