@@ -39,7 +39,11 @@ class Vision:
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output variables 
+        # Output variables: Position of ArUco marker relative to UAV (observing from behind)
+        #   North (should always be positive)
+        #   East  (negative when UAV is to the right of the target)
+        #   Down  (negative when UAV is below the target)
+        #   Yaw   (Positive clockwise viewing UAV from top)
         self.North = 0
         self.East  = 0
         self.Down  = 0 
