@@ -9,6 +9,19 @@ import datetime
 import math
 import time 
 
+class movingAverage:
+    def __init__(self, windowSize=3):
+        self.windowSize = windowSize
+        self.values = []
+        self.sum = 0
+
+    def avg(self, value):
+        self.values.append(value)
+        self.sum += value
+        if len(self.values) > self.windowSize:
+            self.sum -= self.values.pop(0)
+        return float(self.sum) / len(self.values)
+
 def getVision(Q):
     # Vision Data
     temp = Q.get()
@@ -47,6 +60,12 @@ def main():
     downDesired = 0
     C = Controller(northDesired, eastDesired, downDesired, vehicle)
 
+    # Create a low pass filter
+    nAvg = movingAverage()
+    eAvg = movingAverage()
+    dAvg = movingAverage()
+    yAvg = movingAverage()
+    
     # Logging variables
     freqList = []
     data = []
@@ -65,6 +84,12 @@ def main():
         while(True):
             # Get vision data
             northV, eastV, downV, yawV = getVision(Q)
+            
+            # Smooth vision data with moving average low pass filter
+            northV = nAvg.avg(northV)
+            eastV  = eAvg.avg(eastV)
+            downV  = dAvg.avg(downV)
+            yawV   = yAvg.avg(yawV)
             
             # Calculate control and execture
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
