@@ -156,8 +156,8 @@ class Controller:
         yawRate    = self.constrain(yawControl, self.yawRateConstrain[0], self.yawRateConstrain[1])
 
         # Inverse direction of controller if required
-        rollAngle  = rollAngle
-        pitchAngle = pitchAngle
+        rollAngle  = -rollAngle
+        pitchAngle = -pitchAngle
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
