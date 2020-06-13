@@ -12,30 +12,28 @@ class Controller:
         self.downDesired  = downDesired
         self.yawDesired   = yawDesired
 
-        # Constraints
-        self.minValNE =   -10	# Deg
-        self.maxValNE =    10   # Deg
-        self.minValD =	    0	# Normalized
-        self.maxValD =      1	# Normalized
-        self.minYawRate = -10	# Deg/s
-        self.maxYawRate =  10	# Deg/s
+        # Maximum controller output constraints
+        self.rollConstrain  = [-10, 10]	            # Deg
+        self.pitchConstrain = self.rollConstrain    # Deg
+        self.thrustConstrain = [0, 1]	            # Normalized
+        self.yawRateConstrain = [-15, 15]           # Deg / s
 
-        # PID Gains: NORTH
+        # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.008
         self.ki_NORTH = 0.002
         self.kd_NORTH = 0.010
 
-        # PID Gains: EAST
-        self.kp_EAST = 0.009
-        self.ki_EAST = 0.002
-        self.kd_EAST = 0.010
+        # PID Gains: EAST (roll)
+        self.kp_EAST = self.kp_NORTH
+        self.ki_EAST = self.ki_NORTH
+        self.kd_EAST = self.kd_NORTH
 
-        # PID Gains: DOWN
+        # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.0006
         self.ki_DOWN = 0.0006
         self.kd_DOWN = 0.0002
 
-        # PID Gains: YAW
+        # PID Gains: YAW (yaw rate)
         self.kp_YAW = 0.080
         self.ki_YAW = 0.004
         self.kd_YAW = 0.040
@@ -51,6 +49,12 @@ class Controller:
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
+
+        # Integral term constraints 
+        self.northIcontstrain = [-1000, 1000]
+        self.eastIcontstrain = [-1000, 1000]
+        self.downIcontstrain = [-1000, 1000]
+        self.yawIcontstrain = [-1000, 1000]
 
         # Timing
         self.timer = None
@@ -80,19 +84,16 @@ class Controller:
         return [q0, q1, q2, q3]
 
     def sendAttitudeTarget(self, roll, pitch, yawRate, thrustRate):
-        # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
-        # Set yaw to current yaw value 
-        #                                       (try changing this later to just 0)
-        yaw = self.UAV.attitude.yaw
+        # Convert from degrees to radians
         yawRate = math.radians(yawRate)
 
-        # Create the mavlink message
+        # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
         msg = self.UAV.message_factory.set_attitude_target_encode(
             0, # time_boot_ms
             0, # Target system
             0, # Target component
             0b00000000, # If bit is set corresponding input ignored (mappings)
-            self.euler2quaternion(roll, pitch, yaw), # Quaternion
+            self.euler2quaternion(roll, pitch, 0), # Quaternion
             0, # Body roll rate in radian
             0, # Body pitch rate in radian
             yawRate,   # Body yaw rate in rad/s
@@ -131,16 +132,16 @@ class Controller:
         self.timer = time.time()
 
         # Run some control
-        rollControl, self.eastI = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
         pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-        yawControl, self.yawI = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
+        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
         
         # Constrain I terms to prevent integral windup
-        # self.northI = self.constrain(self.northI, self.minValNE/2, self.maxValNE/2) 
-        # self.eastI  = self.constrain(self.eastI, self.minValNE/2, self.maxValNE/2)
-        # self.downI  = self.constrain(self.downI, self.min)
-        # self.yawI   = self.constrain(self.yawI, )
+        self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
+        self.eastI  = self.constrain(self.eastI, self.eastIcontstrain[0], self.eastIcontstrain[1]) 
+        self.downI  = self.constrain(self.downI, self.downIcontstrain[0], self.downIcontstrain[1])
+        self.yawI   = self.constrain(self.yawI, self.yawIcontstrain[0], self.yawIcontstrain[1])
 
         # Update previous error
         self.northPrevError = errorNorth
@@ -148,14 +149,20 @@ class Controller:
         self.downPrevError = errorDown
         self.yawPrevError = yawActual
 
-        # Set and constrain the controller values
-        rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
-        pitchAngle = self.constrain(pitchControl, self.minValNE, self.maxValNE)
-        thrust = self.constrain(thrustControl, self.minValD, self.maxValD)
-        yawRate = self.constrain(yawControl, self.minYawRate, self.maxYawRate)
+        # Constrain the controller values
+        rollAngle  = self.constrain(rollControl, self.rollConstrain[0], self.rollConstrain[1])
+        pitchAngle = self.constrain(pitchControl, self.pitchConstrain[0], self.pitchConstrain[1])
+        thrust     = self.constrain(thrustControl, self.thrustConstrain[0], self.thrustConstrain[1])
+        yawRate    = self.constrain(yawControl, self.yawRateConstrain[0], self.yawRateConstrain[1])
+
+        # Inverse direction of controller if required
+        rollAngle  = rollAngle
+        pitchAngle = pitchAngle
+        thrust     = thrust
+        yawRate    = yawRate
 
         # Send the values
-        self.sendAttitudeTarget(rollAngle, -pitchAngle, yawRate, thrust)
+        self.sendAttitudeTarget(rollAngle, pitchAngle, yawRate, thrust)
         
         # Return the values
-        return rollAngle, -pitchAngle, yawRate, thrust
+        return rollAngle, pitchAngle, yawRate, thrust
