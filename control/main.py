@@ -55,9 +55,9 @@ def main():
     P.start()
     
     # Connect to control scheme
-    northDesired = 500
+    northDesired = 300
     eastDesired = 0
-    downDesired = 0
+    downDesired = 30
     C = Controller(northDesired, eastDesired, downDesired, vehicle)
 
     # Create a low pass filter
@@ -71,9 +71,9 @@ def main():
     data = []
     
     # Wait till we switch modes to prevent integral windup
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        print(vehicle.mode.name)
-        time.sleep(0.2)
+    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
+    #     print(vehicle.mode.name)
+    #     time.sleep(0.2)
 
     # Loop timer
     startTime = time.time()
@@ -100,7 +100,7 @@ def main():
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
-            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.2f}'.format(freqLocal, northV, eastV, downV, yawV))
+            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
             # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             loopTimer = time.time()
 
@@ -128,7 +128,7 @@ def main():
         # Save data to CSV
         now = datetime.datetime.now()
         fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
-        df.to_csv(fileName, index=None, header=True)
+        # df.to_csv(fileName, index=None, header=True)
         print('File saved to:' + fileName)
 
 if __name__ == "__main__":
