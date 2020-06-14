@@ -71,9 +71,9 @@ def main():
     data = []
     
     # Wait till we switch modes to prevent integral windup
-    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
-    #     print(vehicle.mode.name)
-    #     time.sleep(0.2)
+    while(vehicle.mode.name != 'GUIDED_NOGPS'):
+        print(vehicle.mode.name)
+        time.sleep(0.2)
 
     # Loop timer
     startTime = time.time()
@@ -128,7 +128,7 @@ def main():
         # Save data to CSV
         now = datetime.datetime.now()
         fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
-        # df.to_csv(fileName, index=None, header=True)
+        df.to_csv(fileName, index=None, header=True)
         print('File saved to:' + fileName)
 
 if __name__ == "__main__":
