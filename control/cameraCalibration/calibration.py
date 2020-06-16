@@ -6,7 +6,8 @@ import cv2.aruco as aruco
 
 class CalibrateCamera:
     def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src):
-        self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
+        # Create custom dictionary (# markers, # bits)
+        self.arucoDict = aruco.custom_dictionary(1, 3)
 
         # Camera config 
         self.desiredWidth  = desiredWidth
@@ -43,7 +44,7 @@ class CalibrateCamera:
         # Save it to a file
         cv2.imwrite('CharucoBoard.png', img)
 
-    def generateArucoMarker(self, ID=7, size=700):
+    def generateArucoMarker(self, ID=0, size=700):
         # Create an image from the marker
         img = aruco.drawMarker(self.arucoDict, ID, size)
 
@@ -246,16 +247,12 @@ def main():
     autoFocus     = False
     
     # Initialize class
-    # CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=1)
+    CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0)
 
     # CC.generateCharucoBoard()
-
-    # CC.generateArucoMarker(ID=97, size=90)
-    # CC.generateArucoMarker(ID=35, size=300)
-    # CC.generateArucoMarker(ID=17, size=500)
+    CC.generateArucoMarker()
 
     # CC.captureCalibrationImages()
-
     # CC.calibrateCamera()
 
     # CC.getCalibration()
