@@ -1,0 +1,84 @@
+####################
+# Ordering 
+####################
+Order:
+[-] Exta Odroid C4
+[-] Propellers
+[-] Distriubution board
+[x] Hannah cable (Printer long)
+[x] Crimps and connectors (Thermal camera)
+[-] Pixhawk4 connectors 
+[x] FTDI cable 
+[x] 90 deg usb 
+[x] Power supply
+[-] Plugs for power supply
+[x] 26 - 30 awg crimps (plus some extras?)
+[-] New battery
+[-] Fluid level sensor?
+[-] GLUE STUFF (Neutral cure silicone rubber)
+[x] PIXHAWK 4
+
+####################
+# Camera 
+####################
+
+Change back logging rates (FOR AUTOPILOT)
+MOT_THST_HOVER: 0.179
+MOT_THST_EXPO
+MOT_SPIN_MIN
+MOT_SPIN_ARM
+TMODE_TMAX
+MOT_SPIN_MAX
+Climb rate????
+
+MOT_HOVER_LEARN-Disabled
+
+LOG_BITMASK
+
+
+Decrease yaw rate
+increase yaw filter?
+Rexport parameters -> Upload to git hub
+
+
+Reset integral terms each time. 
+New custom marker library 
+
+
+
+
+
+
+Save parameter list
+
+Calibrate camera on drone again
+
+Double check distances / measurments
+Attitude compensation
+
+####################
+# Test Scripts 
+####################
+
+
+Constrain I (integral wind up)
+
+Set all directions properly 
+All of these function of thrust?:
+    Yaw -> thrust -> roll/pitch 
+Setting yaw vs yawrate 
+
+[ ] Set all gains to zero
+[ ] Test yaw (set at zero or current)
+[ ] Test yaw rate (how fast is fast)
+[ ] Tune yaw first
+
+####################
+# Future
+####################
+
+Save the parameter list and version numbers... (mass and stuff to) 
+Profile code: https://github.com/sumerc/yappi
+Add thrust section to drone? -> Characterizing thingy
+
+Pick up filament
