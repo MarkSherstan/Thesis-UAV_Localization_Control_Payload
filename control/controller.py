@@ -62,6 +62,12 @@ class Controller:
     def startController(self):
         self.timer = time.time()
     
+    def resetIntegral(self):
+        self.northI = 0
+        self.eastI = 0
+        self.downI = 0
+        self.yawI = 0
+        
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
         roll = math.radians(roll)

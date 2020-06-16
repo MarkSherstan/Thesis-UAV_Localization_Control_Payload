@@ -110,7 +110,11 @@ def main():
                         northDesired, eastDesired, downDesired, 
                         roll, pitch, yaw, 
                         rollControl, pitchControl, yawControl, thrustControl])
-        
+            
+            # Reset integral whenever there is a mode change 
+            if (vehicle.mode.name == "STABILIZE"):
+                C.resetIntegral()
+            
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
