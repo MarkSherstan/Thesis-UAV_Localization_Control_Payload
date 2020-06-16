@@ -35,7 +35,7 @@ class TEST:
         # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
         # Set yaw to current yaw value 
         #                                       (try changing this later to just 0)
-        yaw = self.UAV.attitude.yaw
+        yaw = 0 #self.UAV.attitude.yaw
         yawRate = math.radians(yawRate)
 
         # Create the mavlink message
@@ -75,10 +75,6 @@ def main():
     # Connect to class 
     t = TEST(vehicle)
     
-    # ramp test (deg)
-    ii = -7
-    data = []
-
     # Wait till we switch modes to prevent integral windup
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         print(vehicle.mode.name)
@@ -89,11 +85,16 @@ def main():
     
     # Try this
     try:
-        while(time.time() < startTime + 10):
-            data.append([time.time(), ii])
-            t.sendAttitudeTarget(ii, 0, 0, 0.53)
-            time.sleep(1/30)
-            ii += 0.05
+        while(time.time() < startTime + 3):
+            t.sendAttitudeTarget(10, 0, 0, 0.50)
+            time.sleep(0.5)
+            t.sendAttitudeTarget(-10, 0, 0, 0.50)
+            time.sleep(0.5)
+            t.sendAttitudeTarget(10, 0, 0, 0.50)
+            time.sleep(0.5)
+            t.sendAttitudeTarget(-10, 0, 0, 0.50)
+            time.sleep(0.5)
+
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
@@ -101,11 +102,6 @@ def main():
         # End and disconnect          
         vehicle.close()
         print('Vehicle closed')
-
-        df = pd.DataFrame(data, columns=['time', 'input'])
-        fileName = "test.csv"
-        df.to_csv(fileName, index=None, header=True)
-        print('File saved to:' + fileName)
 
 if __name__ == "__main__":
     main()
