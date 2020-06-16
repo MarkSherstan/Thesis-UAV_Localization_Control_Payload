@@ -19,6 +19,22 @@ Add thrust section to drone? -> Characterizing thingy
 
 Pick up filament
 
+// North East
+Shrunk derivative
+increased intregral
+decrease p
+
+// Down 
+Increased p
+decreased d
+
+// yaw 
+filter 30 units from 10 
+
+
+
+Film from top and rear in the future??? -> Bring GoPro
+
 ####################
 # Ordering 
 ####################

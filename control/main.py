@@ -64,7 +64,7 @@ def main():
     nAvg = movingAverage()
     eAvg = movingAverage()
     dAvg = movingAverage()
-    yAvg = movingAverage(windowSize=10)
+    yAvg = movingAverage(windowSize=30)
     
     # Logging variables
     freqList = []
