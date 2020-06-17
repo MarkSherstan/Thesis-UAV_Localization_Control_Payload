@@ -12,60 +12,40 @@ kf = simdkalman.KalmanFilter(
 
 # simulate 100 random walk time series
 # introduce 10% of NaNs denoting missing values
-rand = lambda: random.normal(size=(100, 200))
+rand = lambda: random.normal(size=(1, 200))
 data = np.cumsum(np.cumsum(rand()*0.02, axis=1) + rand(), axis=1) + rand()*3
 data[random.uniform(size=data.shape) < 0.1] = np.nan
 
 # fit noise parameters to data with the EM algorithm (optional)
-# kf = kf.em(data, n_iter=10)
+kf = kf.em(data, n_iter=10)
 
 # smooth and explain existing data
 smoothed = kf.smooth(data)
 
-
 # predict new data
 pred = kf.predict(data, 15)
-# could be also written as
-# r = kf.compute(data, 15); smoothed = r.smoothed; pred = r.predicted
 
 
-# show the first 3 smoothed time series
-for i in range(3):
-    
-    ax1 = plt.gca()
+# Plot the data
+ax1 = plt.gca()
 
-    # _, (ax1, ax2) = plt.subplots(2, 1, sharex=True)
-    plt.title("time series %d" % (i+1))
+plt.title("time series")
+x = np.arange(0, data.shape[1])
 
-    x = np.arange(0, data.shape[1])
+ax1.plot(x, data[0], 'b.', label="data")
 
-    ax1.plot(x, data[i,:], 'b.', label="data")
+smoothed_obs = smoothed.observations.mean[0]
+obs_stdev = np.sqrt(smoothed.observations.cov[0])
+ax1.plot(x, smoothed_obs, 'r-', label="smoothed")
+ax1.plot(x, smoothed_obs - obs_stdev, 'k--', label="67% confidence")
+ax1.plot(x, smoothed_obs + obs_stdev, 'k--')
 
-    smoothed_obs = smoothed.observations.mean[i,:]
-    obs_stdev = np.sqrt(smoothed.observations.cov[i,:])
-    ax1.plot(x, smoothed_obs, 'r-', label="smoothed")
-    ax1.plot(x, smoothed_obs - obs_stdev, 'k--', label="67% confidence")
-    ax1.plot(x, smoothed_obs + obs_stdev, 'k--')
+x_pred = np.arange(data.shape[1], data.shape[1]+pred.observations.mean.shape[1])
+y_pred = pred.observations.mean[0]
+pred_stdev = np.sqrt(pred.observations.cov[0])
+ax1.plot(x_pred, y_pred, 'b-', label="predicted")
+ax1.plot(x_pred, y_pred + pred_stdev, 'k--')
+ax1.plot(x_pred, y_pred - pred_stdev, 'k--')
+ax1.legend()
 
-    x_pred = np.arange(data.shape[1], data.shape[1]+pred.observations.mean.shape[1])
-    y_pred = pred.observations.mean[i,:]
-    pred_stdev = np.sqrt(pred.observations.cov[i,:])
-    ax1.plot(x_pred, y_pred, 'b-', label="predicted")
-    ax1.plot(x_pred, y_pred + pred_stdev, 'k--')
-    ax1.plot(x_pred, y_pred - pred_stdev, 'k--')
-    ax1.legend()
-
-    # trend = smoothed.states.mean[i,:,1]
-    # trend_stdev = np.sqrt(smoothed.states.cov[i,:,1,1])
-    # ax2.plot(x, trend, 'g-', label="trend")
-    # ax2.plot(x, trend - trend_stdev, 'k--', label="67% confidence")
-    # ax2.plot(x, trend + trend_stdev, 'k--')
-
-    # trend_pred = pred.states.mean[i,:,1]
-    # trend_pred_stdev = np.sqrt(pred.states.cov[i,:,1,1])
-    # ax2.plot(x_pred, trend_pred, 'b-', label='predicted')
-    # ax2.plot(x_pred, trend_pred + trend_pred_stdev, 'k--')
-    # ax2.plot(x_pred, trend_pred - trend_pred_stdev, 'k--')
-    # ax2.legend()
-
-    plt.show()
+plt.show()
