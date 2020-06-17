@@ -57,7 +57,7 @@ def main():
     # Connect to control scheme
     northDesired = 300
     eastDesired = 0
-    downDesired = 30
+    downDesired = 0
     C = Controller(northDesired, eastDesired, downDesired, vehicle)
 
     # Create a low pass filter
@@ -70,10 +70,10 @@ def main():
     freqList = []
     data = []
     
-    # Wait till we switch modes to prevent integral windup
+    # Wait till we switch modes to prevent integral windup and keep vision queue empty
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         print(vehicle.mode.name)
-        time.sleep(0.2)
+        northV, eastV, downV, yawV = getVision(Q)
 
     # Loop timer
     startTime = time.time()
