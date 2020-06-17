@@ -17,9 +17,11 @@ class Vision:
         self.isReceivingFrame = False
         self.isRunFrame = True
         self.frameThread = None
+        self.frame = None
 
         # Performance parameters
         self.frameCount = 0
+        self.poseCount = 0
         self.frameStartTime = None
 
         # Camera calibration matrix 
@@ -29,7 +31,7 @@ class Vision:
         self.dist = np.array([[0.08141624, -0.19751567, -0.00318761, 0.01176431, 0.16102671]])
 
         # Marker properties
-        self.lengthMarker = 0.176
+        self.lengthMarker = 24.7
         self.markerID = 17
 
         # Offset values in cm
@@ -37,7 +39,11 @@ class Vision:
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output variables 
+        # Output variables: Position of ArUco marker relative to UAV (observing from behind)
+        #   North (should always be positive)
+        #   East  (negative when UAV is to the right of the target)
+        #   Down  (negative when UAV is below the target)
+        #   Yaw   (Positive clockwise viewing UAV from top)
         self.North = 0
         self.East  = 0
         self.Down  = 0 
@@ -77,7 +83,7 @@ class Vision:
             cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
             cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            cam.set(cv2.CAP_PROP_AUTOFOCUS, self.cameraIdx)
+            cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
             print('Camera setup failed')
@@ -112,11 +118,13 @@ class Vision:
 
         # Release the camera connection
         print('Camera closed')
-        print('Performance rate: ', round(counter / (endTime - startTime),2))
+        print('Vision loop rate: ', round(counter / (endTime - startTime),2))
+        print('Pose rate: ', round(self.poseCount / (endTime - startTime),2))
 
     def getPose(self):
-        # Get frame and convert to gray
+        # Convert frame to gray and rotate to normal
         gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        gray = cv2.rotate(gray, cv2.ROTATE_180)
 
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=self.parm)
@@ -129,15 +137,21 @@ class Vision:
                 # Estimate the pose
                 rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist)
 
-                # Save the distances
-                self.North = (tvec[0][0][2]*100 - self.offsetNorth)
-                self.East  = (tvec[0][0][0]*100 - self.offsetEast)
-                self.Down  = (tvec[0][0][1]*100 - self.offsetDown)
-
-                # Convert to rotation matrix and extract yaw
+                # Convert from vector to rotation matrix and then transform to body frame
                 R, _ = cv2.Rodrigues(rvec)
-                eulerAngles = self.rotationMatrixToEulerAngles(R)
-                self.Yaw = eulerAngles[1]
+                R, t = self.transform2Body(R, tvec[0])
+
+                # Get yaw
+                _, _, yaw = self.rotationMatrix2EulerAngles(R)
+
+                # Save values
+                self.North = t[0] 
+                self.East  = t[1]
+                self.Down  = t[2]
+                self.Yaw   = -(yaw - 90)
+
+                # Increment counter 
+                self.poseCount += 1
             else:
                 pass
 
@@ -149,26 +163,43 @@ class Vision:
         n = np.linalg.norm(I - shouldBeIdentity)
         return n < 1e-6
 
-    def rotationMatrixToEulerAngles(self, R):
-        # Check if rotation matrix is valid
-        assert(self.isRotationMatrix(R))
+    def rotationMatrix2EulerAngles(self, R):
+        try:
+            # Check if rotation matrix is valid
+            assert(self.isRotationMatrix(R))
 
-        # Check if singular
-        sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+            # Dont rotate more than 45 degrees in any direction and we will not get gimbal lock / singularities
+            roll  = math.degrees(-math.asin(R[2,0]))
+            pitch = math.degrees(math.atan2(R[2,1], R[2,2]))
+            yaw   = math.degrees(math.atan2(R[1,0], R[0,0]))
+            
+            # Return results
+            return roll, pitch, yaw
+        except:
+            # Return 0's upon failure
+            print('Not a rotation matrix')
+            return 0, 0, 0
 
-        if (sy < 1e-6):
-            # Singular
-            x = math.atan2(-R[1,2], R[1,1])
-            y = math.atan2(-R[2,0], sy)
-            z = 0
-        else:
-            # Not singular
-            x = math.atan2(R[2,1] , R[2,2])
-            y = math.atan2(-R[2,0], sy)
-            z = math.atan2(R[1,0], R[0,0])
+    def transform2Body(self, R, t):
+        # Original (ArUco wrt camera)
+        Tca = np.append(R, np.transpose(t), axis=1)
+        Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
-        # Return roll, pitch, and yaw in some order
-        return np.array([x, y, z])
+        # Transformation (camera wrt drone)
+        Tbc = np.array([[0,  0,  1,  self.offsetNorth],
+                        [1,  0,  0,  self.offsetEast],
+                        [0,  1,  0,  self.offsetDown],
+                        [0,  0,  0,   1]])
+
+        # Resultant pose (ArUco wrt drone)
+        Tba = np.dot(Tbc, Tca)
+
+        # Return results
+        R = Tba[0:3,0:3]
+        t = Tba[0:3,3]
+
+        # Return reults 
+        return R, t
 
     def close(self):
         # Print the results
