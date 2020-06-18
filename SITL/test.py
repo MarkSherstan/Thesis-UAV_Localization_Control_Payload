@@ -40,46 +40,76 @@ kf = simdkalman.KalmanFilter(
     observation_model = np.array([[1,0]]),   # H
     observation_noise = 20.0)                # R
 
-# Simulate real time
+# SIM II
 
-# Prepare kalman filter
+# define model
 state_transition = np.array([[1,1],[0,1]])
-process_noise = np.diag([0.05, 0.002])
+process_noise = np.eye(2)*0.01
 observation_model = np.array([[1,0]])
-observation_noise = np.array([[10.0]])
+observation_noise = np.array([[1.0]])
 
-# Initial values
-prevMean = np.zeros((1, 2, 1)) # NOTE: (N, 1) -> (N, 2, 1)
-prevCov = np.tile(np.eye(2), (1, 1, 1)) # shape = (N_STREAMS, 2, 2)
-observations = np.random.normal(size=(1, 1, 1)) # NOTE: (N, 1) -> (N, 1, 1)
+# initial state
+m = np.array([0, 1])
+P = np.eye(2)
 
-# Storage variables
+# Logging
 meanList = []
-covarList = []
 timeLog = [0]
-
-# Start up
 timer = time.time()
 
 # Real time sim
 for ii in range(data.size):
     # Kalman filter
-    means, covariances = update(
-        prevMean,
-        prevCov,
-        observation_model,
-        observation_noise,
-        np.array([[[data[ii]]]]))
+    m1, P1 = update(m, P, observation_model, observation_noise, np.array([data[ii]]))
 
-    prevMean = means
-    prevCov  = covariances
-    meanList.append(means[0][0][0])
-    covarList.append(covariances[0][0][0])
+    m = m1
+    P1  = P
+    meanList.append(m[0][0])
 
     timeLog.append(time.time()-timer)
     timer = time.time()
+    
 
-print("Average rate: ", statistics.mean(timeLog), "+/-", statistics.stdev(timeLog))
+# # Simulate real time
+
+# # Prepare kalman filter
+# state_transition = np.array([[1,1],[0,1]])
+# process_noise = np.diag([0.05, 0.002])
+# observation_model = np.array([[1,0]])
+# observation_noise = np.array([[10.0]])
+
+# # Initial values
+# prevMean = np.zeros((1, 2, 1)) # NOTE: (N, 1) -> (N, 2, 1)
+# prevCov = np.tile(np.eye(2), (1, 1, 1)) # shape = (N_STREAMS, 2, 2)
+# observations = np.random.normal(size=(1, 1, 1)) # NOTE: (N, 1) -> (N, 1, 1)
+
+# # Storage variables
+# meanList = []
+# covarList = []
+# timeLog = [0]
+
+# # Start up
+# timer = time.time()
+
+# # Real time sim
+# for ii in range(data.size):
+#     # Kalman filter
+#     means, covariances = update(
+#         prevMean,
+#         prevCov,
+#         observation_model,
+#         observation_noise,
+#         np.array([[[data[ii]]]]))
+
+#     prevMean = means
+#     prevCov  = covariances
+#     meanList.append(means[0][0][0])
+#     covarList.append(covariances[0][0][0])
+
+#     timeLog.append(time.time()-timer)
+#     timer = time.time()
+
+# print("Average rate: ", statistics.mean(timeLog), "+/-", statistics.stdev(timeLog))
 
 # Movin average calcs -> May be wrong. Double check indices
 A = movAvg(data, 10)
