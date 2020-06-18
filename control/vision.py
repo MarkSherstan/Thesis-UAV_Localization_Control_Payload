@@ -25,14 +25,14 @@ class Vision:
         self.frameStartTime = None
 
         # Camera calibration matrix 
-        self.mtx = np.array([[904.1343822,   0.0,            650.03003509],
-                             [0.0,           903.58516942,   352.54361217],
+        self.mtx = np.array([[909.56269126,  0.0,            636.54109088],
+                             [0.0,           908.05644963,   348.20313781],
                              [0.0,           0.0,            1.0         ]])
-        self.dist = np.array([[0.08141624, -0.19751567, -0.00318761, 0.01176431, 0.16102671]])
+        self.dist = np.array([[0.0867331, -0.21097928, -0.00540959, 0.00501587, 0.12009933]])
 
         # Marker properties
         self.lengthMarker = 24.7
-        self.markerID = 17
+        self.markerID = 0
 
         # Offset values in cm
         self.offsetNorth = 0
@@ -72,7 +72,7 @@ class Vision:
 
     def processFrame(self, q):
         # Aruco dictionary to be used and pose processing parameters
-        self.arucoDict = aruco.Dictionary_get(aruco.DICT_5X5_1000)
+        self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
 
