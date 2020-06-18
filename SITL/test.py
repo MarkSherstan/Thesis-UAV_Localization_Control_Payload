@@ -9,7 +9,7 @@ import time
 ##########################
 # Import data
 ##########################
-fileName = '2020-06-14__02-30-58.csv' 
+fileName = '2020-06-18__20-52-05.csv' 
 try:
     df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 'Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
@@ -21,6 +21,7 @@ except:
     exit()
 
 data = np.array(df['Yaw-Vision'])
+data = data[0:400]                                                              ### REMOVE THIS LATER
 
 ##########################
 # ONLINE: Simulation
@@ -86,10 +87,10 @@ P = np.eye(2)
 t = range(data.size)
 plt.plot(t, data, 'kx', alpha=0.3, label='Raw Data')
 plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
-plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
+# plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
 plt.plot(t, meanList, 'k-', label='Online: Kalman Filtered')
 # plt.plot(range(A.size), A, 'k+', label='10 Point Moving Avg')
-# plt.plot(range(B.size), B, 'ko', label='30 Point Moving Avg')
+# plt.plot(range(B.size), B, 'k--', label='30 Point Moving Avg')
 plt.xlabel('Index')
 plt.ylabel('Yaw [deg]')
 plt.legend()
