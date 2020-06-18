@@ -7,7 +7,7 @@ import cv2.aruco as aruco
 class CalibrateCamera:
     def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src):
         # Create custom dictionary (# markers, # bits)
-        self.arucoDict = aruco.custom_dictionary(1, 3)
+        self.arucoDict = aruco.custom_dictionary(17, 3)
 
         # Camera config 
         self.desiredWidth  = desiredWidth
@@ -241,8 +241,8 @@ class CalibrateCamera:
 
 def main():
     # Set desired parameters
-    desiredWidth  = 1280     # 1920, 1280, 1280, 640
-    desiredHeight = 960      # 1080,  720, 960,  480
+    desiredWidth  = 1280
+    desiredHeight = 720
     desiredFPS    = 30
     autoFocus     = False
     
@@ -250,7 +250,7 @@ def main():
     CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0)
 
     # CC.generateCharucoBoard()
-    CC.generateArucoMarker()
+    # CC.generateArucoMarker()
 
     # CC.captureCalibrationImages()
     # CC.calibrateCamera()
