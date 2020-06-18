@@ -1,3 +1,4 @@
+from filter import movingAverage, kalmanFilter
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
@@ -8,19 +9,6 @@ import statistics
 import datetime
 import math
 import time 
-
-class movingAverage:
-    def __init__(self, windowSize=3):
-        self.windowSize = windowSize
-        self.values = []
-        self.sum = 0
-
-    def avg(self, value):
-        self.values.append(value)
-        self.sum += value
-        if len(self.values) > self.windowSize:
-            self.sum -= self.values.pop(0)
-        return float(self.sum) / len(self.values)
 
 def getVision(Q):
     # Vision Data
@@ -57,14 +45,16 @@ def main():
     # Connect to control scheme
     northDesired = 300
     eastDesired = 0
-    downDesired = 0
+    downDesired = 50
     C = Controller(northDesired, eastDesired, downDesired, vehicle)
 
     # Create a low pass filter
-    nAvg = movingAverage()
-    eAvg = movingAverage()
-    dAvg = movingAverage()
-    yAvg = movingAverage(windowSize=30)
+    nAvg = movingAverage(5)
+    eAvg = movingAverage(3)
+    dAvg = movingAverage(3)
+
+    # Create a Kalman filter 
+    yKF  = kalmanFilter()
     
     # Logging variables
     freqList = []
@@ -75,7 +65,7 @@ def main():
         print(vehicle.mode.name)
         northV, eastV, downV, yawV = getVision(Q)
 
-    # Loop timer
+    # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
     C.startController()
@@ -85,11 +75,11 @@ def main():
             # Get vision data
             northV, eastV, downV, yawV = getVision(Q)
             
-            # Smooth vision data with moving average low pass filter
+            # Smooth vision data with moving average low pass filter and kalman filter
             northV = nAvg.avg(northV)
             eastV  = eAvg.avg(eastV)
             downV  = dAvg.avg(downV)
-            yawV   = yAvg.avg(yawV)
+            yawV   = yKF.update(yawV)
             
             # Calculate control and execture
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
