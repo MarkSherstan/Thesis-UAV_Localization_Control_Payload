@@ -6,28 +6,9 @@ import statistics
 import simdkalman
 import time
 
-# Function defintions
-def movAvg(x, N):
-    cumsum = np.cumsum(np.insert(x, 0, 0)) 
-    return (cumsum[N:] - cumsum[:-N]) / float(N)
-
-def kf_smooth(y):
-    return kf.smooth(y).observations.mean
-
-def kf_filter(y):
-    m = np.array([0, 1])
-    P = np.eye(2)
-    
-    kf = simdkalman.KalmanFilter(
-    state_transition = [[1,1],[0,1]],        # A
-    process_noise = np.diag([0.05, 0.002]),  # Q
-    observation_model = np.array([[1,0]]),   # H
-    observation_noise = 20.0)                # R
-    
-    out = kf.compute(y, 0, smoothed=False, filtered=True, gains=False, initial_value = m, initial_covariance = P)
-    return out.filtered.observations.mean
-
+##########################
 # Import data
+##########################
 fileName = '2020-06-14__02-30-58.csv' 
 try:
     df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 'Freq',
@@ -41,15 +22,15 @@ except:
 
 data = np.array(df['Yaw-Vision'])
 
+##########################
 # ONLINE: Simulation
-# https://simdkalman.readthedocs.io/en/latest/primitives.html#simdkalman.primitives.update
+##########################
 
-# Define model (No A or Q matrix required???)
-# Look at source code -> Can slap that into the paper
-observation_model = np.array([[1,0]])
-observation_noise = np.array([[20.0]])
-state_transition = np.array([[1,1],[0,1]])        # A
-process_noise = np.diag([0.05, 0.002])
+# Configure the filter
+state_transition = np.array([[1,1],[0,1]])  # A
+process_noise = np.diag([0.05, 0.002])      # Q
+observation_model = np.array([[1,0]])       # H
+observation_noise = np.array([[20.0]])      # R
 
 # Initial state
 m = np.array([0, 1])
@@ -62,7 +43,6 @@ timer = time.time()
 
 # Real time sim
 for ii in range(data.size):
-    # Kalman filter
     m1, P1 = update(m, P, observation_model, observation_noise, np.array([data[ii]]))
     a, _ = predict_observation(m1, P1, observation_model, observation_noise)
     m1, P1 = predict(m1, P1, state_transition, process_noise)
@@ -74,24 +54,39 @@ for ii in range(data.size):
     timeLog.append(time.time()-timer)
     timer = time.time()
 
-
-# _ = kf_filter(data[0:2])
-
-
-# exit()
 print("Average rate: ", statistics.mean(timeLog), "+/-", statistics.stdev(timeLog))
 
-# OFFLINE: Configure the Kalman Filter
+##########################
+# Moving average calcs
+##########################
+def movAvg(x, N):
+    # Return N-1 terms short (total length)
+    cumsum = np.cumsum(np.insert(x, 0, 0)) 
+    return (cumsum[N:] - cumsum[:-N]) / float(N)
 
-# Movin average calcs -> n-1 terms short
 A = movAvg(data, 10)
 B = movAvg(data, 30)
 
-# Plot the dataq
+##########################
+# OFFLINE: Configure the Kalman Filter
+##########################
+kf = simdkalman.KalmanFilter(
+state_transition = [[1,1],[0,1]],        # A
+process_noise = np.diag([0.05, 0.002]),  # Q
+observation_model = np.array([[1,0]]),   # H
+observation_noise = 20.0)                # R
+
+# Initial state
+m = np.array([0, 1])
+P = np.eye(2)
+
+##########################
+# Plot the data
+##########################
 t = range(data.size)
 plt.plot(t, data, 'kx', alpha=0.3, label='Raw Data')
-# plt.plot(t, kf_smooth(data), 'k.', label='Offline: Kalman Smoothed')
-plt.plot(t, kf_filter(data), 'k+', label='Offline: Kalman Filtered')
+plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
+plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
 plt.plot(t, meanList, 'k-', label='Online: Kalman Filtered')
 # plt.plot(range(A.size), A, 'k+', label='10 Point Moving Avg')
 # plt.plot(range(B.size), B, 'ko', label='30 Point Moving Avg')
