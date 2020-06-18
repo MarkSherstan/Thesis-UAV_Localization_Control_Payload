@@ -70,7 +70,7 @@ class CalibrateCamera:
 
             if key != -1:
                 if key & 0xFF == ord(' '):
-                    indexedFile = self.calibrationDir + 'IMG_' + str(index) + self.imgExtension
+                    indexedFile = self.calibrationDir + 'IMG_' + str(index+1) + self.imgExtension
                     print(indexedFile)
                     cv2.imwrite(indexedFile, frame)
                     index += 1
@@ -247,13 +247,13 @@ def main():
     autoFocus     = False
     
     # Initialize class
-    CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=0)
+    CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=1)
 
     # CC.generateCharucoBoard()
     # CC.generateArucoMarker()
 
     # CC.captureCalibrationImages()
-    # CC.calibrateCamera()
+    CC.calibrateCamera()
 
     # CC.getCalibration()
     # print(CC.mtx)
