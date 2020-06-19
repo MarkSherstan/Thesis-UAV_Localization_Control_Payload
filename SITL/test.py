@@ -6,7 +6,7 @@ import statistics
 import simdkalman
 import time
 
-from filter import KalmanFilter
+from filter import KalmanFilter, MovingAverage
 
 ##########################
 # Import data
@@ -23,7 +23,6 @@ except:
     exit()
 
 data = np.array(df['Yaw-Vision'])
-data = data[0:400]                                                              ### REMOVE THIS LATER
 
 ##########################
 # ONLINE: Simulation
@@ -31,9 +30,9 @@ data = data[0:400]                                                              
 
 # Configure the filter
 state_transition = np.array([[1,1],[0,1]])  # A
-process_noise = np.diag([1, 0.078])      # Q: CHANGE THESE
+process_noise = np.diag([0.03, 0.001])      # Q: CHANGE THESE
 observation_model = np.array([[1,0]])       # H
-observation_noise = np.array([[277.0]])      # R: CHANGE THESE
+observation_noise = np.array([[100.0]])     # R: CHANGE THESE
 
 # Initial state
 m = np.array([0, 1])
@@ -41,28 +40,16 @@ P = np.eye(2)
 
 # Create class instance 
 yawKF = KalmanFilter()
+flt = MovingAverage(5)
 
 # Logging
 meanList = []
-timeLog = [0]
-timer = time.time()
 
 # Real time sim
 for ii in range(data.size):
-    meanList.append(yawKF.update(data[ii]))
-
-    # m1, P1 = update(m, P, observation_model, observation_noise, np.array([data[ii]]))
-    # a, _ = predict_observation(m1, P1, observation_model, observation_noise)
-    # m1, P1 = predict(m1, P1, state_transition, process_noise)
-    
-    # m = m1
-    # P = P1
-    # meanList.append(a[0][0])
-
-    timeLog.append(time.time()-timer)
-    timer = time.time()
-
-print("Average rate: ", statistics.mean(timeLog), "+/-", statistics.stdev(timeLog))
+    temp = yawKF.update(data[ii])
+    temp = flt.avg(temp)
+    meanList.append(temp)
 
 ##########################
 # Moving average calcs
@@ -97,7 +84,7 @@ t = range(data.size)
 plt.plot(t, data, 'kx', alpha=0.3, label='Raw Data')
 plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
 # plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
-plt.plot(t, meanList, 'k-', label='Online: Kalman Filtered')
+plt.plot(t, meanList, 'k--', label='Online: Kalman Filtered')
 # plt.plot(range(A.size), A, 'k-', label='10 Point Moving Avg - Kalman')
 # plt.plot(range(B.size), B, 'k--', label='30 Point Moving Avg')
 plt.xlabel('Index')
