@@ -38,9 +38,14 @@ for ii in range(df.shape[0]-1):
         idx.append(ii)
 
 ########################
+# Master
+########################
+fig = plt.figure()
+
+########################
 # Roll and Pitch
 ########################
-plt.figure()
+plt.subplot(2, 2, 1)
 ax0 = plt.gca()
 
 df.plot(kind='line', x='Time', y='Roll-Control',  color='#FB8604', style='-', ax=ax0)
@@ -61,7 +66,7 @@ for ii in range(0,len(idx),2):
 ########################
 # Yaw
 ########################
-plt.figure()
+plt.subplot(2, 2, 2)
 ax1 = plt.gca()
 ax2 = ax1.twinx()
 
@@ -83,7 +88,7 @@ for ii in range(0,len(idx),2):
 ########################
 # North East
 ########################
-plt.figure()
+plt.subplot(2, 2, 3)
 ax3 = plt.gca()
 
 df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
@@ -104,7 +109,7 @@ for ii in range(0,len(idx),2):
 ########################
 # Thrust
 ########################
-plt.figure()
+plt.subplot(2, 2, 4)
 ax4 = plt.gca()
 
 df.plot(kind='line', x='Time', y='Thrust-Control', color='#7FBD32', style='-', ax=ax4)
