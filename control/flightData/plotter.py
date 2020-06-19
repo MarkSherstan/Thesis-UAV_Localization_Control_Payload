@@ -120,3 +120,4 @@ for ii in range(0,len(idx),2):
 # Show the plots
 ########################
 plt.show()
+fig.savefig(str(fileName).replace('.csv','')+'.png', dpi=fig.dpi)
