@@ -52,6 +52,7 @@ def main():
     nAvg = movingAverage(5)
     eAvg = movingAverage(3)
     dAvg = movingAverage(3)
+    yAvg = movingAverage(5)
 
     # Create a Kalman filter 
     yKF  = kalmanFilter()
@@ -79,7 +80,7 @@ def main():
             northV = nAvg.avg(northV)
             eastV  = eAvg.avg(eastV)
             downV  = dAvg.avg(downV)
-            yawV   = yKF.update(yawV)
+            yawV   = yAvg.avg(yKF.update(yawV))
             
             # Calculate control and execture
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         

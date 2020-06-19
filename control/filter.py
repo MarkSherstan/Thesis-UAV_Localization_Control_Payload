@@ -18,9 +18,9 @@ class kalmanFilter:
     def __init__(self):
         # Configure the filter
         self.stateTransition  = np.array([[1,1],[0,1]])  # A
-        self.processNoise     = np.diag([1, 0.078])      # Q
+        self.processNoise     = np.diag([0.03, 0.003])   # Q
         self.observationModel = np.array([[1,0]])        # H
-        self.observationNoise = np.array([[277.0]])      # R
+        self.observationNoise = np.array([[200]])        # R
 
         # Initial state
         self.m = np.array([0, 1])
