@@ -23,6 +23,7 @@ except:
     exit()
 
 data = np.array(df['Yaw-Vision'])
+# data = data[0:500]
 
 ##########################
 # ONLINE: Simulation
@@ -43,13 +44,15 @@ yawKF = KalmanFilter()
 flt = MovingAverage(5)
 
 # Logging
-meanList = []
+kalmanRaw = []
+kalmanFilt = []
 
 # Real time sim
 for ii in range(data.size):
     temp = yawKF.update(data[ii])
+    kalmanRaw.append(temp)
     temp = flt.avg(temp)
-    meanList.append(temp)
+    kalmanFilt.append(temp)
 
 ##########################
 # Moving average calcs
@@ -59,8 +62,8 @@ def movAvg(x, N):
     cumsum = np.cumsum(np.insert(x, 0, 0)) 
     return (cumsum[N:] - cumsum[:-N]) / float(N)
 
-A = movAvg(meanList, 5)
-B = movAvg(data, 30)
+# A = movAvg(meanList, 5)
+# B = movAvg(data, 30)
 
 ##########################
 # OFFLINE: Configure the Kalman Filter
@@ -81,10 +84,11 @@ P = np.eye(2)
 # Plot the data
 ##########################
 t = range(data.size)
-plt.plot(t, data, 'kx', alpha=0.3, label='Raw Data')
-plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
+plt.plot(t, data, 'k-', alpha=0.2, label='Raw Data')
+# plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
 # plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
-plt.plot(t, meanList, 'k--', label='Online: Kalman Filtered')
+plt.plot(t, kalmanRaw, 'k--', label='Online: Kalman Filter')
+plt.plot(t, kalmanFilt, 'k-', label='Online: Kalman w/ Low Pass Filter')
 # plt.plot(range(A.size), A, 'k-', label='10 Point Moving Avg - Kalman')
 # plt.plot(range(B.size), B, 'k--', label='30 Point Moving Avg')
 plt.xlabel('Index')
