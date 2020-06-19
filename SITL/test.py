@@ -6,6 +6,8 @@ import statistics
 import simdkalman
 import time
 
+from filter import KalmanFilter
+
 ##########################
 # Import data
 ##########################
@@ -29,13 +31,16 @@ data = data[0:400]                                                              
 
 # Configure the filter
 state_transition = np.array([[1,1],[0,1]])  # A
-process_noise = np.diag([0.05, 0.002])      # Q
+process_noise = np.diag([1, 0.078])      # Q: CHANGE THESE
 observation_model = np.array([[1,0]])       # H
-observation_noise = np.array([[20.0]])      # R
+observation_noise = np.array([[277.0]])      # R: CHANGE THESE
 
 # Initial state
 m = np.array([0, 1])
 P = np.eye(2)
+
+# Create class instance 
+yawKF = KalmanFilter()
 
 # Logging
 meanList = []
@@ -44,13 +49,15 @@ timer = time.time()
 
 # Real time sim
 for ii in range(data.size):
-    m1, P1 = update(m, P, observation_model, observation_noise, np.array([data[ii]]))
-    a, _ = predict_observation(m1, P1, observation_model, observation_noise)
-    m1, P1 = predict(m1, P1, state_transition, process_noise)
+    meanList.append(yawKF.update(data[ii]))
+
+    # m1, P1 = update(m, P, observation_model, observation_noise, np.array([data[ii]]))
+    # a, _ = predict_observation(m1, P1, observation_model, observation_noise)
+    # m1, P1 = predict(m1, P1, state_transition, process_noise)
     
-    m = m1
-    P = P1
-    meanList.append(a[0][0])
+    # m = m1
+    # P = P1
+    # meanList.append(a[0][0])
 
     timeLog.append(time.time()-timer)
     timer = time.time()
@@ -65,7 +72,7 @@ def movAvg(x, N):
     cumsum = np.cumsum(np.insert(x, 0, 0)) 
     return (cumsum[N:] - cumsum[:-N]) / float(N)
 
-A = movAvg(data, 10)
+A = movAvg(meanList, 5)
 B = movAvg(data, 30)
 
 ##########################
@@ -76,6 +83,8 @@ state_transition = [[1,1],[0,1]],        # A
 process_noise = np.diag([0.05, 0.002]),  # Q
 observation_model = np.array([[1,0]]),   # H
 observation_noise = 20.0)                # R
+
+kf = kf.em(data, n_iter=10)
 
 # Initial state
 m = np.array([0, 1])
@@ -89,7 +98,7 @@ plt.plot(t, data, 'kx', alpha=0.3, label='Raw Data')
 plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
 # plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
 plt.plot(t, meanList, 'k-', label='Online: Kalman Filtered')
-# plt.plot(range(A.size), A, 'k+', label='10 Point Moving Avg')
+# plt.plot(range(A.size), A, 'k-', label='10 Point Moving Avg - Kalman')
 # plt.plot(range(B.size), B, 'k--', label='30 Point Moving Avg')
 plt.xlabel('Index')
 plt.ylabel('Yaw [deg]')
