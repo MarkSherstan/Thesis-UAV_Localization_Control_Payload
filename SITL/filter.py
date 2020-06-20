@@ -7,13 +7,34 @@ class MovingAverage:
         self.values = []
         self.sum = 0
 
-    def avg(self, value):
+    def update(self, value):
         self.values.append(value)
         self.sum += value
         if len(self.values) > self.windowSize:
             self.sum -= self.values.pop(0)
         return float(self.sum) / len(self.values)
 
+class Olympic:
+    def __init__(self, windowSize):
+        self.windowSize = windowSize
+        self.values = []
+        self.sum = 0
+    
+    def update(self, value):
+        # Update master list
+        self.values.append(value)
+        if len(self.values) > self.windowSize:
+            self.values.pop(0)
+    
+        # Remove the largest and smallest value
+        temp = self.values.copy()
+        if (len(temp) >= 3):
+            temp.remove(max(temp))
+            temp.remove(min(temp))
+        
+        # Calculate the average
+        return float(sum(temp)) / len(temp)
+    
 class KalmanFilter:
     def __init__(self):
         # Configure the filter
@@ -21,10 +42,6 @@ class KalmanFilter:
         self.processNoise     = np.diag([0.03, 0.003])   # Q (Deviation from assumed model)
         self.observationModel = np.array([[1,0]])        # H
         self.observationNoise = np.array([[200]])         # R (Measurment noise)
-
-        # 0.03, 0.003
-        # 500
-
 
         # Initial state
         self.m = np.array([0, 1])

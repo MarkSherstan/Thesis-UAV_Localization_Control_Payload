@@ -6,7 +6,7 @@ import statistics
 import simdkalman
 import time
 
-from filter import KalmanFilter, MovingAverage
+from filter import KalmanFilter, MovingAverage, Olympic
 
 ##########################
 # Import data
@@ -23,7 +23,7 @@ except:
     exit()
 
 data = np.array(df['Yaw-Vision'])
-data = data[0:500]
+data = data[0:100]
 
 ##########################
 # ONLINE: Simulation
@@ -41,23 +41,27 @@ P = np.eye(2)
 
 # Create class instance 
 yawKF = KalmanFilter()
-lpKF = MovingAverage(5)
-mvg = MovingAverage(30)
+lpKF = MovingAverage(6)
+mvg = MovingAverage(3)
+oly = Olympic(6)
 
 # Logging
 kalmanRaw = []
 kalmanFilt = []
 movingAvg = []
+olympicFilt = []
 
 # Real time sim
 for ii in range(data.size):
     temp = yawKF.update(data[ii])
     kalmanRaw.append(temp)
     
-    temp = lpKF.avg(temp)
-    kalmanFilt.append(temp)
+    kalmanFilt.append(lpKF.update(temp))
 
-    movingAvg.append(mvg.avg(data[ii]))
+    movingAvg.append(mvg.update(data[ii]))
+    
+    olympicFilt.append(oly.update(data[ii]))
+    # olympicFilt.append(oly.update(temp))
     
 ##########################
 # Moving average calcs
@@ -92,9 +96,11 @@ t = range(data.size)
 plt.plot(t, data, 'k-', alpha=0.2, label='Raw Data')
 # plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
 # plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
-plt.plot(t, kalmanRaw, 'k--', label='Online: Kalman Filter')
-plt.plot(t, kalmanFilt, 'k-', label='Online: Kalman w/ Low Pass Filter')
-plt.plot(t, movingAvg, 'k-.', label='Online: Moving Average')
+plt.plot(t, kalmanRaw, 'k--', label='Kalman Filter')
+plt.plot(t, kalmanFilt, 'k-', label='Kalman w/ Low Pass Filter')
+plt.plot(t, movingAvg, 'k-.', label='Moving Average')
+plt.plot(t, olympicFilt, 'k-+', label='Olympic Filter')
+
 # plt.plot(range(A.size), A, 'k-', label='10 Point Moving Avg - Kalman')
 # plt.plot(range(B.size), B, 'k--', label='30 Point Moving Avg')
 plt.xlabel('Index')
