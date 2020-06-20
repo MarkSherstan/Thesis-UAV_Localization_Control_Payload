@@ -40,28 +40,49 @@ m = np.array([0, 1])
 P = np.eye(2)
 
 # Create class instance 
-yawKF = KalmanFilter()
-lpKF = MovingAverage(6)
-mvg = MovingAverage(3)
-oly = Olympic(6)
+inKF = KalmanFilter()
+inMVG = MovingAverage(12)
+
+outKF = KalmanFilter()
+outMVG = MovingAverage(12)
+
+bothKF = KalmanFilter()
+inInMVG = MovingAverage(6)
+outOutMVG = MovingAverage(6)
+
+# oly = Olympic(6)
 
 # Logging
+filterIn = []
+filterOut = []
+filterBoth = []
+
 kalmanRaw = []
-kalmanFilt = []
 movingAvg = []
 olympicFilt = []
 
 # Real time sim
 for ii in range(data.size):
-    temp = yawKF.update(data[ii])
-    kalmanRaw.append(temp)
+    raw = data[ii]
     
-    kalmanFilt.append(lpKF.update(temp))
+    # In 
+    filterIn.append(inKF.update(inMVG.update(raw)))
+    filterOut.append(outMVG.update(outKF.update(raw)))
+    filterBoth.append(outOutMVG.update(bothKF.update(inInMVG.update(raw))))
+    
+    
+    # Filter input 
+    # kalmanRaw.append(yawKF.update(raw))
+    # movingAvg.append(yawKF.update(mvg.update(raw)))
+    # olympicFilt.append(yawKF.update(oly.update(raw)))
+        
 
-    movingAvg.append(mvg.update(data[ii]))
-    
-    olympicFilt.append(oly.update(data[ii]))
+    # Filter Ouput
+    # temp = yawKF.update(raw)
+    # kalmanRaw.append(temp)
+    # movingAvg.append(mvg.update(temp))
     # olympicFilt.append(oly.update(temp))
+    
     
 ##########################
 # Moving average calcs
@@ -96,10 +117,13 @@ t = range(data.size)
 plt.plot(t, data, 'k-', alpha=0.2, label='Raw Data')
 # plt.plot(t, kf.smooth(data).observations.mean, 'k.', label='Offline: Kalman Smoothed')
 # plt.plot(t, kf.compute(data, 0, smoothed=False, filtered=True, initial_value = m, initial_covariance = P).filtered.observations.mean, 'k+', label='Offline: Kalman Filtered')
-plt.plot(t, kalmanRaw, 'k--', label='Kalman Filter')
-plt.plot(t, kalmanFilt, 'k-', label='Kalman w/ Low Pass Filter')
-plt.plot(t, movingAvg, 'k-.', label='Moving Average')
-plt.plot(t, olympicFilt, 'k-+', label='Olympic Filter')
+# plt.plot(t, kalmanRaw, 'k--', label='Kalman Filter')
+# plt.plot(t, movingAvg, 'k-', label='Kalman w/ Low Pass Filter')
+# plt.plot(t, olympicFilt, 'k-+', label='Kalman w/ Olympic Filter')
+
+plt.plot(t, filterIn, 'k--', label='Filter In')
+plt.plot(t, filterOut, 'k-+', label='Filter Out')
+plt.plot(t, filterBoth, 'k-', label='Filter Both')
 
 # plt.plot(range(A.size), A, 'k-', label='10 Point Moving Avg - Kalman')
 # plt.plot(range(B.size), B, 'k--', label='30 Point Moving Avg')
