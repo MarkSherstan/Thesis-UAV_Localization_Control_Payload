@@ -38,17 +38,17 @@ class Olympic:
 class KalmanFilter:
     def __init__(self):
         # Configure the filter
-        self.stateTransition  = np.array([[1,1],[0,1]])  # A
-        self.processNoise     = np.diag([0.03, 0.003])   # Q (Deviation from assumed model)
-        self.observationModel = np.array([[1,0]])        # H
-        self.observationNoise = np.array([[200]])         # R (Measurment noise)
+        self.stateTransition  = np.array([[1, 1/30],[0,1]])  # A
+        self.processNoise     = np.diag([0.03, 0.003])       # Q (Deviation from assumed model)
+        self.observationModel = np.diag([1, 1])              # H
+        self.observationNoise = np.diag([200, 10])           # R (Measurment noise)
 
         # Initial state
         self.m = np.array([0, 1])
         self.P = np.eye(2)
 
     def update(self, dataIn):
-        m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array([dataIn]))
+        m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
         self.m, self.P = predict(m, P, self.stateTransition, self.processNoise)
 
