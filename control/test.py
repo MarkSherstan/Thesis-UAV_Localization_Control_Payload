@@ -1,9 +1,12 @@
 from dronekit import connect, VehicleMode
 from controller import Controller
 from pymavlink import mavutil
+import numpy as np 
 import time
 import math
 import pandas as pd
+
+from IMU import MyVehicle
 
 class TEST:
     def __init__(self, vehicle):
@@ -60,9 +63,9 @@ class TEST:
 
 def main():
     # Connect to the Vehicle
-    connection_string = "/dev/ttyS1"
+    connection_string = "/dev/cu.usbmodem14201" #"/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000, vehicle_class=MyVehicle)
 
     # Set attitude request message rate (everything else is default 4 Hz)
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -72,29 +75,39 @@ def main():
         1)  # Turn on
     vehicle.send_mavlink(msg)    
 
+    msg = vehicle.message_factory.request_data_stream_encode(
+        0, 0,
+        mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
+        100, # Rate (Hz)
+        1)  # Turn on
+    vehicle.send_mavlink(msg)  
+
+		# msg = self.UAV.message_factory.command_long_encode(
+		# 	0, 0, #target system, target component
+		# 	mavutil.mavlink.MAV_CMD_SET_MESSAGE_INTERVAL, #command
+		# 	0, #confirmation
+		# 	30, #param 1
+		# 	300000, #param 2
+		# 	0, 0, 0, 0, 0) #param 3-7 not used
+  
     # Connect to class 
     t = TEST(vehicle)
     
     # Wait till we switch modes to prevent integral windup
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        print(vehicle.mode.name)
-        time.sleep(0.2)
+    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
+    #     print(vehicle.mode.name)
+    #     time.sleep(0.2)
 
     # Start timers
     startTime = time.time()
     
     # Try this
     try:
-        while(time.time() < startTime + 3):
-            t.sendAttitudeTarget(10, 0, 0, 0.50)
-            time.sleep(0.5)
-            t.sendAttitudeTarget(-10, 0, 0, 0.50)
-            time.sleep(0.5)
-            t.sendAttitudeTarget(10, 0, 0, 0.50)
-            time.sleep(0.5)
-            t.sendAttitudeTarget(-10, 0, 0, 0.50)
-            time.sleep(0.5)
-
+        while(True):
+            # print(vehicle.attitude.roll)
+            print(vehicle.raw_imu.zgyro * (180 / (1000 * np.pi)))
+            time.sleep(1/20)
+                    
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
