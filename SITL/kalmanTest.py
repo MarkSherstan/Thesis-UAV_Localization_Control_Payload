@@ -53,11 +53,11 @@ for ii in range(1, data.shape[1]):
 ##########################
 # Plot the data
 ##########################
-plt.plot(range(len(yawData)), yawData, 'k-', alpha=0.2, label='Raw Yaw Data')
-plt.plot(range(len(gyroData)), gyroData, 'b-', alpha=0.2, label='Raw Gyro Data')
-plt.plot(range(len(dataLog)), dataLog, 'k-', label='Fused')
+plt.plot(timeData, yawData, 'k-', alpha=0.2, label='Raw Yaw Data')
+plt.plot(timeData, gyroData, 'b-', alpha=0.2, label='Raw Gyro Data')
+plt.plot(timeData[:-1], dataLog, 'k-', label='Kalman Filter')
 
-plt.xlabel('Index')
+plt.xlabel('Time [s]')
 plt.ylabel('Yaw [deg] or Yaw Rate [deg/s]')
 plt.legend()
 plt.show()
