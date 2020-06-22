@@ -4,6 +4,7 @@ from dronekit import connect, VehicleMode
 from controller import Controller
 from pymavlink import mavutil
 from vision import Vision
+from IMU import MyVehicle
 import pandas as pd
 import statistics
 import datetime
@@ -26,16 +27,26 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000, vehicle_class=MyVehicle)
 
     # Set attitude request message rate (everything else is default 4 Hz)
     msg = vehicle.message_factory.request_data_stream_encode(
         0, 0,
         mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
-        100, # Rate (Hz)
-        1)  # Turn on
-    vehicle.send_mavlink(msg)    
-    
+        150, # Rate (Hz)
+        1)   # Turn on
+    vehicle.send_mavlink(msg)
+    time.sleep(0.5)    
+
+    # Set raw IMU data message rate (got ~45 Hz)
+    msg = vehicle.message_factory.request_data_stream_encode(
+        0, 0,
+        mavutil.mavlink.MAV_DATA_STREAM_RAW_SENSORS,
+        150, # Rate (Hz)
+        1)   # Turn on
+    vehicle.send_mavlink(msg)  
+    time.sleep(0.5)
+
     # Connect to vision, create the queue, and start the core
     V = Vision()
     Q = Queue()
@@ -62,9 +73,9 @@ def main():
     data = []
     
     # Wait till we switch modes to prevent integral windup and keep vision queue empty
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        print(vehicle.mode.name)
-        northV, eastV, downV, yawV = getVision(Q)
+    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
+    #     print(vehicle.mode.name)
+    #     northV, eastV, downV, yawV = getVision(Q)
 
     # Loop timer(s)
     startTime = time.time()
@@ -95,12 +106,18 @@ def main():
             # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             loopTimer = time.time()
 
+            # IMU data (180 / (1000 * np.pi))
+            xGyro = vehicle.raw_imu.xgyro
+            yGyro = vehicle.raw_imu.ygyro
+            zGyro = vehicle.raw_imu.zgyro
+
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, freqLocal, 
                         northV, eastV, downV, yawV, 
                         northDesired, eastDesired, downDesired, 
                         roll, pitch, yaw, 
-                        rollControl, pitchControl, yawControl, thrustControl])
+                        rollControl, pitchControl, yawControl, thrustControl,
+                        xGyro, yGyro, zGyro])
             
             # Reset integral whenever there is a mode change 
             if (vehicle.mode.name == "STABILIZE"):
@@ -118,7 +135,8 @@ def main():
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
-                            'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control'])
+                            'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
+                            'xGyro', 'yGyro', 'zGyro'])
 
         # Save data to CSV
         now = datetime.datetime.now()
