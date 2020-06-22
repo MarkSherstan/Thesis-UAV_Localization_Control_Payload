@@ -88,10 +88,10 @@ def main():
             northV, eastV, downV, yawV = getVision(Q)
             
             # Smooth vision data with moving average low pass filter and kalman filter
-            northV = nAvg.avg(northV)
-            eastV  = eAvg.avg(eastV)
-            downV  = dAvg.avg(downV)
-            yawV   = yAvg.avg(yKF.update(yawV))
+            #northV = nAvg.avg(northV)
+            #eastV  = eAvg.avg(eastV)
+            #downV  = dAvg.avg(downV)
+            #yawV   = yAvg.avg(yKF.update(yawV))
             
             # Calculate control and execture
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
