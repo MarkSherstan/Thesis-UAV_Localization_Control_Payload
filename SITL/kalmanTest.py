@@ -32,11 +32,11 @@ highRange = 100
 
 yawData = np.array(df['Yaw-Vision'])
 gyroData = np.array(df['zGyro'])
-time = np.array(df['Time'])
+timeData = np.array(df['Time'])
 
-yawData = yawData[lowRange:highRange]
-gyroData = gyroData[lowRange:highRange]
-time = time[lowRange:highRange]
+# yawData = yawData[lowRange:highRange]
+# gyroData = gyroData[lowRange:highRange]
+# timeData = timeData[lowRange:highRange]
 
 data = np.array([np.array([yawData, gyroData]).T])
 
@@ -46,17 +46,18 @@ data = np.array([np.array([yawData, gyroData]).T])
 KF = KalmanFilter()
 dataLog = []
 
-for ii in range(data.shape[1]):
-    dataLog.append(KF.update(data[0][ii]))
-    
+for ii in range(1, data.shape[1]):
+    dt = timeData[ii] - timeData[ii-1]
+    dataLog.append(KF.update(dt, data[0][ii]))
+
 ##########################
 # Plot the data
 ##########################
-plt.plot(time, yawData, 'k-', alpha=0.2, label='Raw Yaw Data')
-plt.plot(time, gyroData, 'b-', alpha=0.2, label='Raw Gyro Data')
-plt.plot(time, dataLog, 'k-', label='Fused')
+plt.plot(range(len(yawData)), yawData, 'k-', alpha=0.2, label='Raw Yaw Data')
+plt.plot(range(len(gyroData)), gyroData, 'b-', alpha=0.2, label='Raw Gyro Data')
+plt.plot(range(len(dataLog)), dataLog, 'k-', label='Fused')
 
 plt.xlabel('Index')
-plt.ylabel('Yaw [deg]')
+plt.ylabel('Yaw [deg] or Yaw Rate [deg/s]')
 plt.legend()
 plt.show()
