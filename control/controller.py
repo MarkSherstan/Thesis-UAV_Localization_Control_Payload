@@ -18,8 +18,8 @@ class Controller:
         self.kd_NORTH = 0.0001
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = self.kp_NORTH*0.3
-        self.ki_EAST = self.ki_NORTH*0.6
+        self.kp_EAST = self.kp_NORTH
+        self.ki_EAST = self.ki_NORTH
         self.kd_EAST = self.kd_NORTH
 
         # PID Gains: DOWN (thrust)
