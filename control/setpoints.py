@@ -24,7 +24,7 @@ class SetPoints:
             else:
                 print('Standard setpoints ready')
                     
-    def updateDesired(self):
+    def getDesired(self):
         # Extract set points
         if (self.index > len(self.northDesiredList)):
             return [self.northDesired, self.eastDesired, self.downDesired]

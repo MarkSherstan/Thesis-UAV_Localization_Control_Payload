@@ -102,7 +102,7 @@ def main():
             
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
-            desired = SP.updateDesired()
+            desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)         
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
