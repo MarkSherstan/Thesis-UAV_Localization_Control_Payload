@@ -1,3 +1,4 @@
+import numpy as np
 
 class Controller:
     def __init__(self):
@@ -88,39 +89,12 @@ class Controller:
             # Send the land command before plotting to decrease downtime
             vehicle.mode = VehicleMode("LAND")
 
-            # Plot the results
-            fig, ax = plt.subplots()
-            ax.plot(self.timeList, self.northActualList, self.timeList, self.northDesiredList,
-                self.timeList, self.eastActualList, self.timeList, self.eastDesiredList,
-                self.timeList, self.downActualList, self.timeList, self.downDesiredList)
-
-            # Set labels and titles
-            fig.suptitle('NED Attitude Control w/ Trajectory Generation', fontsize=14, fontweight='bold')
-            ax.set_title('$K_p:$ ' + str(self.kp) + '\t$K_i:$ ' + str(self.ki) +
-                '\t$k_d:$ ' + str(self.kd) + '\t$Refresh \ Rate:$ ' + str(self.duration) + '$s$')
-            ax.set_xlabel('Time (s)', fontweight='bold')
-            ax.set_ylabel('Position (m)', fontweight='bold')
-
-            # Set ylim, legend, and grid
-            bottom, top = ax.get_ylim()
-            ax.set_ylim(bottom=bottom-0.5)
-            plt.gca().legend(('North Actual','North Desired', 'East Actual', 'East Desired',
-                'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
-            ax.grid()
-
-            # Generate a figure name and save
-            fileName = 'kp' + str(self.kp) + '_ki' + str(self.ki) + '_kd' + str(self.kd) + '.png'
-            plt.savefig(fileName)
-
-            # Show the plot
-            plt.show()
-
-        def trajectoryGen(self, IC, T, sampleRate, plotFlag):
+        def trajectoryGen(self, startPos, endPos, sampleRate=1/30):
             # Define time array and storage variables
             tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
-            pos = []; vel = []; acc = [];
+            pos = []
 
-            # Find coeffcients of 5th order polynomial using matrix operations
+            # Find coeffcients of 5th order polynomial using matrix operations. Zero vel and acc boundary conditions
             A = np.array([[0, 0, 0, 0, 0, 1],
                         [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
                         [0, 0, 0, 0, 1, 0],
@@ -128,39 +102,16 @@ class Controller:
                         [0, 0, 0, 2, 0, 0],
                         [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
 
-            b = np.array([IC[0], IC[1], IC[2], IC[3], IC[4], IC[5]])
+            b = np.array([startPos, endPos, 0, 0, 0, 0])
 
             x = np.linalg.solve(A, b)
 
             # Unpack coeffcients
-            A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5];
+            A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5]
 
             # Calculate the trajectory properties for each time step and store
             for t in tt:
                 pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
-                vel.append(5*A*np.power(t,4) + 4*B*np.power(t,3) + 3*C*np.power(t,2) + 2*D*t + E)
-                acc.append(20*A*np.power(t,3) + 12*B*np.power(t,2) + 6*C*t + 2*D)
-
-            # Plot the results if prompt
-            if plotFlag is True:
-                ax1 = plt.subplot(311)
-                plt.title('Position | Velocity | Acceleration')
-                plt.plot(tt, pos)
-                plt.setp(ax1.get_xticklabels(), visible=False)
-                plt.ylabel('Pos [m]')
-
-                ax2 = plt.subplot(312, sharex=ax1)
-                plt.plot(tt, vel)
-                plt.setp(ax2.get_xticklabels(), visible=False)
-                plt.ylabel('Vel [m/s]')
-
-                ax3 = plt.subplot(313, sharex=ax1)
-                plt.plot(tt, acc)
-                plt.setp(ax3.get_xticklabels(), fontsize=10)
-                plt.ylabel('Acc [m/s^2]')
-
-                plt.xlabel('time (s)')
-                plt.show()
 
             # Return the resulting position
             return pos
