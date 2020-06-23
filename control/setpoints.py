@@ -89,30 +89,29 @@ class Controller:
             # Send the land command before plotting to decrease downtime
             vehicle.mode = VehicleMode("LAND")
 
-        def trajectoryGen(self, startPos, endPos, sampleRate=1/30):
-            # Define time array and storage variables
-            tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
-            pos = []
+    def trajectoryGen(self, startPos, endPos, T, sampleRate=1/30):
+        # Define time array and storage variables
+        tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
+        pos = []
 
-            # Find coeffcients of 5th order polynomial using matrix operations. Zero vel and acc boundary conditions
-            A = np.array([[0, 0, 0, 0, 0, 1],
-                        [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
-                        [0, 0, 0, 0, 1, 0],
-                        [5*np.power(T,4), 4*np.power(T,3), 3*np.power(T,2), 2*T, 1, 0],
-                        [0, 0, 0, 2, 0, 0],
-                        [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
+        # Find coeffcients of 5th order polynomial using matrix operations. Zero vel and acc boundary conditions
+        A = np.array([[0, 0, 0, 0, 0, 1],
+                    [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
+                    [0, 0, 0, 0, 1, 0],
+                    [5*np.power(T,4), 4*np.power(T,3), 3*np.power(T,2), 2*T, 1, 0],
+                    [0, 0, 0, 2, 0, 0],
+                    [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
 
-            b = np.array([startPos, endPos, 0, 0, 0, 0])
+        b = np.array([startPos, endPos, 0, 0, 0, 0])
 
-            x = np.linalg.solve(A, b)
+        x = np.linalg.solve(A, b)
 
-            # Unpack coeffcients
-            A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5]
+        # Unpack coeffcients
+        A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5]
 
-            # Calculate the trajectory properties for each time step and store
-            for t in tt:
-                pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
+        # Calculate the trajectory properties for each time step and store
+        for t in tt:
+            pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
 
-            # Return the resulting position
-            return pos
-        
+        # Return the resulting position
+        return pos
