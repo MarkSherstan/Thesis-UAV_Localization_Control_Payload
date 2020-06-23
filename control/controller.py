@@ -20,13 +20,13 @@ class Controller:
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.02
-        self.ki_NORTH = 0.003
+        self.ki_NORTH = 0.004
         self.kd_NORTH = 0.0001
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = self.kp_NORTH*0.2
-        self.ki_EAST = self.ki_NORTH*0.2
-        self.kd_EAST = self.kd_NORTH*0.2
+        self.kp_EAST = self.kp_NORTH*0.3
+        self.ki_EAST = self.ki_NORTH*0.6
+        self.kd_EAST = self.kd_NORTH
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.0001
@@ -140,7 +140,7 @@ class Controller:
         # Run some control
         rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
         pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN, debug=True)
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
         yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
         
         # Constrain I terms to prevent integral windup

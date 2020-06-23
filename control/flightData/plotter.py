@@ -38,9 +38,14 @@ for ii in range(df.shape[0]-1):
         idx.append(ii)
 
 ########################
+# Master
+########################
+fig = plt.figure()
+
+########################
 # Roll and Pitch
 ########################
-plt.figure()
+plt.subplot(2, 2, 1)
 ax0 = plt.gca()
 
 df.plot(kind='line', x='Time', y='Roll-Control',  color='#FB8604', style='-', ax=ax0)
@@ -61,21 +66,15 @@ for ii in range(0,len(idx),2):
 ########################
 # Yaw
 ########################
-plt.figure()
+plt.subplot(2, 2, 2)
 ax1 = plt.gca()
-ax2 = ax1.twinx()
 
-df.plot(kind='line', x='Time', y='Yaw-Vision', color='#347B98', style='-', ax=ax1)
-df.plot(kind='line', x='Time', y='Yaw-Control', color='#F0BD04', style='--', ax=ax2)
+df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
+df.plot(kind='line', x='Time', y='Yaw-Control', color='tab:blue', style='--', ax=ax1)
 
 ax1.set_title('Yaw Control', fontsize=14, fontweight='bold')
 ax1.set_xlabel('Time [s]', fontweight='bold')
-
-ax1.set_ylabel('Yaw [Deg]', color='#347B98', fontweight='bold')
-ax2.set_ylabel('Yaw Rate [Deg/s]', color='#F0BD04', fontweight='bold')
-
-ax1.get_legend().remove()
-ax2.get_legend().remove()
+ax1.set_ylabel('Angle [Deg or Deg/s]', fontweight='bold')
 
 for ii in range(0,len(idx),2):
     plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
@@ -83,7 +82,7 @@ for ii in range(0,len(idx),2):
 ########################
 # North East
 ########################
-plt.figure()
+plt.subplot(2, 2, 3)
 ax3 = plt.gca()
 
 df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
@@ -104,7 +103,7 @@ for ii in range(0,len(idx),2):
 ########################
 # Thrust
 ########################
-plt.figure()
+plt.subplot(2, 2, 4)
 ax4 = plt.gca()
 
 df.plot(kind='line', x='Time', y='Thrust-Control', color='#7FBD32', style='-', ax=ax4)
@@ -121,3 +120,4 @@ for ii in range(0,len(idx),2):
 # Show the plots
 ########################
 plt.show()
+fig.savefig(str(fileName).replace('.csv','')+'.png', dpi=fig.dpi)
