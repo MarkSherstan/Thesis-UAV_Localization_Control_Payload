@@ -6,6 +6,7 @@ from pymavlink import mavutil
 from vision import Vision
 from IMU import MyVehicle
 import pandas as pd
+import numpy as np
 import statistics
 import datetime
 import math
@@ -29,7 +30,7 @@ def main():
     print('Connecting to vehicle on: %s\n' % connection_string)
     vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000, vehicle_class=MyVehicle)
 
-    # Set attitude request message rate (everything else is default 4 Hz)
+    # Set attitude request message rate 
     msg = vehicle.message_factory.request_data_stream_encode(
         0, 0,
         mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
@@ -38,7 +39,7 @@ def main():
     vehicle.send_mavlink(msg)
     time.sleep(0.5)    
 
-    # Set raw IMU data message rate (got ~45 Hz)
+    # Set raw IMU data message rate
     msg = vehicle.message_factory.request_data_stream_encode(
         0, 0,
         mavutil.mavlink.MAV_DATA_STREAM_RAW_SENSORS,
@@ -59,12 +60,11 @@ def main():
     downDesired = 50
     C = Controller(northDesired, eastDesired, downDesired, vehicle)
 
-    # Create a low pass filter
+    # Create low pass filters
     nAvg = movingAverage(5)
     eAvg = movingAverage(3)
     dAvg = movingAverage(3)
-    yAvg = movingAverage(5)
-
+ 
     # Create a Kalman filter 
     yKF  = kalmanFilter()
     
@@ -73,30 +73,35 @@ def main():
     data = []
     
     # Wait till we switch modes to prevent integral windup and keep vision queue empty
-    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
-    #     print(vehicle.mode.name)
-    #     northV, eastV, downV, yawV = getVision(Q)
+    while(vehicle.mode.name != 'GUIDED_NOGPS'):
+        print(vehicle.mode.name)
+        northV, eastV, downV, yawV = getVision(Q)
 
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
+    kalmanTimer = time.time()
     C.startController()
     
     try:
         while(True):
             # Get vision data
             northV, eastV, downV, yawV = getVision(Q)
+
+            # Get IMU data and convert to deg/s
+            zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
+                        
+            # Smooth vision data with moving average low pass filter and a kalman filter
+            northV = nAvg.update(northV)
+            eastV  = eAvg.update(eastV)
+            downV  = dAvg.update(downV)
+            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawV, zGyro]).T)
+            kalmanTimer = time.time()
             
-            # Smooth vision data with moving average low pass filter and kalman filter
-            #northV = nAvg.avg(northV)
-            #eastV  = eAvg.avg(eastV)
-            #downV  = dAvg.avg(downV)
-            #yawV   = yAvg.avg(yKF.update(yawV))
-            
-            # Calculate control and execture
+            # Calculate control and execute
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
 
-            # Get actual vehicle data
+            # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
             
             # Print data
@@ -106,18 +111,13 @@ def main():
             # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             loopTimer = time.time()
 
-            # IMU data (180 / (1000 * np.pi))
-            xGyro = vehicle.raw_imu.xgyro
-            yGyro = vehicle.raw_imu.ygyro
-            zGyro = vehicle.raw_imu.zgyro
-
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, freqLocal, 
                         northV, eastV, downV, yawV, 
                         northDesired, eastDesired, downDesired, 
                         roll, pitch, yaw, 
                         rollControl, pitchControl, yawControl, thrustControl,
-                        xGyro, yGyro, zGyro])
+                        zGyro])
             
             # Reset integral whenever there is a mode change 
             if (vehicle.mode.name == "STABILIZE"):
@@ -136,7 +136,7 @@ def main():
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'xGyro', 'yGyro', 'zGyro'])
+                            'zGyro'])
 
         # Save data to CSV
         now = datetime.datetime.now()
