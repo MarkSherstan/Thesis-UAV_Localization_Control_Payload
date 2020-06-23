@@ -1,9 +1,26 @@
 import numpy as np
 
-class Controller:
+class SetPoints:
     def __init__(self):
-        pass
+        # Initial position
+        self.north0 = None
+        self.east0  = None
 
+    def initialPosition(self, Q, pts=10):
+        # Initialize counter
+        north = 0
+        east  = 0
+
+        # Sum points 
+        for _ in range(pts):
+            temp = Q.get()
+            north += temp[0]
+            east  += temp[1]
+        
+        # Save the average
+        self.north0 = north / pts
+        self.east0  = east / pts       
+        
     def trajectoryControl(self, vehicle):
             # Initialize variables
             counter = 0

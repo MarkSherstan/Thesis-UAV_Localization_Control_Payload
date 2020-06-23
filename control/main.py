@@ -2,6 +2,7 @@ from filter import movingAverage, kalmanFilter
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
+from setpoints import SetPoints
 from pymavlink import mavutil
 from vision import Vision
 from IMU import MyVehicle
@@ -54,8 +55,9 @@ def main():
     P = Process(target=V.processFrame, args=(Q, ))
     P.start()
     
-    # Connect to control scheme
+    # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
+    SP = SetPoints()
 
     # Create low pass filters
     nAvg = movingAverage(5)
@@ -74,6 +76,9 @@ def main():
         print(vehicle.mode.name)
         northV, eastV, downV, yawV = getVision(Q)
 
+    # Find initial position 
+    SP.initialPosition(Q)
+    
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
