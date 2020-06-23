@@ -8,8 +8,8 @@ class SetPoints:
         self.downDesired  = downDesired
         
         # Trajectory list
-        self.northDesiredList = None
-        self.eastDesiredList  = None
+        self.northDesiredList = []
+        self.eastDesiredList  = []
         self.index = 0
 
     def selectMethod(self, Q, trajectory):
@@ -26,7 +26,7 @@ class SetPoints:
                     
     def getDesired(self):
         # Extract set points
-        if (self.index > len(self.northDesiredList)):
+        if (self.index >= len(self.northDesiredList)):
             return [self.northDesired, self.eastDesired, self.downDesired]
         else:
             northTemp = self.northDesiredList[self.index]

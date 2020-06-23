@@ -1,4 +1,4 @@
-from filter import movingAverage, kalmanFilter
+from filter import MovingAverage, KalmanFilter
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
@@ -60,12 +60,12 @@ def main():
     SP = SetPoints(300, 0, 50)
 
     # Create low pass filters
-    nAvg = movingAverage(5)
-    eAvg = movingAverage(3)
-    dAvg = movingAverage(3)
+    nAvg = MovingAverage(5)
+    eAvg = MovingAverage(3)
+    dAvg = MovingAverage(3)
  
     # Create a Kalman filter 
-    yKF  = kalmanFilter()
+    yKF  = KalmanFilter()
     
     # Logging variables
     freqList = []

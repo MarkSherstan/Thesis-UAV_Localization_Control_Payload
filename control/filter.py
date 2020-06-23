@@ -1,7 +1,7 @@
 from simdkalman.primitives import update, predict_observation, predict
 import numpy as np
 
-class movingAverage:
+class MovingAverage:
     def __init__(self, windowSize):
         self.windowSize = windowSize
         self.values = []
