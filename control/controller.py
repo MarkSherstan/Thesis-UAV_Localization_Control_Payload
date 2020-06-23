@@ -2,16 +2,10 @@ import time
 import math
 
 class Controller:
-    def __init__(self, northDesired, eastDesired, downDesired, vehicle, yawDesired=0):
+    def __init__(self, vehicle):
         # Vehicle class
         self.UAV = vehicle
         
-        # Desired position
-        self.northDesired = northDesired
-        self.eastDesired  = eastDesired
-        self.downDesired  = downDesired
-        self.yawDesired   = yawDesired
-
         # Maximum controller output constraints
         self.rollConstrain  = [-10, 10]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
@@ -126,12 +120,12 @@ class Controller:
         # Return values 
         return PID, I
 
-    def positionControl(self, northActual, eastActual, downActual, yawActual):
+    def positionControl(self, actual, desired):
         # Error calculations
-        errorNorth = (self.northDesired - northActual)
-        errorEast  = (self.eastDesired - eastActual)
-        errorDown  = (self.downDesired - downActual)
-        errorYaw   = (self.yawDesired - yawActual)
+        errorNorth = desired[0] - actual[0]
+        errorEast  = desired[1] - actual[1]
+        errorDown  = desired[2] - actual[2]
+        errorYaw   = -actual[3]
 
         # Get time delta
         dt = time.time() - self.timer
@@ -151,9 +145,9 @@ class Controller:
 
         # Update previous error
         self.northPrevError = errorNorth
-        self.eastPrevError = errorEast
-        self.downPrevError = errorDown
-        self.yawPrevError = yawActual
+        self.eastPrevError  = errorEast
+        self.downPrevError  = errorDown
+        self.yawPrevError   = errorYaw
 
         # Constrain the controller values
         rollAngle  = self.constrain(rollControl, self.rollConstrain[0], self.rollConstrain[1])
@@ -167,8 +161,5 @@ class Controller:
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
-        # Send the values
-        self.sendAttitudeTarget(rollAngle, pitchAngle, yawRate, thrust)
-        
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
