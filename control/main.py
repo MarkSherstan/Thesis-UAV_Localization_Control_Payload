@@ -55,10 +55,7 @@ def main():
     P.start()
     
     # Connect to control scheme
-    northDesired = 300
-    eastDesired = 0
-    downDesired = 50
-    C = Controller(northDesired, eastDesired, downDesired, vehicle)
+    C = Controller(vehicle)
 
     # Create low pass filters
     nAvg = movingAverage(5)
@@ -99,8 +96,11 @@ def main():
             kalmanTimer = time.time()
             
             # Calculate control and execute
-            rollControl, pitchControl, yawControl, thrustControl = C.positionControl(northV, eastV, downV, yawV)         
-
+            actual = [northV, eastV, downV, yawV]
+            desired = [300, 0, 50]
+            rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)         
+            C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
+            
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
             
@@ -114,7 +114,7 @@ def main():
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, freqLocal, 
                         northV, eastV, downV, yawV, 
-                        northDesired, eastDesired, downDesired, 
+                        desired[0], desired[1], desired[2], 
                         roll, pitch, yaw, 
                         rollControl, pitchControl, yawControl, thrustControl,
                         zGyro])
