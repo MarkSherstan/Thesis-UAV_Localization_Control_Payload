@@ -57,7 +57,7 @@ def main():
     
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints()
+    SP = SetPoints(300, 0, 50)
 
     # Create low pass filters
     nAvg = movingAverage(5)
@@ -76,9 +76,9 @@ def main():
         print(vehicle.mode.name)
         northV, eastV, downV, yawV = getVision(Q)
 
-    # Find initial position 
-    SP.initialPosition(Q)
-    
+    # Select set point method
+    SP.selectMethod(Q, trajectory=False)
+        
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
@@ -102,7 +102,7 @@ def main():
             
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
-            desired = [300, 0, 50]
+            desired = SP.updateDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)         
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             

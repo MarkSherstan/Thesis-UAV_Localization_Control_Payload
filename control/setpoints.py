@@ -1,11 +1,39 @@
 import numpy as np
 
 class SetPoints:
-    def __init__(self):
-        # Initial position
-        self.north0 = None
-        self.east0  = None
+    def __init__(self, northDesired, eastDesired, downDesired):
+        # Desired positions
+        self.northDesired = northDesired 
+        self.eastDesired  = eastDesired
+        self.downDesired  = downDesired
+        
+        # Trajectory list
+        self.northDesiredList = None
+        self.eastDesiredList  = None
+        self.index = 0
 
+    def selectMethod(self, Q, trajectory):
+            if (trajectory == True):
+                # Find the initial position
+                north0, east0 = self.initialPosition(Q)
+                
+                # Calculate the trajectories
+                self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=5)
+                self.eastDesiredList = self.trajectoryGen(east0, self.eastDesired, T=5)
+                print('Trajectory ready')
+            else:
+                print('Standard setpoints ready')
+                    
+    def updateDesired(self):
+        # Extract set points
+        if (self.index > len(self.northDesiredList)):
+            return [self.northDesired, self.eastDesired, self.downDesired]
+        else:
+            northTemp = self.northDesiredList[self.index]
+            eastTemp  = self.eastDesiredList[self.index]
+            self.index += 1
+            return [northTemp, eastTemp, self.downDesired]
+    
     def initialPosition(self, Q, pts=10):
         # Initialize counter
         north = 0
@@ -17,94 +45,10 @@ class SetPoints:
             north += temp[0]
             east  += temp[1]
         
-        # Save the average
-        self.north0 = north / pts
-        self.east0  = east / pts       
-        
-    def trajectoryControl(self, vehicle):
-            # Initialize variables
-            counter = 0
-            T = 5
-
-            # Set the start position
-            northStart = 1.1
-            eastStart = 0.8
-
-            # Set the desired NED locations
-            self.northDesired = 0.5
-            self.eastDesired = 0.3
-            self.downDesired = -0.4
-
-            # Generate a trajectory that should take T seconds
-            northIC = [northStart, self.northDesired, 0, 0, 0, 0]
-            eastIC = [eastStart, self.eastDesired, 0, 0, 0, 0]
-
-            pN = self.trajectoryGen(northIC, T, self.duration, False)
-            pE = self.trajectoryGen(eastIC, T, self.duration, False)
-
-            # Combined local frame with actual initial position
-            northStart -= vehicle.location.local_frame.north
-            eastStart -= vehicle.location.local_frame.east
-
-            # Start timers
-            self.startTime = time.time()
-            prevTime = time.time()
-
-            # Run for 2.5*T seconds
-            while (time.time() < self.startTime + 2.5*T):
-                # Get current values and transform to trajectory defined start location
-                northCurrentPos = vehicle.location.local_frame.north + northStart # + (random.random()-0.5)*0.1
-                eastCurrentPos = vehicle.location.local_frame.east + eastStart # + (random.random()-0.5)*0.1
-                downCurrentPos = vehicle.location.local_frame.down # + (random.random()-0.5)*0.1
-                timeStamp = time.time() - self.startTime
-
-                # Set the desired position based on time counter index
-                if counter < len(pN):
-                    desiredN = pN[counter]
-                    desiredE = pE[counter]
-                else:
-                    desiredN = self.northDesired
-                    desiredE = self.eastDesired
-
-                # Save values for plotting
-                self.northDesiredList.append(desiredN)
-                self.northActualList.append(northCurrentPos)
-                self.eastDesiredList.append(desiredE)
-                self.eastActualList.append(eastCurrentPos)
-                self.downDesiredList.append(self.downDesired)
-                self.downActualList.append(downCurrentPos)
-                self.timeList.append(timeStamp)
-
-                # Error caculations
-                errorNorth = desiredN - northCurrentPos
-                errorEast = desiredE - eastCurrentPos
-                errorDown = self.downDesired - downCurrentPos
-
-                # Time elapsed
-                dt = time.time() - prevTime
-                prevTime = time.time()
-
-                # Run some control
-                pitchControl, self.northI = self.PID(errorNorth, self.northPreviousError, self.northI, dt)
-                rollControl, self.eastI = self.PID(errorEast, self.eastPreviousError, self.eastI, dt)
-                thrustControl = -self.constrain(errorDown * self.kThrottle, self.minValD, self.maxValD)
-
-                # Update previous errror
-                self.northPreviousError = errorNorth
-                self.eastPreviousError = errorEast
-
-                # Set the controller values
-                self.pitchAngle = -self.constrain(pitchControl, self.minValNE, self.maxValNE)
-                self.rollAngle = self.constrain(rollControl, self.minValNE, self.maxValNE)
-                self.thrust = np.interp(thrustControl, self.one2one, self.zero2one)
-
-                # Send the command, sleep, and increase counter
-                self.sendAttitudeTarget(vehicle)
-                time.sleep(self.duration)
-                counter += 1
-
-            # Send the land command before plotting to decrease downtime
-            vehicle.mode = VehicleMode("LAND")
+        # Calc the average and return 
+        north0 = north / pts
+        east0  = east / pts       
+        return north0, east0
 
     def trajectoryGen(self, startPos, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
