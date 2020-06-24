@@ -60,9 +60,9 @@ def main():
     SP = SetPoints(200, 0, 50)
 
     # Create low pass filters
-    nAvg = MovingAverage(5)
-    eAvg = MovingAverage(3)
-    dAvg = MovingAverage(3)
+    nAvg = MovingAverage(8)
+    eAvg = MovingAverage(5)
+    dAvg = MovingAverage(5)
  
     # Create a Kalman filter 
     yKF  = KalmanFilter()
