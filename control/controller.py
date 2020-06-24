@@ -13,18 +13,18 @@ class Controller:
         self.yawRateConstrain = [-10, 10]           # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.07 # 0.02
-        self.ki_NORTH = 0.005 # 0.004
-        self.kd_NORTH = 0 # 0.0001
+        self.kp_NORTH = 0.07  # 0.02
+        self.ki_NORTH = 0.003 # 0.004
+        self.kd_NORTH = 0.01  # 0.0001
 
         # PID Gains: EAST (roll)
         self.kp_EAST = self.kp_NORTH * 0.8
         self.ki_EAST = self.ki_NORTH * 0.8
-        self.kd_EAST = self.kd_NORTH
+        self.kd_EAST = self.kd_NORTH * 0.8
 
         # PID Gains: DOWN (thrust)
-        self.kp_DOWN = 0.0001
-        self.ki_DOWN = 0.00005
+        self.kp_DOWN = 0.0002
+        self.ki_DOWN = 0.0
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
