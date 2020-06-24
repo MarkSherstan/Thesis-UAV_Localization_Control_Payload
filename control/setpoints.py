@@ -27,15 +27,27 @@ class SetPoints:
             print('Standard setpoints ready')
                     
     def getDesired(self):
-        # Extract set points
+        # North
         if (self.index >= len(self.northDesiredList)):
-            return [self.northDesired, self.eastDesired, self.downDesired]
+            northSP = self.northDesired
         else:
-            northTemp = self.northDesiredList[self.index]
-            eastTemp  = self.eastDesiredList[self.index]
-            downTemp  = self.downDesiredList[self.index]
-            self.index += 1
-            return [northTemp, eastTemp, downTemp]
+            northSP = self.northDesiredList[self.index]
+        
+        # East
+        if (self.index >= len(self.eastDesiredList)):
+            eastSP = self.eastDesired
+        else:
+            eastSP = self.eastDesiredList[self.index]
+          
+        # Down  
+        if (self.index >= len(self.downDesiredList)):
+            downSP = self.downDesired
+        else:
+            downSP = self.downDesiredList[self.index]
+            
+        # Increment counter and return values
+        self.index += 1
+        return [northSP, eastSP, downSP]
     
     def initialPosition(self, Q, pts=10):
         # Initialize counter
