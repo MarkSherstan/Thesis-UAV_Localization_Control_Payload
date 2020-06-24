@@ -11,7 +11,7 @@ import numpy as np
 import statistics
 import datetime
 import math
-import time 
+import time
 
 def getVision(Q):
     # Vision Data
@@ -31,14 +31,14 @@ def main():
     print('Connecting to vehicle on: %s\n' % connection_string)
     vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000, vehicle_class=MyVehicle)
 
-    # Set attitude request message rate 
+    # Set attitude request message rate
     msg = vehicle.message_factory.request_data_stream_encode(
         0, 0,
         mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
         150, # Rate (Hz)
         1)   # Turn on
     vehicle.send_mavlink(msg)
-    time.sleep(0.5)    
+    time.sleep(0.5)
 
     # Set raw IMU data message rate
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -46,7 +46,7 @@ def main():
         mavutil.mavlink.MAV_DATA_STREAM_RAW_SENSORS,
         150, # Rate (Hz)
         1)   # Turn on
-    vehicle.send_mavlink(msg)  
+    vehicle.send_mavlink(msg)
     time.sleep(0.5)
 
     # Connect to vision, create the queue, and start the core
@@ -54,23 +54,23 @@ def main():
     Q = Queue()
     P = Process(target=V.processFrame, args=(Q, ))
     P.start()
-    
+
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(250, 0, -75)
+    SP = SetPoints(250, 0, 50)
 
     # Create low pass filters
     nAvg = MovingAverage(8)
     eAvg = MovingAverage(5)
     dAvg = MovingAverage(5)
- 
-    # Create a Kalman filter 
+
+    # Create a Kalman filter
     yKF  = KalmanFilter()
-    
+
     # Logging variables
     freqList = []
     data = []
-    
+
     # Wait till we switch modes to prevent integral windup and keep vision queue empty
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         print(vehicle.mode.name)
@@ -78,13 +78,13 @@ def main():
 
     # Select set point method
     SP.selectMethod(Q, trajectory=True)
-        
+
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
     kalmanTimer = time.time()
     C.startController()
-    
+
     try:
         while(True):
             # Get vision data
@@ -92,23 +92,23 @@ def main():
 
             # Get IMU data and convert to deg/s
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
-                        
+
             # Smooth vision data with moving average low pass filter and a kalman filter
             northV = nAvg.update(northVraw)
             eastV  = eAvg.update(eastVraw)
             downV  = dAvg.update(downVraw)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T) - 3.0
+            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
             kalmanTimer = time.time()
-            
+
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)         
+            rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-            
+
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
-            
+
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
@@ -123,7 +123,7 @@ def main():
                         roll, pitch, yaw, 
                         rollControl, pitchControl, yawControl, thrustControl,
                         northVraw, eastVraw, downVraw, yawVraw, zGyro])
-            
+
             # Reset integral whenever there is a mode change 
             if (vehicle.mode.name == "STABILIZE"):
                 C.resetIntegral()

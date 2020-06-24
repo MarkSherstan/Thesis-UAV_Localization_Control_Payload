@@ -5,7 +5,7 @@ class Controller:
     def __init__(self, vehicle):
         # Vehicle class
         self.UAV = vehicle
-        
+
         # Maximum controller output constraints
         self.rollConstrain  = [-10, 10]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
@@ -161,10 +161,10 @@ class Controller:
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
-        # Mixer 
-        psi = math.radians(actual[3])
+        # Mixer
+        psi = -math.radians(actual[3])
         rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
         pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
-        
+
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
