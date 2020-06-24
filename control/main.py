@@ -57,7 +57,7 @@ def main():
     
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(300, 0, 50)
+    SP = SetPoints(200, 0, 50)
 
     # Create low pass filters
     nAvg = MovingAverage(5)
