@@ -77,7 +77,7 @@ def main():
         northV, eastV, downV, yawV = getVision(Q)
 
     # Select set point method
-    SP.selectMethod(Q, trajectory=False)
+    SP.selectMethod(Q, trajectory=True)
         
     # Loop timer(s)
     startTime = time.time()
