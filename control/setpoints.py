@@ -10,19 +10,21 @@ class SetPoints:
         # Trajectory list
         self.northDesiredList = []
         self.eastDesiredList  = []
+        self.downDesiredList  = []
         self.index = 0
 
     def selectMethod(self, Q, trajectory):
-            if (trajectory == True):
-                # Find the initial position
-                north0, east0 = self.initialPosition(Q)
-                
-                # Calculate the trajectories
-                self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=5)
-                self.eastDesiredList = self.trajectoryGen(east0, self.eastDesired, T=5)
-                print('Trajectory ready')
-            else:
-                print('Standard setpoints ready')
+        if (trajectory == True):
+            # Find the initial position
+            north0, east0, down0 = self.initialPosition(Q)
+            
+            # Calculate the trajectories
+            self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=5)
+            self.eastDesiredList  = self.trajectoryGen(east0, self.eastDesired, T=5)
+            self.downDesiredList  = self.trajectoryGen(down0, self.downDesired, T=10)
+            print('Trajectory ready')
+        else:
+            print('Standard setpoints ready')
                     
     def getDesired(self):
         # Extract set points
@@ -31,24 +33,28 @@ class SetPoints:
         else:
             northTemp = self.northDesiredList[self.index]
             eastTemp  = self.eastDesiredList[self.index]
+            downTemp  = self.downDesiredList[self.index]
             self.index += 1
-            return [northTemp, eastTemp, self.downDesired]
+            return [northTemp, eastTemp, downTemp]
     
     def initialPosition(self, Q, pts=10):
         # Initialize counter
         north = 0
         east  = 0
+        down  = 0
 
         # Sum points 
         for _ in range(pts):
             temp = Q.get()
             north += temp[0]
             east  += temp[1]
+            down  += temp[2]
         
         # Calc the average and return 
         north0 = north / pts
-        east0  = east / pts       
-        return north0, east0
+        east0  = east / pts     
+        down0  = down / pts  
+        return north0, east0, down0
 
     def trajectoryGen(self, startPos, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
