@@ -88,16 +88,16 @@ def main():
     try:
         while(True):
             # Get vision data
-            northV, eastV, downV, yawV = getVision(Q)
+            northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
 
             # Get IMU data and convert to deg/s
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
                         
             # Smooth vision data with moving average low pass filter and a kalman filter
-            northV = nAvg.update(northV)
-            eastV  = eAvg.update(eastV)
-            downV  = dAvg.update(downV)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawV, zGyro]).T)
+            northV = nAvg.update(northVraw)
+            eastV  = eAvg.update(eastVraw)
+            downV  = dAvg.update(downVraw)
+            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
             kalmanTimer = time.time()
             
             # Calculate control and execute
@@ -122,7 +122,7 @@ def main():
                         desired[0], desired[1], desired[2], 
                         roll, pitch, yaw, 
                         rollControl, pitchControl, yawControl, thrustControl,
-                        zGyro])
+                        northVraw, eastVraw, downVraw, yawVraw, zGyro])
             
             # Reset integral whenever there is a mode change 
             if (vehicle.mode.name == "STABILIZE"):
@@ -141,7 +141,7 @@ def main():
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'zGyro'])
+                            'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
 
         # Save data to CSV
         now = datetime.datetime.now()
