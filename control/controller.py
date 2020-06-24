@@ -28,8 +28,8 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.02 #4.0
-        self.ki_YAW = 0.002
+        self.kp_YAW = 0.025
+        self.ki_YAW = 0.001
         self.kd_YAW = 0.0
 
         # Previous errors
