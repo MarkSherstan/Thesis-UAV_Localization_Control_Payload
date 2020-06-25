@@ -17,9 +17,9 @@ class MovingAverage:
 class KalmanFilter:
     def __init__(self):
         # Standard deviations 
-        self.sigmaE = 1.0        # deg / s / s
-        sigmaTheta = 50          # deg
-        sigmaOmega = 0.1         # deg / s
+        self.sigmaE = 1.0      # deg / s / s
+        sigmaTheta  = 10.0     # deg
+        sigmaOmega  = 0.5      # deg / s
         
         # Configure the filter
         self.observationModel = np.diag([1, 1])                             # H

@@ -66,15 +66,24 @@ def main():
 
     # Create a Kalman filter
     yKF  = KalmanFilter()
-
+    kalmanTimer = time.time()
+    
     # Logging variables
     freqList = []
     data = []
 
-    # Wait till we switch modes to prevent integral windup and keep vision queue empty
+    # Wait till we switch modes to prevent integral windup and keep everything happy
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
+        # Current mode
         print(vehicle.mode.name)
-        northV, eastV, downV, yawV = getVision(Q)
+        
+        # Keep vision queue empty
+        northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
+        
+        # Start Kalman filter to limit start up error
+        zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
+        yawV  = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+        kalmanTimer = time.time()
 
     # Select set point method
     SP.selectMethod(Q, trajectory=True)
@@ -82,7 +91,6 @@ def main():
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
-    kalmanTimer = time.time()
     C.startController()
 
     try:
