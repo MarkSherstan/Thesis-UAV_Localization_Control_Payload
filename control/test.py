@@ -99,17 +99,20 @@ def main():
     # Try this
     try:
         while(time.time() < startTime + 10):
-            # print(vehicle.attitude.roll)
-            # print(vehicle.raw_imu.zgyro * (180 / (1000 * np.pi)))
-            currentValue = vehicle.raw_imu.zgyro
-            data.append(currentValue)
+            t.sendAttitudeTarget(0,0,5,0.5)
             
-            if (currentValue != previousValue):
-                count += 1
+            
+            # # print(vehicle.attitude.roll)
+            # # print(vehicle.raw_imu.zgyro * (180 / (1000 * np.pi)))
+            # currentValue = vehicle.raw_imu.zgyro
+            # data.append(currentValue)
+            
+            # if (currentValue != previousValue):
+            #     count += 1
                 
-            previousValue = currentValue
+            # previousValue = currentValue
             
-            time.sleep(1/40)
+            time.sleep(1/28)
                     
     except KeyboardInterrupt:
         # Print final remarks
