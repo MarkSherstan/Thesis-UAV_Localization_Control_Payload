@@ -7,15 +7,15 @@ class Controller:
         self.UAV = vehicle
 
         # Maximum controller output constraints
-        self.rollConstrain  = [-10, 10]	            # Deg
+        self.rollConstrain  = [-2, 2]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	        # Normalized
-        self.yawRateConstrain = [-15, 15]           # Deg / s
+        self.yawRateConstrain = [-5, 5]             # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.05
-        self.ki_NORTH = 0.00005
-        self.kd_NORTH = 0.003 #0.005
+        self.kp_NORTH = 0.02
+        self.ki_NORTH = 0.0 #0.00005
+        self.kd_NORTH = 0.001
 
         # PID Gains: EAST (roll)
         self.kp_EAST = self.kp_NORTH * 0.8
