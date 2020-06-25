@@ -17,7 +17,7 @@ class MovingAverage:
 class KalmanFilter:
     def __init__(self):
         # Standard deviations 
-        self.sigmaE = 1.0      # deg / s / s
+        self.sigmaE = 10.0     # deg / s / s
         sigmaTheta  = 10.0     # deg
         sigmaOmega  = 0.5      # deg / s
         
@@ -31,7 +31,7 @@ class KalmanFilter:
 
     def update(self, dt, dataIn):
         stateTransition  = np.array([[1, dt],[0,1]])                        # A
-        processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE         # Q 
+        processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE**2      # Q 
         
         m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
