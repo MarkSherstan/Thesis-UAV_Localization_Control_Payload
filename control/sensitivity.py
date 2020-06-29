@@ -5,7 +5,6 @@ import pandas as pd
 import numpy as np
 import statistics
 import datetime
-import math
 import time
 
 def getVision(Q):
@@ -24,6 +23,7 @@ def main():
     nAvg = MovingAverage(5)
     eAvg = MovingAverage(3)
     dAvg = MovingAverage(3)
+    yAvg = MovingAverage(3)
 
     # Create a Kalman filter
     yKF = KalmanFilter()
@@ -33,90 +33,54 @@ def main():
     freqList = []
     data = []
 
-    # Wait till we switch modes to prevent integral windup and keep everything happy
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        # Current mode
-        print(vehicle.mode.name)
-        
-        # Keep vision queue empty
-        northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
-        
-        # Start Kalman filter to limit start up error
-        zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
-        yawV  = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-        kalmanTimer = time.time()
-
-    # Select set point method
-    SP.selectMethod(Q, trajectory=True)
-
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
-    C.startController()
 
     try:
         while(True):
             # Get vision data
             northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
 
-            # Get IMU data and convert to deg/s
-            zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
-
-            # Smooth vision data with moving average low pass filter and a kalman filter
+            # Smooth vision data with moving average low pass filter 
             northV = nAvg.update(northVraw)
             eastV  = eAvg.update(eastVraw)
             downV  = dAvg.update(downVraw)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-            kalmanTimer = time.time()
-
-            # Calculate control and execute
-            actual = [northV, eastV, downV, yawV]
-            desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
-            C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-
-            # Get actual vehicle attitude
-            roll, pitch, yaw = getVehicleAttitude(vehicle)
+            yawV   = yAvg.update(yawVraw)
+            
+            # Kalman Filter
+            # yawV = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            # kalmanTimer = time.time()
 
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
-            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
-            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
             loopTimer = time.time()
 
             # Log data
-            data.append([vehicle.mode.name, time.time()-startTime, freqLocal, 
+            data.append([time.time()-startTime, freqLocal, 
                         northV, eastV, downV, yawV, 
-                        desired[0], desired[1], desired[2], 
-                        roll, pitch, yaw, 
-                        rollControl, pitchControl, yawControl, thrustControl,
-                        northVraw, eastVraw, downVraw, yawVraw, zGyro])
-
-            # Reset integral whenever there is a mode change 
-            if (vehicle.mode.name == "STABILIZE"):
-                C.resetIntegral()
+                        northVraw, eastVraw, downVraw, yawVraw])
             
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
+
     finally:        
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
         # Write data to a data frame
-        df = pd.DataFrame(data, columns=['Mode', 'Time', 'Freq',
+        df = pd.DataFrame(data, columns=['Time', 'Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
-                            'North-Desired', 'East-Desired', 'Down-Desired',
-                            'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
-                            'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
                             'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
 
         # Save data to CSV
-        now = datetime.datetime.now()
-        fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
-        df.to_csv(fileName, index=None, header=True)
-        print('File saved to:' + fileName)
+        # now = datetime.datetime.now()
+        # fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
+        # df.to_csv(fileName, index=None, header=True)
+        # print('File saved to:' + fileName)
 
 if __name__ == "__main__":
     main()
