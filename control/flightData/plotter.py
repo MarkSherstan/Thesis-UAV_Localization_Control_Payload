@@ -20,7 +20,8 @@ try:
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
-                            'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control'])
+                            'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
+                            'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
 except:
     print('Error with file.')
     exit()

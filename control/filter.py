@@ -1,7 +1,7 @@
 from simdkalman.primitives import update, predict_observation, predict
 import numpy as np
 
-class movingAverage:
+class MovingAverage:
     def __init__(self, windowSize):
         self.windowSize = windowSize
         self.values = []
@@ -17,9 +17,9 @@ class movingAverage:
 class KalmanFilter:
     def __init__(self):
         # Standard deviations 
-        self.sigmaE = 1.0        # deg / s / s
-        sigmaTheta = 50          # deg
-        sigmaOmega = 0.1         # deg / s
+        self.sigmaE = 10.0     # deg / s / s
+        sigmaTheta  = 10.0     # deg
+        sigmaOmega  = 0.5      # deg / s
         
         # Configure the filter
         self.observationModel = np.diag([1, 1])                             # H
@@ -31,7 +31,7 @@ class KalmanFilter:
 
     def update(self, dt, dataIn):
         stateTransition  = np.array([[1, dt],[0,1]])                        # A
-        processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE         # Q 
+        processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE**2      # Q 
         
         m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
