@@ -71,7 +71,7 @@ def main():
             print('idx: {:<8.0f} f: {:<8.0f} N: {:<8.1f} E: {:<8.1f} D: {:<8.1f} Y: {:<8.1f}'.format(count, freqLocal, northV, eastV, downV, yawV))
             loopTimer = time.time()
 
-            if (count > 300):
+            if (count >= 500):
                 break
             else:
                 count = count + 1
@@ -89,7 +89,7 @@ def main():
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
-
+        print('Total points: ', count)
         print("North: ", round(statistics.mean(nList),3), "+/-", round(statistics.stdev(nList), 3))
         print("East: ", round(statistics.mean(eList),3), "+/-", round(statistics.stdev(eList), 3))
         print("Down: ", round(statistics.mean(dList),3), "+/-", round(statistics.stdev(dList), 3))
