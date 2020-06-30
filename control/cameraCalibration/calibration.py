@@ -46,7 +46,7 @@ class CalibrateCamera:
         # Save it to a file
         cv2.imwrite('CharucoBoard.png', img)
 
-    def generateArucoBoard(self, rows=4, columns=3):
+    def generateArucoBoard(self, rows=3, columns=4):
         # Create the board 
         board = aruco.GridBoard_create(
             markersX=columns,
