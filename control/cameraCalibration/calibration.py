@@ -254,20 +254,70 @@ class CalibrateCamera:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+    def trackArucoBoard(self, lengthMarker=0.106, spacing=0.1):
+        # Get calibration data
+        try:
+            self.getCalibration()
+        except:
+            print('Calibration not found!')
+
+        # Create the board
+        board = aruco.GridBoard_create(
+            markersX=4,                 # Columns
+            markersY=3,                 # Rows
+            markerLength=lengthMarker,  # cm
+            markerSeparation=spacing,   # cm
+            dictionary=self.arucoDict)
+
+        # Font and color for screen writing
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontColor = (0, 255, 0)        
+        
+        # Set parameters
+        parameters = aruco.DetectorParameters_create()
+        parameters.adaptiveThreshConstant = 10
+        
+        # Intialize variables
+        rvec = None
+        tvec = None
+        
+        while(True):
+            # Get frame and convert to gray
+            _, frame = self.cam.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # lists of ids and corners belonging to each id
+            corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=parameters)
+            
+            # Draw the detected markers
+            aruco.drawDetectedMarkers(frame, corners)
+            
+            # Only continue if a marker was found
+            if np.all(ids != None):
+                # Estimate the pose
+                _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, board, self.mtx, self.dist, rvec, tvec)
+
+                # Draw the axis for calculated pose
+                aruco.drawAxis(frame, self.mtx, self.dist, rvec, tvec, 0.1)
+
+            # display the resulting frame
+            cv2.imshow('frame', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    
         # When complete close everything down
         self.cam.release()
-        cv2.destroyAllWindows()
-
-
+        cv2.destroyAllWindows()   
+              
 def main():    
     # Initialize class
     CC = CalibrateCamera()
 
     # CC.generateCharucoBoard()
-    CC.generateArucoBoard()
+    # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
-    # CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=1)
+    CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0)
     # CC.captureCalibrationImages()
     # CC.calibrateCamera()
 
@@ -276,6 +326,7 @@ def main():
     # print(CC.dist)
 
     # CC.trackAruco()
+    CC.trackArucoBoard()
 
 # Main loop
 if __name__ == '__main__':
