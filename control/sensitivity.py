@@ -20,10 +20,10 @@ def main():
     P.start()
 
     # Create low pass filters
-    nAvg = MovingAverage(5)
-    eAvg = MovingAverage(3)
-    dAvg = MovingAverage(3)
-    yAvg = MovingAverage(3)
+    nAvg = MovingAverage(1)
+    eAvg = MovingAverage(1)
+    dAvg = MovingAverage(1)
+    yAvg = MovingAverage(1)
 
     # Create a Kalman filter
     yKF = KalmanFilter()
@@ -33,6 +33,13 @@ def main():
     freqList = []
     data = []
 
+    nList = []
+    eList = []
+    dList = []
+    yList = []
+
+    count = 0
+
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
@@ -41,6 +48,12 @@ def main():
         while(True):
             # Get vision data
             northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
+
+            # Log data
+            nList.append(northVraw)
+            eList.append(eastVraw)
+            dList.append(downVraw)
+            yList.append(yawVraw)
 
             # Smooth vision data with moving average low pass filter 
             northV = nAvg.update(northVraw)
@@ -55,13 +68,18 @@ def main():
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
-            print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
+            print('idx: {:<8.0f} f: {:<8.0f} N: {:<8.1f} E: {:<8.1f} D: {:<8.1f} Y: {:<8.1f}'.format(count, freqLocal, northV, eastV, downV, yawV))
             loopTimer = time.time()
 
+            if (count > 300):
+                break
+            else:
+                count = count + 1
+
             # Log data
-            data.append([time.time()-startTime, freqLocal, 
-                        northV, eastV, downV, yawV, 
-                        northVraw, eastVraw, downVraw, yawVraw])
+            # data.append([time.time()-startTime, freqLocal, 
+            #             northV, eastV, downV, yawV, 
+            #             northVraw, eastVraw, downVraw, yawVraw])
             
     except KeyboardInterrupt:
         # Print final remarks
@@ -71,10 +89,16 @@ def main():
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
+
+        print("North: ", round(statistics.mean(nList),3), "+/-", round(statistics.stdev(nList), 3))
+        print("East: ", round(statistics.mean(eList),3), "+/-", round(statistics.stdev(eList), 3))
+        print("Down: ", round(statistics.mean(dList),3), "+/-", round(statistics.stdev(dList), 3))
+        print("Yaw: ", round(statistics.mean(yList),3), "+/-", round(statistics.stdev(yList), 3))
+
         # Write data to a data frame
-        df = pd.DataFrame(data, columns=['Time', 'Freq',
-                            'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
-                            'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
+        # df = pd.DataFrame(data, columns=['Time', 'Freq',
+        #                     'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
+        #                     'northVraw', 'eastVraw', 'downVraw', 'yawVraw'])
 
         # Save data to CSV
         # now = datetime.datetime.now()
