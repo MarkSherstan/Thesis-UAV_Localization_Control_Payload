@@ -5,10 +5,19 @@ import cv2
 import cv2.aruco as aruco
 
 class CalibrateCamera:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src):
+    def __init__(self):
         # Create custom dictionary (# markers, # bits)
         self.arucoDict = aruco.custom_dictionary(17, 3)
 
+        # Calibration 
+        self.mtx = None
+        self.dist = None
+
+        # Calibration directories
+        self.calibrationDir = 'calibrationImgs/'
+        self.imgExtension = '.jpg'
+
+    def startCamera(self, desiredWidth, desiredHeight, desiredFPS, src):
         # Camera config 
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
@@ -23,14 +32,8 @@ class CalibrateCamera:
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
-            print('Camera setup failed')
-
-        self.mtx = None
-        self.dist = None
-
-        self.calibrationDir = 'calibrationImgs/'
-        self.imgExtension = '.jpg'
-
+            print('Camera setup failed')        
+        
     def generateCharucoBoard(self, rows=7, columns=5):
         # Create the board
         board = aruco.CharucoBoard_create(
@@ -239,21 +242,16 @@ class CalibrateCamera:
         cv2.destroyAllWindows()
 
 
-def main():
-    # Set desired parameters
-    desiredWidth  = 1280
-    desiredHeight = 720
-    desiredFPS    = 30
-    autoFocus     = False
-    
+def main():    
     # Initialize class
-    CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=1)
+    CC = CalibrateCamera()
 
     # CC.generateCharucoBoard()
     # CC.generateArucoMarker()
 
+    # CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=1)
     # CC.captureCalibrationImages()
-    CC.calibrateCamera()
+    # CC.calibrateCamera()
 
     # CC.getCalibration()
     # print(CC.mtx)
