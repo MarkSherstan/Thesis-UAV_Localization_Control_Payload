@@ -18,6 +18,6 @@ for _ in range(10):
     _, frame = cam.read()
 
 frame = cv2.rotate(frame, cv2.ROTATE_180)
-cv2.imwrite('300mm.png',frame)
+cv2.imwrite('100mm.png',frame)
 
 cam.release()
