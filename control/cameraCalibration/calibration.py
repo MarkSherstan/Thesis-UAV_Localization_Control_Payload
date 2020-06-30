@@ -22,7 +22,6 @@ class CalibrateCamera:
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
         self.desiredFPS    = desiredFPS   
-        self.autoFocus     = autoFocus 
         
         try:
             self.cam = cv2.VideoCapture(src)
@@ -47,6 +46,24 @@ class CalibrateCamera:
         # Save it to a file
         cv2.imwrite('CharucoBoard.png', img)
 
+    def generateArucoBoard(self, rows=4, columns=3):
+        # Create the board 
+        board = aruco.GridBoard_create(
+            markersX=columns,
+            markersY=rows,
+            markerLength=0.1,
+            markerSeparation=0.1/2,
+            dictionary=self.arucoDict)
+        img = board.draw((175*columns, 175*rows))
+        
+        # Show the image 
+        cv2.imshow('ArUco Board', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()        
+
+        # Save it to a file
+        cv2.imwrite('ArUcoBoard.png', img)
+      
     def generateArucoMarker(self, ID=0, size=700):
         # Create an image from the marker
         img = aruco.drawMarker(self.arucoDict, ID, size)
@@ -247,6 +264,7 @@ def main():
     CC = CalibrateCamera()
 
     # CC.generateCharucoBoard()
+    CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
     # CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=1)
