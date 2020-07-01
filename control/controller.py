@@ -14,7 +14,7 @@ class Controller:
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.05
-        self.ki_NORTH = 0.0 #0.00005
+        self.ki_NORTH = 0.0005
         self.kd_NORTH = 0.001
 
         # PID Gains: EAST (roll)
@@ -28,7 +28,7 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.1
+        self.kp_YAW = 0.05
         self.ki_YAW = 0.0
         self.kd_YAW = 0.0
 
