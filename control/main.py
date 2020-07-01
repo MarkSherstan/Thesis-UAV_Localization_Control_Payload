@@ -112,8 +112,9 @@ def main():
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
-            C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-
+            # C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
+            C.V2_sendAttitudeTarget(rollControl, pitchControl, yawV, thrustControl)
+            
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
 
