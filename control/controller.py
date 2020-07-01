@@ -113,7 +113,7 @@ class Controller:
             0, # Target system
             0, # Target component
             0b00000000, # If bit is set corresponding input ignored (mappings)
-            self.euler2quaternion(roll, pitch, yaw), # Quaternion
+            self.euler2quaternion(roll, pitch, 91), # Quaternion
             0, # Body roll rate in radian
             0, # Body pitch rate in radian
             0, # Body yaw rate in rad/s
