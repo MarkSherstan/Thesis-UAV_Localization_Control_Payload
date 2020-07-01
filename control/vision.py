@@ -148,7 +148,7 @@ class Vision:
 
             # Convert from vector to rotation matrix and then transform to body frame
             R, _ = cv2.Rodrigues(rvec)
-            R, t = self.transform2Body(R, tvec[0])
+            R, t = self.transform2Body(R, tvec)
 
             # Get yaw
             _, _, yaw = self.rotationMatrix2EulerAngles(R)
@@ -193,7 +193,7 @@ class Vision:
 
     def transform2Body(self, R, t):
         # Original (ArUco wrt camera)
-        Tca = np.append(R, np.transpose(t), axis=1)
+        Tca = np.append(R, t, axis=1)
         Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
         # Transformation (camera wrt drone)
