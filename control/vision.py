@@ -31,8 +31,8 @@ class Vision:
         self.dist = np.array([[0.0867331, -0.21097928, -0.00540959, 0.00501587, 0.12009933]])
 
         # Board properties
-        self.lengthMarker = 24.7                # CHANGE THESE
-        self.spacing = 10.3                     # CHANGE THESE
+        self.lengthMarker = 19.3
+        self.spacing = 9.7
 
         # Initial conditions for pose calculation 
         self.rvec = None
