@@ -47,9 +47,14 @@ ii = 0
 
 try: 
     while(True):
-        # Get a frame and write it
+        # Get a frame and rotate it
         _, frame = cam.read()
+        frame = cv2.rotate(frame, cv2.ROTATE_180)
+        
+        # Write the frame
         out.write(frame)
+        
+        # Increment timer
         ii += 1
         print(ii)
 
