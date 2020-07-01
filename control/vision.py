@@ -30,10 +30,14 @@ class Vision:
                              [0.0,           0.0,            1.0         ]])
         self.dist = np.array([[0.0867331, -0.21097928, -0.00540959, 0.00501587, 0.12009933]])
 
-        # Marker properties
-        self.lengthMarker = 24.7
-        self.markerID = 0
+        # Board properties
+        self.lengthMarker = 24.7                # CHANGE THESE
+        self.spacing = 10.3                     # CHANGE THESE
 
+        # Initial conditions for pose calculation 
+        self.rvec = None
+        self.tvec = None
+        
         # Offset values in cm
         self.offsetNorth = 0
         self.offsetEast  = 0
@@ -76,6 +80,14 @@ class Vision:
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
 
+        # Create the board
+        self.board = aruco.GridBoard_create(
+            markersX=4,                      # Columns
+            markersY=3,                      # Rows
+            markerLength=self.lengthMarker,  # cm
+            markerSeparation=self.spacing,   # cm
+            dictionary=self.arucoDict)
+        
         # Start the connection to the camera
         try:
             cam = cv2.VideoCapture(0, cv2.CAP_V4L)
@@ -129,31 +141,30 @@ class Vision:
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=self.parm)
 
-        # Only continue if a marker was found and is the correct ID
+        # Only continue if a marker was found
         if np.all(ids != None):
-            if (len(ids) != 1):
-                pass
-            elif (ids[0][0] == self.markerID):
-                # Estimate the pose
-                rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist)
+            # Estimate the pose
+            _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, self.board, self.mtx, self.dist, self.rvec, self.tvec)
 
-                # Convert from vector to rotation matrix and then transform to body frame
-                R, _ = cv2.Rodrigues(rvec)
-                R, t = self.transform2Body(R, tvec[0])
+            # Convert from vector to rotation matrix and then transform to body frame
+            R, _ = cv2.Rodrigues(rvec)
+            R, t = self.transform2Body(R, tvec[0])
 
-                # Get yaw
-                _, _, yaw = self.rotationMatrix2EulerAngles(R)
+            # Get yaw
+            _, _, yaw = self.rotationMatrix2EulerAngles(R)
 
-                # Save values
-                self.North = t[0] 
-                self.East  = t[1]
-                self.Down  = t[2]
-                self.Yaw   = -(yaw - 90)
+            # Save values
+            self.North = t[0] 
+            self.East  = t[1]
+            self.Down  = t[2]
+            self.Yaw   = -(yaw - 90)
 
-                # Increment counter 
-                self.poseCount += 1
-            else:
-                pass
+            # Increment counter 
+            self.poseCount += 1
+            
+            # Save translation and rotation for next iteration 
+            self.rvec = rvec
+            self.tvec = tvec 
 
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
