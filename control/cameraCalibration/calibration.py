@@ -5,15 +5,23 @@ import cv2
 import cv2.aruco as aruco
 
 class CalibrateCamera:
-    def __init__(self, desiredWidth, desiredHeight, desiredFPS, autoFocus, src):
+    def __init__(self):
         # Create custom dictionary (# markers, # bits)
         self.arucoDict = aruco.custom_dictionary(17, 3)
 
+        # Calibration 
+        self.mtx = None
+        self.dist = None
+
+        # Calibration directories
+        self.calibrationDir = 'calibrationImgs/'
+        self.imgExtension = '.jpg'
+
+    def startCamera(self, desiredWidth, desiredHeight, desiredFPS, src):
         # Camera config 
         self.desiredWidth  = desiredWidth
         self.desiredHeight = desiredHeight
         self.desiredFPS    = desiredFPS   
-        self.autoFocus     = autoFocus 
         
         try:
             self.cam = cv2.VideoCapture(src)
@@ -23,14 +31,8 @@ class CalibrateCamera:
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
-            print('Camera setup failed')
-
-        self.mtx = None
-        self.dist = None
-
-        self.calibrationDir = 'calibrationImgs/'
-        self.imgExtension = '.jpg'
-
+            print('Camera setup failed')        
+        
     def generateCharucoBoard(self, rows=7, columns=5):
         # Create the board
         board = aruco.CharucoBoard_create(
@@ -44,6 +46,24 @@ class CalibrateCamera:
         # Save it to a file
         cv2.imwrite('CharucoBoard.png', img)
 
+    def generateArucoBoard(self, rows=3, columns=4):
+        # Create the board 
+        board = aruco.GridBoard_create(
+            markersX=columns,
+            markersY=rows,
+            markerLength=0.1,
+            markerSeparation=0.1/2,
+            dictionary=self.arucoDict)
+        img = board.draw((175*columns, 175*rows))
+        
+        # Show the image 
+        cv2.imshow('ArUco Board', img)
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()        
+
+        # Save it to a file
+        cv2.imwrite('ArUcoBoard.png', img)
+      
     def generateArucoMarker(self, ID=0, size=700):
         # Create an image from the marker
         img = aruco.drawMarker(self.arucoDict, ID, size)
@@ -234,32 +254,79 @@ class CalibrateCamera:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
 
+    def trackArucoBoard(self, lengthMarker=0.106, spacing=0.1):
+        # Get calibration data
+        try:
+            self.getCalibration()
+        except:
+            print('Calibration not found!')
+
+        # Create the board
+        board = aruco.GridBoard_create(
+            markersX=4,                 # Columns
+            markersY=3,                 # Rows
+            markerLength=lengthMarker,  # cm
+            markerSeparation=spacing,   # cm
+            dictionary=self.arucoDict)
+
+        # Font and color for screen writing
+        font = cv2.FONT_HERSHEY_SIMPLEX
+        fontColor = (0, 255, 0)        
+        
+        # Set parameters
+        parameters = aruco.DetectorParameters_create()
+        parameters.adaptiveThreshConstant = 10
+        
+        # Intialize variables
+        rvec = None
+        tvec = None
+        
+        while(True):
+            # Get frame and convert to gray
+            _, frame = self.cam.read()
+            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+
+            # lists of ids and corners belonging to each id
+            corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=parameters)
+            
+            # Draw the detected markers
+            aruco.drawDetectedMarkers(frame, corners)
+            
+            # Only continue if a marker was found
+            if np.all(ids != None):
+                # Estimate the pose
+                _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, board, self.mtx, self.dist, rvec, tvec)
+
+                # Draw the axis for calculated pose
+                aruco.drawAxis(frame, self.mtx, self.dist, rvec, tvec, 0.1)
+
+            # display the resulting frame
+            cv2.imshow('frame', frame)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+    
         # When complete close everything down
         self.cam.release()
-        cv2.destroyAllWindows()
-
-
-def main():
-    # Set desired parameters
-    desiredWidth  = 1280
-    desiredHeight = 720
-    desiredFPS    = 30
-    autoFocus     = False
-    
+        cv2.destroyAllWindows()   
+              
+def main():    
     # Initialize class
-    CC = CalibrateCamera(desiredWidth, desiredHeight, desiredFPS, autoFocus, src=1)
+    CC = CalibrateCamera()
 
     # CC.generateCharucoBoard()
+    # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
+    CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0)
     # CC.captureCalibrationImages()
-    CC.calibrateCamera()
+    # CC.calibrateCamera()
 
     # CC.getCalibration()
     # print(CC.mtx)
     # print(CC.dist)
 
     # CC.trackAruco()
+    CC.trackArucoBoard()
 
 # Main loop
 if __name__ == '__main__':

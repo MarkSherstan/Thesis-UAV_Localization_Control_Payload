@@ -13,14 +13,14 @@ class Controller:
         self.yawRateConstrain = [-5, 5]             # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.04
-        self.ki_NORTH = 0.0 #0.00005
-        self.kd_NORTH = 0.001
+        self.kp_NORTH = 0.05
+        self.ki_NORTH = 0.001
+        self.kd_NORTH = 0.0005
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = self.kp_NORTH * 0.8
-        self.ki_EAST = self.ki_NORTH * 0.8
-        self.kd_EAST = self.kd_NORTH * 0.8
+        self.kp_EAST = self.kp_NORTH * 1.0
+        self.ki_EAST = self.ki_NORTH * 1.0
+        self.kd_EAST = self.kd_NORTH * 1.0
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.0005
@@ -28,8 +28,8 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.2
-        self.ki_YAW = 0.01
+        self.kp_YAW = 0.05
+        self.ki_YAW = 0.0
         self.kd_YAW = 0.0
 
         # Previous errors
@@ -102,7 +102,7 @@ class Controller:
         
         # Send the constructed message
         self.UAV.send_mavlink(msg)
-    
+       
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
 
@@ -162,7 +162,7 @@ class Controller:
         yawRate    = yawRate
 
         # Mixer
-       #  psi = -math.radians(actual[3])
+        # psi = -math.radians(actual[3])
         # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
         # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
 

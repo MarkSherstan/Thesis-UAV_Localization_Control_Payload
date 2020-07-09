@@ -57,7 +57,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(250, 0, 50)
+    SP = SetPoints(250, -50, 50)
 
     # Create low pass filters
     nAvg = MovingAverage(5)
@@ -113,7 +113,7 @@ def main():
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-
+            
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
 
