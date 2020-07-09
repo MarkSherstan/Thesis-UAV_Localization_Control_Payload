@@ -102,27 +102,7 @@ class Controller:
         
         # Send the constructed message
         self.UAV.send_mavlink(msg)
-
-    def V2_sendAttitudeTarget(self, roll, pitch, yaw, thrustRate):
-        # Convert from degrees to radians
-        yaw = math.degrees(self.UAV.attitude.yaw) - yaw
-
-        # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
-        msg = self.UAV.message_factory.set_attitude_target_encode(
-            0, # time_boot_ms
-            0, # Target system
-            0, # Target component
-            0b00000000, # If bit is set corresponding input ignored (mappings)
-            self.euler2quaternion(roll, pitch, 91), # Quaternion
-            0, # Body roll rate in radian
-            0, # Body pitch rate in radian
-            0, # Body yaw rate in rad/s
-            thrustRate # Thrust
-        )
-        
-        # Send the constructed message
-        self.UAV.send_mavlink(msg)
-            
+       
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
 
@@ -182,9 +162,9 @@ class Controller:
         yawRate    = yawRate
 
         # Mixer
-       # psi = -math.radians(actual[3])
-       # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
-       # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
+        # psi = -math.radians(actual[3])
+        # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
+        # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
 
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
