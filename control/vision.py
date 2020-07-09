@@ -139,7 +139,7 @@ class Vision:
         gray = cv2.rotate(gray, cv2.ROTATE_180)
 
         # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=self.parm)
+        corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
 
         # Only continue if a marker was found
         if np.all(ids != None):
