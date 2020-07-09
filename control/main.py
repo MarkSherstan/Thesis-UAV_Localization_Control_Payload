@@ -112,8 +112,7 @@ def main():
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
-            # C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-            C.V2_sendAttitudeTarget(rollControl, pitchControl, yawV, thrustControl)
+            C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
@@ -123,7 +122,6 @@ def main():
             freqList.append(freqLocal)
             # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
             # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-            # print(yawV, yaw)
             loopTimer = time.time()
 
             # Log data
