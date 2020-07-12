@@ -13,7 +13,7 @@ class Controller:
         self.yawRateConstrain = [-5, 5]             # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.05
+        self.kp_NORTH = 0.035
         self.ki_NORTH = 0.001
         self.kd_NORTH = 0.0005
 
