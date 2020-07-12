@@ -7,7 +7,7 @@ class Controller:
         self.UAV = vehicle
 
         # Maximum controller output constraints
-        self.rollConstrain  = [-2, 2]	            # Deg
+        self.rollConstrain  = [-4, 4]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-5, 5]             # Deg / s
