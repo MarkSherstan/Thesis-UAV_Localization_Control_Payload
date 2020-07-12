@@ -13,7 +13,7 @@ import datetime
 import math
 import time
 
-printFlag = True
+printFlag = False
 
 def getVision(Q):
     # Vision Data
