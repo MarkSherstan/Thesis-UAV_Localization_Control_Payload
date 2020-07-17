@@ -162,6 +162,12 @@ class VisionTest:
         
         return R
 
+    def changeCoords(self, R):
+        R2 = np.array([[1, 0, 0],
+                       [0, 1, 0], 
+                       [0, 0, 1]])
+        return np.dot(R2, R)
+
     def getPose(self):
         # Store a local frame 
         localFrame = self.frame
@@ -183,6 +189,9 @@ class VisionTest:
             
             # Convert from vector to rotation matrix
             R, _ = cv2.Rodrigues(rvec)
+
+            # Perform the transformation
+            R = self.changeCoords(R)
 
             # Get angles (two different methods)
             roll_A, pitch_A, yaw_A = self.ArotationMatrix2EulerAngles(R)
