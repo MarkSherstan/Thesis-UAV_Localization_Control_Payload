@@ -1,6 +1,8 @@
+from threading import Thread
 import cv2.aruco as aruco
 import numpy as np
 import pickle
+import time
 import cv2
 
 class VisionTest:
@@ -8,9 +10,41 @@ class VisionTest:
         # Create custom dictionary (# markers, # bits)
         self.arucoDict = aruco.custom_dictionary(17, 3)
 
-        # Calibration 
+        # Capture threading parameters
+        self.isReceivingFrame = False
+        self.isRunFrame = True
+        self.frameThread = None
+        self.frame = None
+
+        # Performance parameters
+        self.frameCount = 0
+        self.poseCount = 0
+        self.frameStartTime = None
+
+        # Aruco dictionary to be used and pose processing parameters
+        self.arucoDict = aruco.custom_dictionary(17, 3)
+        self.parm = aruco.DetectorParameters_create()
+        self.parm.adaptiveThreshConstant = 10
+
+        # Camera calibration matrix 
         self.mtx = None
         self.dist = None
+
+        # Board properties
+        self.lengthMarker = 19.3
+        self.spacing = 9.7
+
+        # Initial conditions for pose calculation 
+        self.rvec = None
+        self.tvec = None
+
+        # Create the grid board
+        self.board = aruco.GridBoard_create(
+            markersX=4,                      # Columns
+            markersY=3,                      # Rows
+            markerLength=19.3,               # cm
+            markerSeparation=9.7,            # cm
+            dictionary=self.arucoDict)
 
         # Calibration directories
         self.calibrationDir = 'calibrationImgs/'
@@ -32,104 +66,93 @@ class VisionTest:
         except:
             print('Camera setup failed')
 
-    def calibrateCamera(self, rows=7, columns=5, lengthSquare=0.0354, lengthMarker=0.0177):
-        # Create charuco board with actual measured dimensions from print out
-        board = aruco.CharucoBoard_create(
-                    squaresX=columns,
-                    squaresY=rows,
-                    squareLength=lengthSquare,
-                    markerLength=lengthMarker,
-                    dictionary=self.arucoDict)
+    def startFrameThread(self):
+        # Create a thread
+        if self.frameThread == None:
+            self.frameThread = Thread(target=self.acquireFrame)
+            self.frameThread.start()
+            print('Capture thread start')
 
-        # Sub pixel corner detection criteria 
-        subPixCriteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.00001)
+            # Block till we start receiving values
+            while self.isReceivingFrame != True:
+                time.sleep(0.1)
 
-        # Storage variables
-        cornerList = []
-        idList = []
+            # Start the timer 
+            self.frameStartTime = time.time()
 
-        # Get image paths from calibration folder
-        paths = glob.glob(self.calibrationDir + '*' + self.imgExtension)
+    def acquireFrame(self):
+        # Acquire until closed
+        while(self.isRunFrame):
+            _, self.frame = self.cam.read()
+            self.frameCount += 1
+            self.isReceivingFrame = True
 
-        # Empty imageSize variable to be determined at runtime
-        imageSize = None
+    def run(self):
+        # Get calibration data
+        try:
+            self.getCalibration()
+        except:
+            print('Calibration not found!')
 
-        # Loop through all images
-        for filePath in paths:
-            # Read image and convert to gray
-            img = cv2.imread(filePath)
-            gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        # Start the connection to the camera
+        self.startCamera()
 
-            # Find aruco markers in the query image
-            corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict)
+        # Start the capture thread
+        self.startFrameThread()
 
-            # Sub pixel detection
-            for corner in corners:
-                cv2.cornerSubPix(
-                    image=gray, 
-                    corners=corner,
-                    winSize = (3,3),
-                    zeroZone = (-1,-1),
-                    criteria = subPixCriteria)
+        # Start the performance metrics
+        counter = 0
+        startTime = time.time()
 
-            # Get charuco corners and ids from detected aruco markers
-            response, charucoCorners, charucoIDs = aruco.interpolateCornersCharuco(
-                    markerCorners=corners,
-                    markerIds=ids,
-                    image=gray,
-                    board=board)
+        # Process data until closed
+        try: 
+            while(True):
+                # # Process a frame
+                # self.getPose()
 
-            # If at least 20 corners were found
-            if response > 20:
-                # Add the corners and ids to calibration list
-                cornerList.append(charucoCorners)
-                idList.append(charucoIDs)
+                # display the resulting frame
+                cv2.imshow('Frame', self.frame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
 
-                # If image size is still None, set it to the image size
-                if not imageSize:
-                    imageSize = gray.shape[::-1]
-                    
-            else:
-                # Error message
-                print('Error in: ' + str(filePath))
+                # Increment the counter 
+                counter += 1
+        except KeyboardInterrupt:
+            pass
+            
+        # End performance metrics 
+        endTime = time.time()
 
-        # Make sure at least one image was found
-        if len(paths) < 1:
-            print('No images of charucoboards were found.')
-            return
+        # Close the capture thread and camera 
+        self.close()
+        self.cam.release()
 
-        # Make sure at least one charucoboard was found
-        if not imageSize:
-            print('Images supplied were not regonized by calibration')
-            return
+        # Release the camera connection
+        print('Camera closed')
+        print('Vision loop rate: ', round(counter / (endTime - startTime),2))
+        print('Pose rate: ', round(self.poseCount / (endTime - startTime),2))
 
-        # Run calibration
-        _, self.mtx, self.dist, _, _ = aruco.calibrateCameraCharuco(
-                charucoCorners=cornerList,
-                charucoIds=idList,
-                board=board,
-                imageSize=imageSize,
-                cameraMatrix=None,
-                distCoeffs=None)
-
-        # Display matrix and distortion coefficients
-        print('Image size: ', imageSize)
-        print(self.mtx)
-        print(self.dist)
-
-        # Pickle the results
-        f = open('resources/calibration.pckl', 'wb')
-        pickle.dump((self.mtx, self.dist), f)
-        f.close()
-
-    def getCalibration(self, printFlag=True):
+    def getCalibration(self):
         # Open file, retrieve variables, and close
         file = open('resources/calibration.pckl', 'rb')
         self.mtx, self.dist = pickle.load(file)
         file.close()
 
-        # Print results for later use
-        if printFlag is True:
-            print(self.mtx)
-            print(self.dist)
-        
+    def close(self):
+        # Print the results
+        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
+
+        # Close the capture thread
+        self.isRunFrame = False
+        self.frameThread.join()
+        print('Camera thread closed')
+
+def main():    
+    # Initialize class
+    vt = VisionTest()
+    vt.run()
+
+
+# Main loop
+if __name__ == '__main__':
+    main()
