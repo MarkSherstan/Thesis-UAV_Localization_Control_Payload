@@ -2,6 +2,7 @@ from threading import Thread
 import cv2.aruco as aruco
 import numpy as np
 import pickle
+import math
 import time
 import cv2
 
@@ -50,6 +51,13 @@ class VisionTest:
         except:
             print('Calibration not found!')
 
+        # Formatting
+        self.fontFace=cv2.FONT_HERSHEY_SIMPLEX
+        self.fontScale=0.6
+        self.colorA=(0,255,0)
+        self.colorB=(255,0,0)
+        self.lineType=2
+
     def startCamera(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0):
         # Camera config     
         try:
@@ -86,6 +94,14 @@ class VisionTest:
             _, self.frame = self.cam.read()
             self.frameCount += 1
             self.isReceivingFrame = True
+
+    def isRotationMatrix(self, R):
+        # Checks if matrix is valid
+        Rt = np.transpose(R)
+        shouldBeIdentity = np.dot(Rt, R)
+        I = np.identity(3, dtype = R.dtype)
+        n = np.linalg.norm(I - shouldBeIdentity)
+        return n < 1e-6
 
     def ArotationMatrix2EulerAngles(self, R):
         try:
@@ -181,20 +197,17 @@ class VisionTest:
             self.tvec = tvec 
 
             # Print to screen 
-            cv2.putText(frame, "R: " + str(round(roll_A,1)), (0, 50), font, 1, fontColor, 2)
-            cv2.putText(frame, "P: " + str(round(pitch_A,1)), (0, 75), font, 1, fontColor, 2)
-            cv2.putText(frame, "Y: " + str(round(yaw_A,1)), (0, 100), font, 1, fontColor, 2)
-            cv2.putText(frame, str(A.round(10)), (0, 700), font, 0.5, fontColor, 2)
+            cv2.putText(localFrame, "R: " + str(round(roll_A,1)),  (0, 25),  self.fontFace, self.fontScale, self.colorA, self.lineType)
+            cv2.putText(localFrame, "P: " + str(round(pitch_A,1)), (0, 50),  self.fontFace, self.fontScale, self.colorA, self.lineType)
+            cv2.putText(localFrame, "Y: " + str(round(yaw_A,1)),   (0, 75),  self.fontFace, self.fontScale, self.colorA, self.lineType)
+            cv2.putText(localFrame, str(A.round(10)), (0, 700), self.fontFace, self.fontScale, self.colorA, self.lineType)
             
-            cv2.putText(frame, "R: " + str(round(roll_B,1)), (1100, 50), font, 1, fontColor, 2)
-            cv2.putText(frame, "P: " + str(round(pitch_B,1)), (1100, 75), font, 1, fontColor, 2)
-            cv2.putText(frame, "Y: " + str(round(yaw_B,1)), (1100, 100), font, 1, fontColor, 2)
-            cv2.putText(frame, str(B.round(10)), (900, 700), font, 0.5, fontColor, 2)
+            cv2.putText(localFrame, "R: " + str(round(roll_B,1)),  (1150, 25), self.fontFace, self.fontScale, self.colorB, self.lineType)
+            cv2.putText(localFrame, "P: " + str(round(pitch_B,1)), (1150, 50), self.fontFace, self.fontScale, self.colorB, self.lineType)
+            cv2.putText(localFrame, "Y: " + str(round(yaw_B,1)),   (1150, 75), self.fontFace, self.fontScale, self.colorB, self.lineType)
+            cv2.putText(localFrame, str(B.round(10)), (850, 700), self.fontFace, self.fontScale, self.colorB, self.lineType)
 
-        # display the resulting frame
-        cv2.imshow('Frame', localFrame)
-        if cv2.waitKey(1) & 0xFF == ord('q'):
-            break
+        return localFrame
                 
     def run(self):
         # Start the connection to the camera and start threading
@@ -208,10 +221,19 @@ class VisionTest:
         try: 
             while(True):
                 # Calculate pose and display
-                self.getPose()
+                localFrame = self.getPose()
+
+                # display the resulting frame
+                cv2.imshow('Frame', localFrame)
+                if cv2.waitKey(1) & 0xFF == ord('q'):
+                    break
+
+                # Stabilize rate
+                time.sleep(1/60)
 
                 # Increment the counter 
                 self.loopCount += 1
+
         except KeyboardInterrupt:
             pass
             
