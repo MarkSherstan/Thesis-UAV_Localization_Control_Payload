@@ -87,6 +87,115 @@ class VisionTest:
             self.frameCount += 1
             self.isReceivingFrame = True
 
+    def ArotationMatrix2EulerAngles(self, R):
+        try:
+            # Check if rotation matrix is valid
+            assert(self.isRotationMatrix(R))
+
+            # Dont rotate more than 45 degrees in any direction and we will not get gimbal lock / singularities
+            roll = math.degrees(math.atan2(R[2,1], R[2,2]))
+            pitch  = math.degrees(-math.asin(R[2,0]))
+            yaw   = math.degrees(math.atan2(R[1,0], R[0,0]))
+            
+            # Return results
+            return roll, pitch, yaw
+        except:
+            # Return 0's upon failure
+            print('Not a rotation matrix')
+            return 0, 0, 0
+
+    def BrotationMatrix2EulerAngles(self, R):
+
+        assert(self.isRotationMatrix(R))
+        
+        sy = math.sqrt(R[0,0] * R[0,0] +  R[1,0] * R[1,0])
+        
+        singular = sy < 1e-6
+
+        if  not singular :
+            x = math.atan2(R[2,1] , R[2,2])
+            y = math.atan2(-R[2,0], sy)
+            z = math.atan2(R[1,0], R[0,0])
+        else :
+            x = math.atan2(-R[1,2], R[1,1])
+            y = math.atan2(-R[2,0], sy)
+            z = 0
+
+        return math.degrees(x), math.degrees(y), math.degrees(z)
+
+    def eulerAnglesToRotationMatrix(self, theta):
+        theta[0] = math.radians(theta[0])
+        theta[1] = math.radians(theta[1])
+        theta[2] = math.radians(theta[2])
+        
+        R_x = np.array([[1,         0,                  0                   ],
+                        [0,         math.cos(theta[0]), -math.sin(theta[0]) ],
+                        [0,         math.sin(theta[0]), math.cos(theta[0])  ]
+                        ])
+                
+        R_y = np.array([[math.cos(theta[1]),    0,      math.sin(theta[1])  ],
+                        [0,                     1,      0                   ],
+                        [-math.sin(theta[1]),   0,      math.cos(theta[1])  ]
+                        ])
+                    
+        R_z = np.array([[math.cos(theta[2]),    -math.sin(theta[2]),    0],
+                        [math.sin(theta[2]),    math.cos(theta[2]),     0],
+                        [0,                     0,                      1]
+                        ])
+                        
+        R = np.dot(R_z, np.dot( R_y, R_x ))
+        
+        return R
+
+    def getPose(self):
+        # Store a local frame 
+        localFrame = self.frame
+        
+        # Get frame and convert to gray
+        gray = cv2.cvtColor(localFrame, cv2.COLOR_BGR2GRAY)
+        
+        # lists of ids and corners belonging to each id
+        corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
+
+        # Only continue if a marker was found
+        if np.all(ids != None):
+            # Estimate the pose
+            _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, self.board, self.mtx, self.dist, self.rvec, self.tvec)
+
+            # Draw on the frame 
+            aruco.drawDetectedMarkers(localFrame, corners)
+            aruco.drawAxis(localFrame, self.mtx, self.dist, rvec, tvec, 10)
+            
+            # Convert from vector to rotation matrix
+            R, _ = cv2.Rodrigues(rvec)
+
+            # Get angles (two different methods)
+            roll_A, pitch_A, yaw_A = self.ArotationMatrix2EulerAngles(R)
+            A = R - self.eulerAnglesToRotationMatrix([roll_A, pitch_A, yaw_A])
+            
+            roll_B, pitch_B, yaw_B = self.BrotationMatrix2EulerAngles(R)
+            B = R - self.eulerAnglesToRotationMatrix([roll_B, pitch_B, yaw_B])
+                       
+            # Save translation and rotation for next iteration 
+            self.rvec = rvec
+            self.tvec = tvec 
+
+            # Print to screen 
+            cv2.putText(frame, "R: " + str(round(roll_A,1)), (0, 50), font, 1, fontColor, 2)
+            cv2.putText(frame, "P: " + str(round(pitch_A,1)), (0, 75), font, 1, fontColor, 2)
+            cv2.putText(frame, "Y: " + str(round(yaw_A,1)), (0, 100), font, 1, fontColor, 2)
+            cv2.putText(frame, str(A.round(10)), (0, 700), font, 0.5, fontColor, 2)
+            
+            cv2.putText(frame, "R: " + str(round(roll_B,1)), (1100, 50), font, 1, fontColor, 2)
+            cv2.putText(frame, "P: " + str(round(pitch_B,1)), (1100, 75), font, 1, fontColor, 2)
+            cv2.putText(frame, "Y: " + str(round(yaw_B,1)), (1100, 100), font, 1, fontColor, 2)
+            cv2.putText(frame, str(B.round(10)), (900, 700), font, 0.5, fontColor, 2)
+
+        # display the resulting frame
+        cv2.imshow('Frame', localFrame)
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
+                
     def run(self):
         # Start the connection to the camera and start threading
         self.startCamera()
@@ -98,10 +207,8 @@ class VisionTest:
         # Process data until closed
         try: 
             while(True):
-                # display the resulting frame
-                cv2.imshow('Frame', self.frame)
-                if cv2.waitKey(1) & 0xFF == ord('q'):
-                    break
+                # Calculate pose and display
+                self.getPose()
 
                 # Increment the counter 
                 self.loopCount += 1
