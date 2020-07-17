@@ -16,7 +16,6 @@ class VisionTest:
 
         # Performance parameters
         self.frameCount = 0
-        self.poseCount = 0
         self.loopCount = 0
         self.frameStartTime = None
         self.startTime = None
@@ -28,8 +27,8 @@ class VisionTest:
         self.parm.adaptiveThreshConstant = 10
 
         # Board properties
-        self.lengthMarker = 19.3
-        self.spacing = 9.7
+        self.lengthMarker = 4.5
+        self.spacing = 2.25
 
         # Initial conditions for pose calculation 
         self.rvec = None
@@ -264,7 +263,6 @@ class VisionTest:
         # Print the results
         print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),2))
         print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),2))
-        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),2))
 
 def main():    
     # Initialize class
