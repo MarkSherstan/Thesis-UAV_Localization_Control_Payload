@@ -141,9 +141,6 @@ class CalibrateCamera:
                     zeroZone = (-1,-1),
                     criteria = subPixCriteria)
 
-            # Outline the aruco markers found in the query image
-            img = aruco.drawDetectedMarkers(image=img, corners=corners)
-
             # Get charuco corners and ids from detected aruco markers
             response, charucoCorners, charucoIDs = aruco.interpolateCornersCharuco(
                     markerCorners=corners,
@@ -157,12 +154,6 @@ class CalibrateCamera:
                 cornerList.append(charucoCorners)
                 idList.append(charucoIDs)
 
-                # Draw the Charuco board detected to show calibration results
-                img = aruco.drawDetectedCornersCharuco(
-                        image=img,
-                        charucoCorners=charucoCorners,
-                        charucoIds=charucoIDs)
-
                 # If image size is still None, set it to the image size
                 if not imageSize:
                     imageSize = gray.shape[::-1]
@@ -170,11 +161,6 @@ class CalibrateCamera:
             else:
                 # Error message
                 print('Error in: ' + str(filePath))
-                cv2.imshow('ERROR: ' + str(filePath), img)                
-                cv2.waitKey(0)
-
-        # Destroy any open windows
-        cv2.destroyAllWindows()
 
         # Make sure at least one image was found
         if len(paths) < 1:
@@ -276,117 +262,6 @@ class CalibrateCamera:
         file = open('resources/calibration.pckl', 'rb')
         self.mtx, self.dist = pickle.load(file)
         file.close()
-
-    def trackAruco(self, lengthMarker=0.106):
-        # Get calibration data
-        try:
-            self.getCalibration()
-        except:
-            print('Calibration not found!')
-
-        # Font and color for screen writing
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        fontColor = (0, 255, 0)
-
-        # Set parameters
-        parameters = aruco.DetectorParameters_create()
-        parameters.adaptiveThreshConstant = 10
-
-        while(True):
-            # Get frame and convert to gray
-            _, frame = self.cam.read()
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-            # lists of ids and corners belonging to each id
-            corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=parameters)
-
-            # Only continue if a marker was found
-            if np.all(ids != None):
-                # Estimate the pose
-                rvec, tvec, _ = aruco.estimatePoseSingleMarkers(corners, lengthMarker, self.mtx, self.dist)
-
-                # Draw axis for each aruco marker found
-                for ii in range(0, ids.size):
-                    aruco.drawAxis(frame, self.mtx, self.dist, rvec[ii], tvec[ii], 0.1)
-
-                # Draw square around markers
-                aruco.drawDetectedMarkers(frame, corners)
-
-                # Print ids found in top left and to the screen
-                idz = ''
-                for ii in range(0, ids.size):
-                    idz += str(ids[ii][0])+' '
-                    x = round(tvec[ii][0][0]*100,1)
-                    y = round(tvec[ii][0][1]*100,1)
-                    z = round(tvec[ii][0][2]*100,1)
-
-                    cv2.putText(frame, "X: " + str(x), (0, 50), font, 1, fontColor, 2)
-                    cv2.putText(frame, "Y: " + str(y), (0, 75), font, 1, fontColor, 2)
-                    cv2.putText(frame, "Z: " + str(z), (0, 100), font, 1, fontColor, 2)
-
-                    print(x,y,z)
-
-                cv2.putText(frame, "ID: " + idz, (0, 25), font, 1, fontColor, 2)
-
-            # display the resulting frame
-            cv2.imshow('frame', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-
-    def trackArucoBoard(self, lengthMarker=0.106, spacing=0.1):
-        # Get calibration data
-        try:
-            self.getCalibration()
-        except:
-            print('Calibration not found!')
-
-        # Create the board
-        board = aruco.GridBoard_create(
-            markersX=4,                 # Columns
-            markersY=3,                 # Rows
-            markerLength=lengthMarker,  # cm
-            markerSeparation=spacing,   # cm
-            dictionary=self.arucoDict)
-
-        # Font and color for screen writing
-        font = cv2.FONT_HERSHEY_SIMPLEX
-        fontColor = (0, 255, 0)        
-        
-        # Set parameters
-        parameters = aruco.DetectorParameters_create()
-        parameters.adaptiveThreshConstant = 10
-        
-        # Intialize variables
-        rvec = None
-        tvec = None
-        
-        while(True):
-            # Get frame and convert to gray
-            _, frame = self.cam.read()
-            gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-
-            # lists of ids and corners belonging to each id
-            corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=parameters)
-            
-            # Draw the detected markers
-            aruco.drawDetectedMarkers(frame, corners)
-            
-            # Only continue if a marker was found
-            if np.all(ids != None):
-                # Estimate the pose
-                _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, board, self.mtx, self.dist, rvec, tvec)
-
-                # Draw the axis for calculated pose
-                aruco.drawAxis(frame, self.mtx, self.dist, rvec, tvec, 0.1)
-
-            # display the resulting frame
-            cv2.imshow('frame', frame)
-            if cv2.waitKey(1) & 0xFF == ord('q'):
-                break
-    
-        # When complete close everything down
-        self.cam.release()
-        cv2.destroyAllWindows()   
               
 def main():    
     # Initialize class
@@ -396,17 +271,14 @@ def main():
     # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
-    CC.startCamera()
-    CC.captureCalibrationImages()
-    # CC.calibrateCamera()
+    # CC.startCamera()
+    # CC.captureCalibrationImages()
+    CC.calibrateCamera()
     # CC.generateCalibrationImg()
 
     # CC.getCalibration()
     # print(CC.mtx)
     # print(CC.dist)
-
-    # CC.trackAruco()
-    # CC.trackArucoBoard()
 
 # Main loop
 if __name__ == '__main__':
