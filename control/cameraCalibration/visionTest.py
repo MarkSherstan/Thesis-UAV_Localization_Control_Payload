@@ -188,24 +188,32 @@ class VisionTest:
             # Get angles (two different methods)
             roll_A, pitch_A, yaw_A = self.ArotationMatrix2EulerAngles(R)
             A = R - self.eulerAnglesToRotationMatrix([roll_A, pitch_A, yaw_A])
-            
+            if (np.sum(np.absolute(A)) < 1e-9):
+                aState = 'ZYX'
+            else:
+                aState = 'ERROR'
+
             roll_B, pitch_B, yaw_B = self.BrotationMatrix2EulerAngles(R)
             B = R - self.eulerAnglesToRotationMatrix([roll_B, pitch_B, yaw_B])
-                       
+            if (np.sum(np.absolute(B)) < 1e-9):
+                bState = 'ZYX'
+            else:
+                bState = 'ERROR'
+                
             # Save translation and rotation for next iteration 
             self.rvec = rvec
             self.tvec = tvec 
 
             # Print to screen 
-            cv2.putText(localFrame, "R: " + str(round(roll_A,1)),  (0, 25),  self.fontFace, self.fontScale, self.colorA, self.lineType)
-            cv2.putText(localFrame, "P: " + str(round(pitch_A,1)), (0, 50),  self.fontFace, self.fontScale, self.colorA, self.lineType)
-            cv2.putText(localFrame, "Y: " + str(round(yaw_A,1)),   (0, 75),  self.fontFace, self.fontScale, self.colorA, self.lineType)
-            cv2.putText(localFrame, str(A.round(10)), (0, 700), self.fontFace, self.fontScale, self.colorA, self.lineType)
-            
-            cv2.putText(localFrame, "R: " + str(round(roll_B,1)),  (1150, 25), self.fontFace, self.fontScale, self.colorB, self.lineType)
-            cv2.putText(localFrame, "P: " + str(round(pitch_B,1)), (1150, 50), self.fontFace, self.fontScale, self.colorB, self.lineType)
-            cv2.putText(localFrame, "Y: " + str(round(yaw_B,1)),   (1150, 75), self.fontFace, self.fontScale, self.colorB, self.lineType)
-            cv2.putText(localFrame, str(B.round(10)), (850, 700), self.fontFace, self.fontScale, self.colorB, self.lineType)
+            cv2.putText(localFrame, aState, (0, 25), self.fontFace, self.fontScale, self.colorA, self.lineType)
+            cv2.putText(localFrame, "R: " + str(round(roll_A,1)),  (0, 50),  self.fontFace, self.fontScale, self.colorA, self.lineType)
+            cv2.putText(localFrame, "P: " + str(round(pitch_A,1)), (0, 75),  self.fontFace, self.fontScale, self.colorA, self.lineType)
+            cv2.putText(localFrame, "Y: " + str(round(yaw_A,1)),   (0, 100),  self.fontFace, self.fontScale, self.colorA, self.lineType)
+
+            cv2.putText(localFrame, bState, (1150, 25), self.fontFace, self.fontScale, self.colorB, self.lineType)     
+            cv2.putText(localFrame, "R: " + str(round(roll_B,1)),  (1150, 50), self.fontFace, self.fontScale, self.colorB, self.lineType)
+            cv2.putText(localFrame, "P: " + str(round(pitch_B,1)), (1150, 75), self.fontFace, self.fontScale, self.colorB, self.lineType)
+            cv2.putText(localFrame, "Y: " + str(round(yaw_B,1)),   (1150, 100), self.fontFace, self.fontScale, self.colorB, self.lineType)
 
         return localFrame
                 
