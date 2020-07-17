@@ -101,7 +101,7 @@ class CalibrateCamera:
         self.cam.release()
         cv2.destroyAllWindows()
 
-    def calibrateCamera(self, rows=7, columns=5, lengthSquare=0.035, lengthMarker=0.0175):
+    def calibrateCamera(self, rows=7, columns=5, lengthSquare=0.0354, lengthMarker=0.0177):
         # Create charuco board with actual measured dimensions from print out
         board = aruco.CharucoBoard_create(
                     squaresX=columns,
@@ -109,6 +109,9 @@ class CalibrateCamera:
                     squareLength=lengthSquare,
                     markerLength=lengthMarker,
                     dictionary=self.arucoDict)
+
+        # Sub pixel corner detection criteria 
+        subPixCriteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.00001)
 
         # Storage variables
         cornerList = []
@@ -128,6 +131,15 @@ class CalibrateCamera:
 
             # Find aruco markers in the query image
             corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict)
+
+            # Sub pixel detection
+            for corner in corners:
+                cv2.cornerSubPix(
+                    image=gray, 
+                    corners=corner,
+                    winSize = (3,3),
+                    zeroZone = (-1,-1),
+                    criteria = subPixCriteria)
 
             # Outline the aruco markers found in the query image
             img = aruco.drawDetectedMarkers(image=img, corners=corners)
@@ -184,6 +196,7 @@ class CalibrateCamera:
                 distCoeffs=None)
 
         # Display matrix and distortion coefficients
+        print('Image size: ', imageSize)
         print(self.mtx)
         print(self.dist)
 
@@ -192,7 +205,7 @@ class CalibrateCamera:
         pickle.dump((self.mtx, self.dist), f)
         f.close()
 
-    def generateCalibrationImg(self, rows=7, columns=5, lengthSquare=0.035, lengthMarker=0.0175):
+    def generateCalibrationImg(self, rows=7, columns=5, lengthSquare=0.0354, lengthMarker=0.0177):
         # Create charuco board with actual measured dimensions from print out
         board = aruco.CharucoBoard_create(
                     squaresX=columns,
@@ -385,8 +398,8 @@ def main():
 
     # CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0)
     # CC.captureCalibrationImages()
-    # CC.calibrateCamera()
-    CC.generateCalibrationImg()
+    CC.calibrateCamera()
+    # CC.generateCalibrationImg()
 
     # CC.getCalibration()
     # print(CC.mtx)
