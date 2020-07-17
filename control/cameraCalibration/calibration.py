@@ -17,17 +17,17 @@ class CalibrateCamera:
         self.calibrationDir = 'calibrationImgs/'
         self.imgExtension = '.jpg'
 
-    def startCamera(self, desiredWidth, desiredHeight, desiredFPS, src):
-        # Camera config 
-        self.desiredWidth  = desiredWidth
-        self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS   
-        
+    def startCamera(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0):
+        # Camera config     
         try:
-            self.cam = cv2.VideoCapture(src)
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
-            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
-            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
+            self.cam = cv2.VideoCapture(src, cv2.CAP_V4L)
+            self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, desiredWidth)
+            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, desiredHeight)
+            self.cam.set(cv2.CAP_PROP_FPS, desiredFPS)
+            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            self.cam.set(cv2.CAP_PROP_FOCUS, 20)
+            self.cam.set(cv2.CAP_PROP_ZOOM, 0)
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
@@ -396,9 +396,9 @@ def main():
     # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
-    # CC.startCamera(desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0)
-    # CC.captureCalibrationImages()
-    CC.calibrateCamera()
+    CC.startCamera()
+    CC.captureCalibrationImages()
+    # CC.calibrateCamera()
     # CC.generateCalibrationImg()
 
     # CC.getCalibration()
