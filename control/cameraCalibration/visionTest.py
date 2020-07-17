@@ -7,9 +7,6 @@ import cv2
 
 class VisionTest:
     def __init__(self):
-        # Create custom dictionary (# markers, # bits)
-        self.arucoDict = aruco.custom_dictionary(17, 3)
-
         # Capture threading parameters
         self.isReceivingFrame = False
         self.isRunFrame = True
@@ -19,16 +16,15 @@ class VisionTest:
         # Performance parameters
         self.frameCount = 0
         self.poseCount = 0
+        self.loopCount = 0
         self.frameStartTime = None
+        self.startTime = None
+        self.endTime = None
 
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
-
-        # Camera calibration matrix 
-        self.mtx = None
-        self.dist = None
 
         # Board properties
         self.lengthMarker = 19.3
@@ -45,10 +41,14 @@ class VisionTest:
             markerLength=19.3,               # cm
             markerSeparation=9.7,            # cm
             dictionary=self.arucoDict)
-
-        # Calibration directories
-        self.calibrationDir = 'calibrationImgs/'
-        self.imgExtension = '.jpg'
+        
+        # Get calibration data
+        try:
+            file = open('resources/calibration.pckl', 'rb')
+            self.mtx, self.dist = pickle.load(file)
+            file.close()
+        except:
+            print('Calibration not found!')
 
     def startCamera(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0):
         # Camera config     
@@ -88,70 +88,51 @@ class VisionTest:
             self.isReceivingFrame = True
 
     def run(self):
-        # Get calibration data
-        try:
-            self.getCalibration()
-        except:
-            print('Calibration not found!')
-
-        # Start the connection to the camera
+        # Start the connection to the camera and start threading
         self.startCamera()
-
-        # Start the capture thread
         self.startFrameThread()
 
         # Start the performance metrics
-        counter = 0
-        startTime = time.time()
+        self.startTime = time.time()
 
         # Process data until closed
         try: 
             while(True):
-                # # Process a frame
-                # self.getPose()
-
                 # display the resulting frame
                 cv2.imshow('Frame', self.frame)
                 if cv2.waitKey(1) & 0xFF == ord('q'):
                     break
 
                 # Increment the counter 
-                counter += 1
+                self.loopCount += 1
         except KeyboardInterrupt:
             pass
             
         # End performance metrics 
-        endTime = time.time()
+        self.endTime = time.time()
 
-        # Close the capture thread and camera 
+        # Close everything down
         self.close()
-        self.cam.release()
-
-        # Release the camera connection
-        print('Camera closed')
-        print('Vision loop rate: ', round(counter / (endTime - startTime),2))
-        print('Pose rate: ', round(self.poseCount / (endTime - startTime),2))
-
-    def getCalibration(self):
-        # Open file, retrieve variables, and close
-        file = open('resources/calibration.pckl', 'rb')
-        self.mtx, self.dist = pickle.load(file)
-        file.close()
 
     def close(self):
-        # Print the results
-        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
-
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
-        print('Camera thread closed')
+        print('\nCamera thread closed')
+
+        # Camera closed
+        self.cam.release()
+        print('Camera closed\n')
+
+        # Print the results
+        print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),2))
+        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),2))
+        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),2))
 
 def main():    
     # Initialize class
     vt = VisionTest()
     vt.run()
-
 
 # Main loop
 if __name__ == '__main__':
