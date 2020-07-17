@@ -257,12 +257,17 @@ class CalibrateCamera:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     
-    def getCalibration(self):
+    def getCalibration(self, printFlag=True):
         # Open file, retrieve variables, and close
         file = open('resources/calibration.pckl', 'rb')
         self.mtx, self.dist = pickle.load(file)
         file.close()
-              
+
+        # Print results for later use
+        if printFlag is True:
+            print(self.mtx)
+            print(self.dist)
+        
 def main():    
     # Initialize class
     CC = CalibrateCamera()
@@ -273,12 +278,11 @@ def main():
 
     # CC.startCamera()
     # CC.captureCalibrationImages()
-    CC.calibrateCamera()
+    # CC.calibrateCamera()
     # CC.generateCalibrationImg()
 
     # CC.getCalibration()
-    # print(CC.mtx)
-    # print(CC.dist)
+
 
 # Main loop
 if __name__ == '__main__':
