@@ -1,5 +1,6 @@
 import numpy as np
 import pickle
+import time
 import glob
 import cv2
 import cv2.aruco as aruco
@@ -173,6 +174,9 @@ class CalibrateCamera:
             print('Images supplied were not regonized by calibration')
             return
 
+        # Start a timer
+        startTime = time.time()
+
         # Run calibration
         _, self.mtx, self.dist, _, _ = aruco.calibrateCameraCharuco(
                 charucoCorners=cornerList,
@@ -181,6 +185,9 @@ class CalibrateCamera:
                 imageSize=imageSize,
                 cameraMatrix=None,
                 distCoeffs=None)
+
+        # Print how long it took
+        print("Calibration took: ", round(time.time()-startTime),' s')
 
         # Display matrix and distortion coefficients
         print('Image size: ', imageSize)
@@ -277,8 +284,8 @@ def main():
     # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
-    CC.startCamera()
-    CC.captureCalibrationImages()
+    # CC.startCamera()
+    # CC.captureCalibrationImages()
     # CC.calibrateCamera()
     # CC.generateCalibrationImg()
 
