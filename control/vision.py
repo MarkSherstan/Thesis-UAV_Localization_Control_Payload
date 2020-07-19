@@ -46,7 +46,12 @@ class Vision:
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output variables: Position of body frame wrt ArUco frame
+        # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from behind)
+        # Where the marker is from the UAV
+        #   North (should always be positive)
+        #   East  (negative when UAV is to the right of the target)
+        #   Down  (negative when UAV is below the target)
+        #   Yaw   (Positive clockwise viewing UAV from top)
         self.North = 0
         self.East  = 0
         self.Down  = 0 
@@ -152,9 +157,9 @@ class Vision:
             _, self.Yaw, _ = self.rotationMatrix2EulerAngles(R)
 
             # Save values
-            self.North = t[2] 
-            self.East  = t[0]
-            self.Down  = t[1]
+            self.North =  t[2] 
+            self.East  = -t[0]
+            self.Down  =  t[1]
 
             # Increment counter
             self.poseCount += 1
