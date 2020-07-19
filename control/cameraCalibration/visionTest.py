@@ -24,10 +24,10 @@ class VisionTest:
         # Aruco dictionary to be used and pose processing parameters
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
-        self.parm.adaptiveThreshConstant = 10
-
-        # Sub pixel corner detection criteria 
-        self.subPixCriteria = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 100, 0.00001)
+        self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
+        self.parm.cornerRefinementWinSize = 5
+        self.parm.cornerRefinementMaxIterations = 100
+        self.parm.cornerRefinementMinAccuracy = 0.00001
 
         # Initial conditions for pose calculation 
         self.rvec = None
@@ -213,15 +213,6 @@ class VisionTest:
         
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
-
-        # Sub pixel detection
-        for corner in corners:
-            cv2.cornerSubPix(
-                image=gray, 
-                corners=corner,
-                winSize = (3,3),
-                zeroZone = (-1,-1),
-                criteria = self.subPixCriteria)
 
         # Only continue if a marker was found
         if np.all(ids != None):
