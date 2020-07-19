@@ -178,9 +178,26 @@ class VisionTest:
         return R
 
     def changeDatum(self, R, t):
-        R = np.transpose(R)
+        # Original (ArUco wrt camera)
+        Tca = np.append(R, t, axis=1)
+        Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
-        t = np.dot(-R, t)
+        # Transformation (camera wrt drone)
+        Tbc = np.array([[1,  0,  0,  0],
+                        [0,  1,  0,  0],
+                        [0,  0,  1,  0],
+                        [0,  0,  0,  1]])
+
+        # Resultant pose (ArUco wrt drone)
+        Tba = np.dot(Tbc, Tca)
+
+        # Return results
+        R = Tba[0:3,0:3]
+        t = Tba[0:3,3]
+
+        # Body frame wrt ArUco
+        R = np.transpose(R)
+        # t = np.dot(-R, t)
 
         return R, t[0], t[1], t[2]
 
@@ -206,14 +223,8 @@ class VisionTest:
             # Convert from vector to rotation matrix
             R, _ = cv2.Rodrigues(rvec)
 
-            # Get translation vectors
-            xx = tvec[0][0]
-            yy = tvec[1][0]
-            zz = tvec[2][0]
-            temp = np.array([xx, yy, zz])
-
             # Transform
-            R, xx, yy, zz = self.changeDatum(R, temp)
+            R, xx, yy, zz = self.changeDatum(R, tvec)
   
             # Get angles (two different methods)
             roll_A, pitch_A, yaw_A = self.ArotationMatrix2EulerAngles(R)
@@ -240,10 +251,8 @@ class VisionTest:
             # # Bounding
             if (x > 0):
                 x -= 180
-                print('-')
             elif (x < 0):
                 x += 180
-                print('+')
                 
             # Save translation and rotation for next iteration 
             self.rvec = rvec
