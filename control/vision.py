@@ -32,10 +32,10 @@ class Vision:
         self.frameStartTime = None
 
         # Camera calibration matrix 
-        self.mtx = np.array([[909.56269126,  0.0,            636.54109088],
-                             [0.0,           908.05644963,   348.20313781],
+        self.mtx = np.array([[915.03603689,  0.0,            665.08947886],
+                             [0.0,           913.98237919,   353.51979348],
                              [0.0,           0.0,            1.0         ]])
-        self.dist = np.array([[0.0867331, -0.21097928, -0.00540959, 0.00501587, 0.12009933]])
+        self.dist = np.array([[0.08750648, -0.17636763, -0.00021177, 0.00591364, 0.04690385]])
 
         # Initial conditions for pose calculation 
         self.rvec = None
@@ -154,12 +154,13 @@ class Vision:
             R, t = self.transform2Body(R, tvec)
 
             # Get yaw
-            _, self.Yaw, _ = self.rotationMatrix2EulerAngles(R)
+            _, yaw, _ = self.rotationMatrix2EulerAngles(R)
 
             # Save values
             self.North =  t[2] 
             self.East  = -t[0]
             self.Down  =  t[1]
+            self.Yaw   = -yaw
 
             # Increment counter
             self.poseCount += 1
