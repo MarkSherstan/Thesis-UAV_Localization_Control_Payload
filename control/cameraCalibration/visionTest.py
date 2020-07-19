@@ -181,9 +181,9 @@ class VisionTest:
         return R
 
     def changeCoords(self, R):
-        RR = np.array([[0,  0,  1],
-                       [1,  0,  0], 
-                       [0,  1,  0]])
+        RR = np.array([[1,  0,  0],
+                       [0, -1,  0], 
+                       [0,  0, -1]])
 
         return np.dot(RR, R)
 
@@ -204,7 +204,7 @@ class VisionTest:
 
             # Draw on the frame 
             aruco.drawDetectedMarkers(localFrame, corners)
-            aruco.drawAxis(localFrame, self.mtx, self.dist, rvec, tvec, 10)
+            aruco.drawAxis(localFrame, self.mtx, self.dist, rvec, tvec, 15)
             
             # Convert from vector to rotation matrix
             R, _ = cv2.Rodrigues(rvec)
