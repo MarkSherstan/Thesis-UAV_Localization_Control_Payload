@@ -26,7 +26,7 @@ class CalibrateCamera:
             self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, desiredHeight)
             self.cam.set(cv2.CAP_PROP_FPS, desiredFPS)
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-            self.cam.set(cv2.CAP_PROP_FOCUS, 20)
+            self.cam.set(cv2.CAP_PROP_FOCUS, 0)
             self.cam.set(cv2.CAP_PROP_ZOOM, 0)
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
@@ -81,6 +81,7 @@ class CalibrateCamera:
         while(True):
             # Get frame and show
             _, frame = self.cam.read()
+            frame = cv2.rotate(frame, cv2.ROTATE_180)
             cv2.imshow('Frame', frame)
 
             # Check keyboard commands
@@ -276,8 +277,8 @@ def main():
     # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
-    # CC.startCamera()
-    # CC.captureCalibrationImages()
+    CC.startCamera()
+    CC.captureCalibrationImages()
     # CC.calibrateCamera()
     # CC.generateCalibrationImg()
 

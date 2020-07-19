@@ -104,7 +104,7 @@ class Vision:
             cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
             cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-            cam.set(cv2.CAP_PROP_FOCUS, 20)
+            cam.set(cv2.CAP_PROP_FOCUS, 0)
             cam.set(cv2.CAP_PROP_ZOOM, 0)
             print('Camera start')
         except:

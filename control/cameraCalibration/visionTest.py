@@ -70,7 +70,7 @@ class VisionTest:
             self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, desiredHeight)
             self.cam.set(cv2.CAP_PROP_FPS, desiredFPS)
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-            self.cam.set(cv2.CAP_PROP_FOCUS, 20)
+            self.cam.set(cv2.CAP_PROP_FOCUS, 0)
             self.cam.set(cv2.CAP_PROP_ZOOM, 0)
             print('Camera start')
         except:
