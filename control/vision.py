@@ -149,7 +149,7 @@ class Vision:
             R, t = self.transform2Body(R, tvec)
 
             # Get yaw
-            _, self.yaw, _ = self.rotationMatrix2EulerAngles(R)
+            _, self.Yaw, _ = self.rotationMatrix2EulerAngles(R)
 
             # Save values
             self.North = t[2] 
@@ -228,6 +228,6 @@ class Vision:
         print('Camera closed\n')
 
         # Print the results
-        print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),2))
-        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),2))
-        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),2))
+        print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),1))
+        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),1))
+        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))

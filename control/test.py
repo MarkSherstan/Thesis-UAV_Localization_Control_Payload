@@ -31,7 +31,6 @@ def main():
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
             loopTimer = time.time()
-            time.sleep(1/30)
 
             if printFlag is True:
                 print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
