@@ -72,7 +72,6 @@ class VisionTest:
             self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             self.cam.set(cv2.CAP_PROP_FOCUS, 20)
             self.cam.set(cv2.CAP_PROP_ZOOM, 0)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
             print('Camera start')
         except:
             print('Camera setup failed')

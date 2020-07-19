@@ -75,10 +75,14 @@ class Vision:
             self.isReceivingFrame = True
 
     def processFrame(self, q):
-        # Aruco dictionary to be used and pose processing parameters
+        # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
-        self.parm.adaptiveThreshConstant = 10
+        self.parm.minMarkerPerimeterRate = 0.1
+        self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
+        self.parm.cornerRefinementWinSize = 5
+        self.parm.cornerRefinementMaxIterations = 100
+        self.parm.cornerRefinementMinAccuracy = 0.00001
 
         # Create the board
         self.board = aruco.GridBoard_create(
@@ -96,6 +100,8 @@ class Vision:
             cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
             cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            cam.set(cv2.CAP_PROP_FOCUS, 20)
+            cam.set(cv2.CAP_PROP_ZOOM, 0)
             print('Camera start')
         except:
             print('Camera setup failed')
