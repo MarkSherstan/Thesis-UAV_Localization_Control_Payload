@@ -202,7 +202,7 @@ class VisionTest:
 
         # Body frame wrt ArUco
         R = np.transpose(R)
-        # t = np.dot(-R, t)
+        t = np.dot(-R, t)
 
         return R, t[0], t[1], t[2]
 

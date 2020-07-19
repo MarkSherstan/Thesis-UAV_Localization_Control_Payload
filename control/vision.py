@@ -220,7 +220,7 @@ class Vision:
 
         # Body frame wrt ArUco
         R = np.transpose(R)
-        # t = np.dot(-R, t) -> Turned off due to noise
+        t = np.dot(-R, t)
 
         # Return reults 
         return R, t
