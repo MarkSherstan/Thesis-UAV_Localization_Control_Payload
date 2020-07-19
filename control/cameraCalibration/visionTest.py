@@ -55,6 +55,7 @@ class VisionTest:
         self.fontScale=0.6
         self.colorA=(0,255,0)
         self.colorB=(255,0,0)
+        self.colorC=(0,0,255)
         self.lineType=2
 
     def startCamera(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0):
@@ -138,6 +139,23 @@ class VisionTest:
 
         return math.degrees(x), math.degrees(y), math.degrees(z)
 
+    def CrotationMatrix2EulerAngles(self, R):
+        try:
+            # Check if rotation matrix is valid
+            assert(self.isRotationMatrix(R))
+
+            # Dont rotate more than 45 degrees in any direction and we will not get gimbal lock / singularities
+            x = math.degrees(math.atan2(R[2,1], R[2,2]))
+            y = math.degrees(-math.asin(R[2,0]))
+            z = math.degrees(math.atan2(R[1,0], R[0,0]))
+            
+            # Return results
+            return x, y, z
+        except:
+            # Return 0's upon failure
+            print('Not a rotation matrix')
+            return 0, 0, 0
+
     def eulerAnglesToRotationMatrix(self, theta):
         theta[0] = math.radians(theta[0])
         theta[1] = math.radians(theta[1])
@@ -163,10 +181,11 @@ class VisionTest:
         return R
 
     def changeCoords(self, R):
-        R2 = np.array([[1, 0, 0],
-                       [0, 1, 0], 
-                       [0, 0, 1]])
-        return np.dot(R2, R)
+        RR = np.array([[0,  0,  1],
+                       [1,  0,  0], 
+                       [0,  1,  0]])
+
+        return np.dot(RR, R)
 
     def getPose(self):
         # Store a local frame 
@@ -207,7 +226,14 @@ class VisionTest:
                 bState = 'ZYX'
             else:
                 bState = 'ERROR'
-                
+
+            x, y, z = self.CrotationMatrix2EulerAngles(R)
+            C = R - self.eulerAnglesToRotationMatrix([x, y, z])
+            if (np.sum(np.absolute(C)) < 1e-9):
+                cState = 'ZYX'
+            else:
+                cState = 'ERROR'
+
             # Save translation and rotation for next iteration 
             self.rvec = rvec
             self.tvec = tvec 
@@ -222,6 +248,11 @@ class VisionTest:
             cv2.putText(localFrame, "R: " + str(round(roll_B,1)),  (1150, 50), self.fontFace, self.fontScale, self.colorB, self.lineType)
             cv2.putText(localFrame, "P: " + str(round(pitch_B,1)), (1150, 75), self.fontFace, self.fontScale, self.colorB, self.lineType)
             cv2.putText(localFrame, "Y: " + str(round(yaw_B,1)),   (1150, 100), self.fontFace, self.fontScale, self.colorB, self.lineType)
+
+            cv2.putText(localFrame, cState, (0, 625), self.fontFace, self.fontScale, self.colorC, self.lineType)     
+            cv2.putText(localFrame, "z: " + str(round(z,1)), (0, 645), self.fontFace, self.fontScale, self.colorC, self.lineType)
+            cv2.putText(localFrame, "y: " + str(round(y,1)), (0, 670), self.fontFace, self.fontScale, self.colorC, self.lineType)
+            cv2.putText(localFrame, "x: " + str(round(x,1)), (0, 695), self.fontFace, self.fontScale, self.colorC, self.lineType)
 
         return localFrame
                 
