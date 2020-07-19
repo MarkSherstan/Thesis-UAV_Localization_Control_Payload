@@ -26,10 +26,6 @@ class VisionTest:
         self.parm = aruco.DetectorParameters_create()
         self.parm.adaptiveThreshConstant = 10
 
-        # Board properties
-        self.lengthMarker = 4.5
-        self.spacing = 2.25
-
         # Initial conditions for pose calculation 
         self.rvec = None
         self.tvec = None
@@ -38,8 +34,8 @@ class VisionTest:
         self.board = aruco.GridBoard_create(
             markersX=4,                      # Columns
             markersY=3,                      # Rows
-            markerLength=19.3,               # cm
-            markerSeparation=9.7,            # cm
+            markerLength=4.5,                # cm
+            markerSeparation=2.25,           # cm
             dictionary=self.arucoDict)
         
         # Get calibration data
@@ -56,6 +52,7 @@ class VisionTest:
         self.colorA=(0,255,0)
         self.colorB=(255,0,0)
         self.colorC=(0,0,255)
+        self.color0=(0,0,0)
         self.lineType=2
 
     def startCamera(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, src=0):
@@ -180,12 +177,12 @@ class VisionTest:
         
         return R
 
-    def changeCoords(self, R):
-        RR = np.array([[1,  0,  0],
-                       [0, -1,  0], 
-                       [0,  0, -1]])
+    def changeDatum(self, R, t):
+        R = np.transpose(R)
 
-        return np.dot(RR, R)
+        t = np.dot(-R, t)
+
+        return R, t[0], t[1], t[2]
 
     def getPose(self):
         # Store a local frame 
@@ -204,14 +201,20 @@ class VisionTest:
 
             # Draw on the frame 
             aruco.drawDetectedMarkers(localFrame, corners)
-            aruco.drawAxis(localFrame, self.mtx, self.dist, rvec, tvec, 15)
+            aruco.drawAxis(localFrame, self.mtx, self.dist, rvec, tvec, 7)
             
             # Convert from vector to rotation matrix
             R, _ = cv2.Rodrigues(rvec)
 
-            # Perform the transformation
-            R = self.changeCoords(R)
+            # Get translation vectors
+            xx = tvec[0][0]
+            yy = tvec[1][0]
+            zz = tvec[2][0]
+            temp = np.array([xx, yy, zz])
 
+            # Transform
+            R, xx, yy, zz = self.changeDatum(R, temp)
+  
             # Get angles (two different methods)
             roll_A, pitch_A, yaw_A = self.ArotationMatrix2EulerAngles(R)
             A = R - self.eulerAnglesToRotationMatrix([roll_A, pitch_A, yaw_A])
@@ -234,6 +237,14 @@ class VisionTest:
             else:
                 cState = 'ERROR'
 
+            # # Bounding
+            if (x > 0):
+                x -= 180
+                print('-')
+            elif (x < 0):
+                x += 180
+                print('+')
+                
             # Save translation and rotation for next iteration 
             self.rvec = rvec
             self.tvec = tvec 
@@ -253,6 +264,10 @@ class VisionTest:
             cv2.putText(localFrame, "z: " + str(round(z,1)), (0, 645), self.fontFace, self.fontScale, self.colorC, self.lineType)
             cv2.putText(localFrame, "y: " + str(round(y,1)), (0, 670), self.fontFace, self.fontScale, self.colorC, self.lineType)
             cv2.putText(localFrame, "x: " + str(round(x,1)), (0, 695), self.fontFace, self.fontScale, self.colorC, self.lineType)
+ 
+            cv2.putText(localFrame, "X: " + str(round(xx,1)), (1150, 645), self.fontFace, self.fontScale, self.color0, self.lineType)
+            cv2.putText(localFrame, "Y: " + str(round(yy,1)), (1150, 670), self.fontFace, self.fontScale, self.color0, self.lineType)
+            cv2.putText(localFrame, "Z: " + str(round(zz,1)), (1150, 695), self.fontFace, self.fontScale, self.color0, self.lineType)
 
         return localFrame
                 
