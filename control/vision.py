@@ -28,7 +28,7 @@ class Vision:
         self.loopCount  = 0
         self.poseCount  = 0
         self.startTime  = None
-        self.sendTime   = None
+        self.endTime    = None
         self.frameStartTime = None
 
         # Camera calibration matrix 
@@ -46,11 +46,7 @@ class Vision:
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output variables: Position of ArUco marker relative to UAV (observing from behind)
-        #   North (should always be positive)
-        #   East  (negative when UAV is to the right of the target)
-        #   Down  (negative when UAV is below the target)
-        #   Yaw   (Positive clockwise viewing UAV from top)
+        # Output variables: Position of body frame wrt ArUco frame
         self.North = 0
         self.East  = 0
         self.Down  = 0 
@@ -113,8 +109,7 @@ class Vision:
         self.startFrameThread(cam)
 
         # Start the performance metrics
-        counter = 0
-        startTime = time.time()
+        self.startTime = time.time()
 
         # Process data until closed
         try: 
@@ -126,22 +121,16 @@ class Vision:
                 q.put([self.North, self.East, self.Down, self.Yaw])
 
                 # Increment the counter 
-                counter += 1
+                self.loopCount += 1
         except KeyboardInterrupt:
             pass
             
         # End performance metrics 
-        endTime = time.time()
+        self.endTime = time.time()
 
-        # Close the capture thread and camera 
-        self.close()
-        cam.release()
-
-        # Release the camera connection
-        print('Camera closed')
-        print('Vision loop rate: ', round(counter / (endTime - startTime),2))
-        print('Pose rate: ', round(self.poseCount / (endTime - startTime),2))
-
+        # Close the capture thread and camera, post perfromance metrics
+        self.close(cam)
+ 
     def getPose(self):
         # Convert frame to gray and rotate to normal
         gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
@@ -225,11 +214,17 @@ class Vision:
         # Return reults 
         return R, t
 
-    def close(self):
-        # Print the results
-        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
-
+    def close(self, cam):
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
         print('Camera thread closed')
+
+        # Camera closed
+        cam.release()
+        print('Camera closed\n')
+
+        # Print the results
+        print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),2))
+        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),2))
+        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),2))
