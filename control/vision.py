@@ -149,15 +149,14 @@ class Vision:
             R, t = self.transform2Body(R, tvec)
 
             # Get yaw
-            _, _, yaw = self.rotationMatrix2EulerAngles(R)
+            _, self.yaw, _ = self.rotationMatrix2EulerAngles(R)
 
             # Save values
-            self.North = t[0] 
-            self.East  = t[1]
-            self.Down  = t[2]
-            self.Yaw   = -(yaw - 90)
+            self.North = t[2] 
+            self.East  = t[0]
+            self.Down  = t[1]
 
-            # Increment counter 
+            # Increment counter
             self.poseCount += 1
             
             # Save translation and rotation for next iteration 
@@ -182,8 +181,14 @@ class Vision:
             y = math.degrees(-math.asin(R[2,0]))
             z = math.degrees(math.atan2(R[1,0], R[0,0]))
             
+            # Fix rotation about x (ArUco) due to opposite facing coordiante systems between camera and ArUco (want 0 not +/-180)
+            if (x > 0):
+                x -= 180
+            elif (x < 0):
+                x += 180
+
             # Return results
-            return roll, pitch, yaw
+            return x, y, z
         except:
             # Return 0's upon failure
             print('Not a rotation matrix')
@@ -194,20 +199,18 @@ class Vision:
         Tca = np.append(R, t, axis=1)
         Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
-        # Transformation (camera wrt drone)
-        Tbc = np.array([[1,  0,  0,  self.offsetNorth],
-                        [0,  1,  0,  self.offsetEast],
-                        [0,  0,  1,  self.offsetDown],
+        # Transformation (camera wrt drone body frame)
+        Tbc = np.array([[1,  0,  0,  self.offsetEast],
+                        [0,  1,  0,  self.offsetDown],
+                        [0,  0,  1,  self.offsetNorth],
                         [0,  0,  0,  1]])
 
-        # Resultant pose (ArUco wrt drone)
+        # Resultant pose (ArUco wrt drone body frame)
         Tba = np.dot(Tbc, Tca)
-
-        # Return results
         R = Tba[0:3,0:3]
         t = Tba[0:3,3]
 
-        # Body frame wrt ArUco
+        # Drone body frame wrt ArUco
         R = np.transpose(R)
         t = np.dot(-R, t)
 
