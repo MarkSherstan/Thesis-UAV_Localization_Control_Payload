@@ -6,12 +6,16 @@ import time
 import cv2
 
 class Vision:
-    def __init__(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, cameraIdx=0):
+    def __init__(self, lengthMarker=19.3, spacing=9.7):
+        # Board properties
+        self.lengthMarker = lengthMarker
+        self.spacing = spacing
+
         # Camera config
-        self.desiredWidth  = desiredWidth
-        self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS
-        self.cameraIdx     = cameraIdx      
+        self.desiredWidth  = 1280
+        self.desiredHeight = 720
+        self.desiredFPS    = 30
+        self.cameraIdx     = 0      
         
         # Capture threading parameters
         self.isReceivingFrame = False
@@ -21,7 +25,10 @@ class Vision:
 
         # Performance parameters
         self.frameCount = 0
-        self.poseCount = 0
+        self.loopCount  = 0
+        self.poseCount  = 0
+        self.startTime  = None
+        self.sendTime   = None
         self.frameStartTime = None
 
         # Camera calibration matrix 
@@ -30,15 +37,11 @@ class Vision:
                              [0.0,           0.0,            1.0         ]])
         self.dist = np.array([[0.0867331, -0.21097928, -0.00540959, 0.00501587, 0.12009933]])
 
-        # Board properties
-        self.lengthMarker = 19.3
-        self.spacing = 9.7
-
         # Initial conditions for pose calculation 
         self.rvec = None
         self.tvec = None
         
-        # Offset values in cm
+        # Camera to body frame values in cm
         self.offsetNorth = 0
         self.offsetEast  = 0
         self.offsetDown  = 0
@@ -186,9 +189,9 @@ class Vision:
             assert(self.isRotationMatrix(R))
 
             # Dont rotate more than 45 degrees in any direction and we will not get gimbal lock / singularities
-            roll  = math.degrees(-math.asin(R[2,0]))
-            pitch = math.degrees(math.atan2(R[2,1], R[2,2]))
-            yaw   = math.degrees(math.atan2(R[1,0], R[0,0]))
+            x = math.degrees(math.atan2(R[2,1], R[2,2]))
+            y = math.degrees(-math.asin(R[2,0]))
+            z = math.degrees(math.atan2(R[1,0], R[0,0]))
             
             # Return results
             return roll, pitch, yaw
@@ -203,10 +206,10 @@ class Vision:
         Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
         # Transformation (camera wrt drone)
-        Tbc = np.array([[0,  0,  1,  self.offsetNorth],
-                        [1,  0,  0,  self.offsetEast],
-                        [0,  1,  0,  self.offsetDown],
-                        [0,  0,  0,   1]])
+        Tbc = np.array([[1,  0,  0,  self.offsetNorth],
+                        [0,  1,  0,  self.offsetEast],
+                        [0,  0,  1,  self.offsetDown],
+                        [0,  0,  0,  1]])
 
         # Resultant pose (ArUco wrt drone)
         Tba = np.dot(Tbc, Tca)
@@ -214,6 +217,10 @@ class Vision:
         # Return results
         R = Tba[0:3,0:3]
         t = Tba[0:3,3]
+
+        # Body frame wrt ArUco
+        R = np.transpose(R)
+        # t = np.dot(-R, t) -> Turned off due to noise
 
         # Return reults 
         return R, t
