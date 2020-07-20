@@ -6,7 +6,7 @@ import time
 import cv2
 
 class Vision:
-    def __init__(self, lengthMarker=19.3, spacing=9.7):
+    def __init__(self, lengthMarker=14.15, spacing=7.07):
         # Board properties
         self.lengthMarker = lengthMarker
         self.spacing = spacing
