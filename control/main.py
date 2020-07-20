@@ -65,6 +65,7 @@ def main():
     nAvg = MovingAverage(5)
     eAvg = MovingAverage(3)
     dAvg = MovingAverage(3)
+    yAvg = MovingAverage(10)
 
     # Create a Kalman filter
     yKF = KalmanFilter()
@@ -107,7 +108,8 @@ def main():
             northV = nAvg.update(northVraw)
             eastV  = eAvg.update(eastVraw)
             downV  = dAvg.update(downVraw)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            # yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            yawV   = yAvg.update(yawVraw)
             kalmanTimer = time.time()
 
             # Calculate control and execute
