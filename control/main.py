@@ -59,12 +59,13 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(250, -25, 30) #250, -34, -100
+    SP = SetPoints(0, 0, 100)
 
     # Create low pass filters
-    nAvg = MovingAverage(5)
+    nAvg = MovingAverage(3)
     eAvg = MovingAverage(3)
     dAvg = MovingAverage(3)
+    yAvg = MovingAverage(5)
 
     # Create a Kalman filter
     yKF = KalmanFilter()
@@ -108,7 +109,8 @@ def main():
             northV = nAvg.update(northVraw)
             eastV  = eAvg.update(eastVraw)
             downV  = dAvg.update(downVraw)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            yawV   = yAvg.update(yawVraw)
+            # yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
             kalmanTimer = time.time()
 
             # Calculate control and execute
