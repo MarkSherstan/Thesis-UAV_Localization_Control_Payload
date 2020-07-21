@@ -7,7 +7,7 @@ class Controller:
         self.UAV = vehicle
 
         # Thrust compensation scaling factor
-        self.thrustScaleFactor = 1.0
+        self.thrustScaleFactor = 0.0
         
         # Maximum controller output constraints
         self.rollConstrain  = [-2, 2]	            # Deg
@@ -31,7 +31,7 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.07
+        self.kp_YAW = 0.1
         self.ki_YAW = 0.0
         self.kd_YAW = 0.0
 
