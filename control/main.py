@@ -147,10 +147,10 @@ def main():
                 C.resetIntegral()
                 SP.selectMethod(Q, trajectory=True)
                 
-            
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
+        
     finally:        
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))

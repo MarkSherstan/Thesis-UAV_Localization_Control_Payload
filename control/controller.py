@@ -6,6 +6,9 @@ class Controller:
         # Vehicle class
         self.UAV = vehicle
 
+        # Thrust compensation scaling factor
+        self.thrustScaleFactor = 1.0
+        
         # Maximum controller output constraints
         self.rollConstrain  = [-2, 2]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
@@ -61,7 +64,13 @@ class Controller:
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
-        
+    
+    def gainScale(self, thr):
+        if (thr >= 0):
+            return 1.0
+        else:
+            return 1.0 + abs(thr) * self.thrustScaleFactor
+                   
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
         roll = math.radians(roll)
@@ -131,11 +140,16 @@ class Controller:
         dt = time.time() - self.timer
         self.timer = time.time()
 
-        # Run some control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
-        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
+        # Calculate thrust control
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
+        
+        # Perform gain scaling
+        scale = gainScale(thrustControl)
+        
+        # Run the remainder of the control
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale)
+        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH*scale, self.ki_NORTH*scale, self.kd_NORTH*scale)
+        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW*scale, self.ki_YAW*scale, self.kd_YAW*scale)
         
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
