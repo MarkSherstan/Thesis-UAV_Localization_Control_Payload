@@ -23,9 +23,9 @@ class SetPoints:
             north0, east0, down0 = self.initialPosition(Q)
             
             # Calculate the trajectories
-            self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=5)
-            self.eastDesiredList  = self.trajectoryGen(east0, self.eastDesired, T=5)
-            self.downDesiredList  = self.trajectoryGen(down0, self.downDesired, T=10)
+            self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=8)
+            self.eastDesiredList  = self.trajectoryGen(east0, self.eastDesired, T=8)
+            self.downDesiredList  = self.trajectoryGen(down0, self.downDesired, T=16)
             print('Trajectory ready')
         else:
             print('Standard setpoints ready')
