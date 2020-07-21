@@ -6,12 +6,16 @@ import time
 import cv2
 
 class Vision:
-    def __init__(self, desiredWidth=1280, desiredHeight=720, desiredFPS=30, cameraIdx=0):
+    def __init__(self, lengthMarker=14.15, spacing=7.07):
+        # Board properties
+        self.lengthMarker = lengthMarker
+        self.spacing = spacing
+
         # Camera config
-        self.desiredWidth  = desiredWidth
-        self.desiredHeight = desiredHeight
-        self.desiredFPS    = desiredFPS
-        self.cameraIdx     = cameraIdx      
+        self.desiredWidth  = 1280
+        self.desiredHeight = 720
+        self.desiredFPS    = 30
+        self.cameraIdx     = 0      
         
         # Capture threading parameters
         self.isReceivingFrame = False
@@ -21,29 +25,29 @@ class Vision:
 
         # Performance parameters
         self.frameCount = 0
-        self.poseCount = 0
+        self.loopCount  = 0
+        self.poseCount  = 0
+        self.startTime  = None
+        self.endTime    = None
         self.frameStartTime = None
 
         # Camera calibration matrix 
-        self.mtx = np.array([[909.56269126,  0.0,            636.54109088],
-                             [0.0,           908.05644963,   348.20313781],
+        self.mtx = np.array([[915.03603689,  0.0,            665.08947886],
+                             [0.0,           913.98237919,   353.51979348],
                              [0.0,           0.0,            1.0         ]])
-        self.dist = np.array([[0.0867331, -0.21097928, -0.00540959, 0.00501587, 0.12009933]])
-
-        # Board properties
-        self.lengthMarker = 19.3
-        self.spacing = 9.7
+        self.dist = np.array([[0.08750648, -0.17636763, -0.00021177, 0.00591364, 0.04690385]])
 
         # Initial conditions for pose calculation 
         self.rvec = None
         self.tvec = None
         
-        # Offset values in cm
+        # Camera to body frame values in cm
         self.offsetNorth = 0
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output variables: Position of ArUco marker relative to UAV (observing from behind)
+        # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from behind)
+        # Where the marker is from the UAV
         #   North (should always be positive)
         #   East  (negative when UAV is to the right of the target)
         #   Down  (negative when UAV is below the target)
@@ -75,10 +79,14 @@ class Vision:
             self.isReceivingFrame = True
 
     def processFrame(self, q):
-        # Aruco dictionary to be used and pose processing parameters
+        # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
-        self.parm.adaptiveThreshConstant = 10
+        self.parm.minMarkerPerimeterRate = 0.1
+        self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
+        self.parm.cornerRefinementWinSize = 5
+        self.parm.cornerRefinementMaxIterations = 100
+        self.parm.cornerRefinementMinAccuracy = 0.00001
 
         # Create the board
         self.board = aruco.GridBoard_create(
@@ -96,6 +104,8 @@ class Vision:
             cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
             cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
             cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+            cam.set(cv2.CAP_PROP_FOCUS, 0)
+            cam.set(cv2.CAP_PROP_ZOOM, 0)
             print('Camera start')
         except:
             print('Camera setup failed')
@@ -104,8 +114,7 @@ class Vision:
         self.startFrameThread(cam)
 
         # Start the performance metrics
-        counter = 0
-        startTime = time.time()
+        self.startTime = time.time()
 
         # Process data until closed
         try: 
@@ -117,29 +126,23 @@ class Vision:
                 q.put([self.North, self.East, self.Down, self.Yaw])
 
                 # Increment the counter 
-                counter += 1
+                self.loopCount += 1
         except KeyboardInterrupt:
             pass
             
         # End performance metrics 
-        endTime = time.time()
+        self.endTime = time.time()
 
-        # Close the capture thread and camera 
-        self.close()
-        cam.release()
-
-        # Release the camera connection
-        print('Camera closed')
-        print('Vision loop rate: ', round(counter / (endTime - startTime),2))
-        print('Pose rate: ', round(self.poseCount / (endTime - startTime),2))
-
+        # Close the capture thread and camera, post perfromance metrics
+        self.close(cam)
+ 
     def getPose(self):
         # Convert frame to gray and rotate to normal
         gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
         gray = cv2.rotate(gray, cv2.ROTATE_180)
 
         # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=self.parm)
+        corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
 
         # Only continue if a marker was found
         if np.all(ids != None):
@@ -151,15 +154,15 @@ class Vision:
             R, t = self.transform2Body(R, tvec)
 
             # Get yaw
-            _, _, yaw = self.rotationMatrix2EulerAngles(R)
+            _, yaw, _ = self.rotationMatrix2EulerAngles(R)
 
             # Save values
-            self.North = t[0] 
-            self.East  = t[1]
-            self.Down  = t[2]
-            self.Yaw   = -(yaw - 90)
+            self.North =  t[2] 
+            self.East  = -t[0]
+            self.Down  =  t[1]
+            self.Yaw   = -yaw
 
-            # Increment counter 
+            # Increment counter
             self.poseCount += 1
             
             # Save translation and rotation for next iteration 
@@ -180,12 +183,18 @@ class Vision:
             assert(self.isRotationMatrix(R))
 
             # Dont rotate more than 45 degrees in any direction and we will not get gimbal lock / singularities
-            roll  = math.degrees(-math.asin(R[2,0]))
-            pitch = math.degrees(math.atan2(R[2,1], R[2,2]))
-            yaw   = math.degrees(math.atan2(R[1,0], R[0,0]))
+            x = math.degrees(math.atan2(R[2,1], R[2,2]))
+            y = math.degrees(-math.asin(R[2,0]))
+            z = math.degrees(math.atan2(R[1,0], R[0,0]))
             
+            # Fix rotation about x (ArUco) due to opposite facing coordiante systems between camera and ArUco (want 0 not +/-180)
+            if (x > 0):
+                x -= 180
+            elif (x < 0):
+                x += 180
+
             # Return results
-            return roll, pitch, yaw
+            return x, y, z
         except:
             # Return 0's upon failure
             print('Not a rotation matrix')
@@ -196,27 +205,35 @@ class Vision:
         Tca = np.append(R, t, axis=1)
         Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
-        # Transformation (camera wrt drone)
-        Tbc = np.array([[0,  0,  1,  self.offsetNorth],
-                        [1,  0,  0,  self.offsetEast],
+        # Transformation (camera wrt drone body frame)
+        Tbc = np.array([[1,  0,  0,  self.offsetEast],
                         [0,  1,  0,  self.offsetDown],
-                        [0,  0,  0,   1]])
+                        [0,  0,  1,  self.offsetNorth],
+                        [0,  0,  0,  1]])
 
-        # Resultant pose (ArUco wrt drone)
+        # Resultant pose (ArUco wrt drone body frame)
         Tba = np.dot(Tbc, Tca)
-
-        # Return results
         R = Tba[0:3,0:3]
         t = Tba[0:3,3]
+
+        # Drone body frame wrt ArUco
+        R = np.transpose(R)
+        t = np.dot(-R, t)
 
         # Return reults 
         return R, t
 
-    def close(self):
-        # Print the results
-        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),2))
-
+    def close(self, cam):
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
         print('Camera thread closed')
+
+        # Camera closed
+        cam.release()
+        print('Camera closed\n')
+
+        # Print the results
+        print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),1))
+        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),1))
+        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))

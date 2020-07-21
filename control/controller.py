@@ -9,26 +9,26 @@ class Controller:
         # Maximum controller output constraints
         self.rollConstrain  = [-2, 2]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
-        self.thrustConstrain = [-0.5, 0.5]	        # Normalized
+        self.thrustConstrain = [-0.5, 0.5]	    # Normalized
         self.yawRateConstrain = [-5, 5]             # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.05
+        self.kp_NORTH = 0.04
         self.ki_NORTH = 0.001
-        self.kd_NORTH = 0.0005
+        self.kd_NORTH = 0.004
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = self.kp_NORTH * 1.0
-        self.ki_EAST = self.ki_NORTH * 1.0
-        self.kd_EAST = self.kd_NORTH * 1.0
+        self.kp_EAST = self.kp_NORTH * 0.9
+        self.ki_EAST = self.ki_NORTH * 0.9
+        self.kd_EAST = self.kd_NORTH * 0.9
 
         # PID Gains: DOWN (thrust)
-        self.kp_DOWN = 0.0005
+        self.kp_DOWN = 0.0015
         self.ki_DOWN = 0.0
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.05
+        self.kp_YAW = 0.07
         self.ki_YAW = 0.0
         self.kd_YAW = 0.0
 

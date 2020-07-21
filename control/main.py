@@ -13,6 +13,8 @@ import datetime
 import math
 import time
 
+printFlag = False
+
 def getVision(Q):
     # Vision Data
     temp = Q.get()
@@ -57,7 +59,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(250, -50, 50)
+    SP = SetPoints(250, -25, 30) #250, -34, -100
 
     # Create low pass filters
     nAvg = MovingAverage(5)
@@ -67,7 +69,7 @@ def main():
     # Create a Kalman filter
     yKF = KalmanFilter()
     kalmanTimer = time.time()
-    
+
     # Logging variables
     freqList = []
     data = []
@@ -76,10 +78,10 @@ def main():
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         # Current mode
         print(vehicle.mode.name)
-        
+
         # Keep vision queue empty
         northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
-        
+
         # Start Kalman filter to limit start up error
         zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
         yawV  = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
@@ -120,8 +122,11 @@ def main():
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
-            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
-            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+
+            if printFlag is True:
+                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
+                # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            
             loopTimer = time.time()
 
             # Log data
