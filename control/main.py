@@ -89,6 +89,7 @@ def main():
 
     # Select set point method
     SP.selectMethod(Q, trajectory=True)
+    modeState state = 0
 
     # Loop timer(s)
     startTime = time.time()
@@ -137,9 +138,15 @@ def main():
                         rollControl, pitchControl, yawControl, thrustControl,
                         northVraw, eastVraw, downVraw, yawVraw, zGyro])
 
-            # Reset integral whenever there is a mode change 
+            # Reset integral and generate new trajectory whenever there is a mode switch 
             if (vehicle.mode.name == "STABILIZE"):
+                modeState = 1
+            
+            if (vehicle.mode.name == "GUIDED_NOGPS") and (modeState == 1):
+                modeState = 0
                 C.resetIntegral()
+                SP.selectMethod(Q, trajectory=True)
+                
             
     except KeyboardInterrupt:
         # Print final remarks

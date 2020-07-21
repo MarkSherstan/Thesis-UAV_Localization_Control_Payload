@@ -9,7 +9,7 @@ class Controller:
         # Maximum controller output constraints
         self.rollConstrain  = [-2, 2]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
-        self.thrustConstrain = [-0.5, 0.5]	    # Normalized
+        self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-5, 5]             # Deg / s
 
         # PID Gains: NORTH (pitch)
