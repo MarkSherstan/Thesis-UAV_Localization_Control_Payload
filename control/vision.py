@@ -46,11 +46,11 @@ class Vision:
         self.offsetEast  = 0
         self.offsetDown  = 0
 
-        # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from behind)
+        # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from above)
         # Where the marker is from the UAV
-        #   North (should always be positive)
+        #   North (negative when UAV is behind the target)
         #   East  (negative when UAV is to the right of the target)
-        #   Down  (negative when UAV is below the target)
+        #   Down  (negative when UAV is below the target -> always positive)
         #   Yaw   (Positive clockwise viewing UAV from top)
         self.North = 0
         self.East  = 0
@@ -139,7 +139,6 @@ class Vision:
     def getPose(self):
         # Convert frame to gray and rotate to normal
         gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-        gray = cv2.rotate(gray, cv2.ROTATE_180)
 
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
@@ -154,12 +153,12 @@ class Vision:
             R, t = self.transform2Body(R, tvec)
 
             # Get yaw
-            _, yaw, _ = self.rotationMatrix2EulerAngles(R)
+            _, _, yaw = self.rotationMatrix2EulerAngles(R)
 
             # Save values
-            self.North =  t[2] 
+            self.North =  t[1] 
             self.East  = -t[0]
-            self.Down  =  t[1]
+            self.Down  =  t[2]
             self.Yaw   = -yaw
 
             # Increment counter
@@ -187,12 +186,6 @@ class Vision:
             y = math.degrees(-math.asin(R[2,0]))
             z = math.degrees(math.atan2(R[1,0], R[0,0]))
             
-            # Fix rotation about x (ArUco) due to opposite facing coordiante systems between camera and ArUco (want 0 not +/-180)
-            if (x > 0):
-                x -= 180
-            elif (x < 0):
-                x += 180
-
             # Return results
             return x, y, z
         except:
