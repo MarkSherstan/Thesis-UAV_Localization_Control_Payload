@@ -8,11 +8,11 @@ class Controller:
 
         # Thrust compensation scaling factor
         self.thrustScaleFactor = 0.0
-        
+
         # Maximum controller output constraints
         self.rollConstrain  = [-2, 2]	            # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
-        self.thrustConstrain = [-0.5, 0.5]	        # Normalized
+        self.thrustConstrain = [-0.5, 0.5]	    # Normalized
         self.yawRateConstrain = [-7, 7]             # Deg / s
 
         # PID Gains: NORTH (pitch)
@@ -47,7 +47,7 @@ class Controller:
         self.downI = 0
         self.yawI = 0
 
-        # Integral term constraints 
+        # Integral term constraints
         self.northIcontstrain = [-1000, 1000]
         self.eastIcontstrain = [-1000, 1000]
         self.downIcontstrain = [-1000, 1000]
@@ -55,22 +55,22 @@ class Controller:
 
         # Timing
         self.timer = None
-    
+
     def startController(self):
         self.timer = time.time()
-    
+
     def resetIntegral(self):
         self.northI = 0
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
-    
+
     def gainScale(self, thr):
         if (thr >= 0):
             return 1.0
         else:
             return 1.0 + abs(thr) * self.thrustScaleFactor
-                   
+
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
         roll = math.radians(roll)
@@ -176,9 +176,9 @@ class Controller:
         yawRate    = yawRate
 
         # Mixer
-        psi = -math.radians(actual[3])
-        rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
-        pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
+        # psi = -math.radians(actual[3])
+        # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
+        # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
 
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
