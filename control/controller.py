@@ -144,7 +144,7 @@ class Controller:
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
         
         # Perform gain scaling
-        scale = gainScale(thrustControl)
+        scale = self.gainScale(thrustControl)
         
         # Run the remainder of the control
         rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale)

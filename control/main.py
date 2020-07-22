@@ -90,7 +90,7 @@ def main():
 
     # Select set point method
     SP.selectMethod(Q, trajectory=True)
-    modeState state = 0
+    modeState = 0
 
     # Loop timer(s)
     startTime = time.time()
