@@ -7,10 +7,10 @@ class Controller:
         self.UAV = vehicle
 
         # Thrust compensation scaling factor
-        self.thrustScaleFactor = 0.0
+        self.thrustScaleFactor = 1.0
 
         # Maximum controller output constraints
-        self.rollConstrain  = [-2, 2]	            # Deg
+        self.rollConstrain  = [-2.5, 2.5]           # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	    # Normalized
         self.yawRateConstrain = [-10, 10]           # Deg / s
