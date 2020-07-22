@@ -31,7 +31,7 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 1.0
+        self.kp_YAW = 0.8
         self.ki_YAW = 0.1
         self.kd_YAW = 0.5
 
@@ -176,9 +176,9 @@ class Controller:
         yawRate    = yawRate
 
         # Mixer
-        # psi = -math.radians(actual[3])
-        # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
-        # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
+        psi = -math.radians(actual[3])
+        rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
+        pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
 
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
