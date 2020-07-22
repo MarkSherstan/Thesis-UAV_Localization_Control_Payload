@@ -33,7 +33,7 @@ class KalmanFilterRot:
         stateTransition  = np.array([[1, dt],[0,1]])                        # A
         processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE**2      # Q 
         
-        m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
+        m, P = update_with_nan_check(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
         self.m, self.P = predict(m, P, stateTransition, processNoise)
 
