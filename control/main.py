@@ -1,4 +1,4 @@
-from filter import MovingAverage, KalmanFilter
+from filter import MovingAverage, KalmanFilterRot, KalmanFilterPos
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
@@ -59,7 +59,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(16, -14, 0)
+    SP = SetPoints(10, 20, 125)
 
     # Create low pass filters
     nAvg = MovingAverage(5)
