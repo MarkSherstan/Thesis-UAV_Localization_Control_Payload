@@ -171,7 +171,7 @@ class Controller:
 
         # Inverse direction of controller if required
         rollAngle  = -rollAngle
-        pitchAngle = pitchAngle
+        pitchAngle = -pitchAngle
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
