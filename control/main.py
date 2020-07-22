@@ -62,9 +62,9 @@ def main():
     SP = SetPoints(0, 0, 100)
 
     # Create low pass filters
-    nAvg = MovingAverage(3)
-    eAvg = MovingAverage(3)
-    dAvg = MovingAverage(3)
+    nAvg = MovingAverage(5)
+    eAvg = MovingAverage(5)
+    dAvg = MovingAverage(5)
     yAvg = MovingAverage(5)
 
     # Create a Kalman filter
@@ -109,8 +109,8 @@ def main():
             northV = nAvg.update(northVraw)
             eastV  = eAvg.update(eastVraw)
             downV  = dAvg.update(downVraw)
-            yawV   = yAvg.update(yawVraw)
-            # yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            #yawV   = yAvg.update(yawVraw)
+            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
             kalmanTimer = time.time()
 
             # Calculate control and execute
