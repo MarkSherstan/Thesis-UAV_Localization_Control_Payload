@@ -167,11 +167,11 @@ class Vision:
             # Save translation and rotation for next iteration 
             self.rvec = rvec
             self.tvec = tvec
-        else:
-            self.North = np.nan 
-            self.East  = np.nan
-            self.Down  = np.nan
-            self.Yaw   = np.nan
+        # else:
+        #     self.North = np.nan 
+        #     self.East  = np.nan
+        #     self.Down  = np.nan
+        #     self.Yaw   = np.nan
 
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
