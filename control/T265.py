@@ -204,28 +204,18 @@ try:
                                           map2 = undistort_rectify["right"][1],
                                           interpolation = cv2.INTER_LINEAR)}
 
-            # compute the disparity on the center of the frames and convert it to a pixel disparity (divide by DISP_SCALE=16)
-            disparity = stereo.compute(center_undistorted["left"], center_undistorted["right"]).astype(np.float32) / 16.0
+            # Left and right stream
+            L = center_undistorted["left"]
+            R = center_undistorted["right"]
 
-            # re-crop just the valid part of the disparity
-            disparity = disparity[:,max_disp:]
+            # Get some info in prep for processing
+            print(type(L), type(R), L.shape, R.shape)
 
-            # convert disparity to 0-255 and color it
-            disp_vis = 255*(disparity - min_disp)/ num_disp
-            disp_color = cv2.applyColorMap(cv2.convertScaleAbs(disp_vis,1), cv2.COLORMAP_JET)
-            color_image = cv2.cvtColor(center_undistorted["left"][:,max_disp:], cv2.COLOR_GRAY2RGB)
+            # Show the frame
+            cv2.imshow(WINDOW_TITLE, np.hstack((L, R)))
 
-            if mode == "stack":
-                cv2.imshow(WINDOW_TITLE, np.hstack((color_image, disp_color)))
-            if mode == "overlay":
-                ind = disparity >= min_disp
-                color_image[ind, 0] = disp_color[ind, 0]
-                color_image[ind, 1] = disp_color[ind, 1]
-                color_image[ind, 2] = disp_color[ind, 2]
-                cv2.imshow(WINDOW_TITLE, color_image)
+        # Actual display sequencing 
         key = cv2.waitKey(1)
-        if key == ord('s'): mode = "stack"
-        if key == ord('o'): mode = "overlay"
         if key == ord('q') or cv2.getWindowProperty(WINDOW_TITLE, cv2.WND_PROP_VISIBLE) < 1:
             break
 finally:
