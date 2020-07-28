@@ -84,24 +84,6 @@ try:
     WINDOW_TITLE = 'Realsense'
     cv2.namedWindow(WINDOW_TITLE, cv2.WINDOW_NORMAL)
 
-    # Configure the OpenCV stereo algorithm. See
-    # https://docs.opencv.org/3.4/d2/d85/classcv_1_1StereoSGBM.html for a
-    # description of the parameters
-    window_size = 5
-    min_disp = 0
-    # must be divisible by 16
-    num_disp = 112 - min_disp
-    max_disp = min_disp + num_disp
-    stereo = cv2.StereoSGBM_create(minDisparity = min_disp,
-                                   numDisparities = num_disp,
-                                   blockSize = 16,
-                                   P1 = 8*3*window_size**2,
-                                   P2 = 32*3*window_size**2,
-                                   disp12MaxDiff = 1,
-                                   uniquenessRatio = 10,
-                                   speckleWindowSize = 100,
-                                   speckleRange = 32)
-
     # Retreive the stream and intrinsic properties for both cameras
     profiles = pipe.get_active_profile()
     streams = {"left"  : profiles.get_stream(rs.stream.fisheye, 1).as_video_stream_profile(),
@@ -138,7 +120,7 @@ try:
     #      \ fov /
     #        \|/
     stereo_fov_rad = 90 * (pi/180)  # 90 degree desired fov
-    stereo_height_px = 300          # 300x300 pixel stereo output
+    stereo_height_px = 1000          # 300x300 pixel stereo output
     stereo_focal_px = stereo_height_px/2 / tan(stereo_fov_rad/2)
 
     # We set the left rotation to identity and the right rotation
@@ -149,9 +131,9 @@ try:
     # The stereo algorithm needs max_disp extra pixels in order to produce valid
     # disparity on the desired output region. This changes the width, but the
     # center of projection should be on the center of the cropped image
-    stereo_width_px = stereo_height_px + max_disp
+    stereo_width_px = stereo_height_px
     stereo_size = (stereo_width_px, stereo_height_px)
-    stereo_cx = (stereo_height_px - 1)/2 + max_disp
+    stereo_cx = (stereo_height_px - 1)/2
     stereo_cy = (stereo_height_px - 1)/2
 
     # Construct the left and right projection matrices, the only difference is
@@ -163,13 +145,6 @@ try:
     P_right = P_left.copy()
     P_right[0][3] = T[0]*stereo_focal_px
 
-    # Construct Q for use with cv2.reprojectImageTo3D. Subtract max_disp from x
-    # since we will crop the disparity later
-    Q = np.array([[1, 0,       0, -(stereo_cx - max_disp)],
-                  [0, 1,       0, -stereo_cy],
-                  [0, 0,       0, stereo_focal_px],
-                  [0, 0, -1/T[0], 0]])
-
     # Create an undistortion map for the left and right camera which applies the
     # rectification and undoes the camera distortion. This only has to be done
     # once
@@ -179,7 +154,7 @@ try:
     undistort_rectify = {"left"  : (lm1, lm2),
                          "right" : (rm1, rm2)}
 
-    mode = "stack"
+
     while True:
         # Check if the camera has acquired any frames
         frame_mutex.acquire()
@@ -207,6 +182,9 @@ try:
             # Left and right stream
             L = center_undistorted["left"]
             R = center_undistorted["right"]
+
+            # L = frame_copy["left"]
+            # R = frame_copy["right"]
 
             # Get some info in prep for processing
             print(type(L), type(R), L.shape, R.shape)
