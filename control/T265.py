@@ -5,6 +5,9 @@ import pyrealsense2 as rs
 import cv2
 import numpy as np
 from math import tan, pi
+import time
+
+# Documentation -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.html#module-pyrealsense2
 
 """
 In this section, we will set up the functions that will translate the camera
@@ -64,6 +67,7 @@ def callback(frame):
         left_data = np.asanyarray(f1.get_data())
         right_data = np.asanyarray(f2.get_data())
         ts = frameset.get_timestamp()
+        
         frame_mutex.acquire()
         frame_data["left"] = left_data
         frame_data["right"] = right_data
@@ -94,21 +98,18 @@ try:
     # Print information about both cameras
     print("Left camera:",  intrinsics["left"])
     print("Right camera:", intrinsics["right"])
-
+    time.sleep(3)
+    
     # Translate the intrinsics from librealsense into OpenCV
     K_left  = camera_matrix(intrinsics["left"])
     D_left  = fisheye_distortion(intrinsics["left"])
     K_right = camera_matrix(intrinsics["right"])
     D_right = fisheye_distortion(intrinsics["right"])
-    (width, height) = (intrinsics["left"].width, intrinsics["left"].height)
 
     # Get the relative extrinsics between the left and right camera
     (R, T) = get_extrinsics(streams["left"], streams["right"])
-
-    # We need to determine what focal length our undistorted images should have
-    # in order to set up the camera matrices for initUndistortRectifyMap.  We
-    # could use stereoRectify, but here we show how to derive these projection
-    # matrices from the calibration and a desired height and field of view
+    print(R, T)
+    time.sleep(3)
 
     # We calculate the undistorted focal length:
     #
@@ -119,8 +120,8 @@ try:
     #     \   |   /
     #      \ fov /
     #        \|/
-    stereo_fov_rad = 90 * (pi/180)  # 90 degree desired fov
-    stereo_height_px = 1000          # 300x300 pixel stereo output
+    stereo_fov_rad = 90 * (pi/180)   # 90 degree desired fov
+    stereo_height_px = 900           # 300x300 pixel stereo output
     stereo_focal_px = stereo_height_px/2 / tan(stereo_fov_rad/2)
 
     # We set the left rotation to identity and the right rotation
@@ -153,7 +154,6 @@ try:
     (rm1, rm2) = cv2.fisheye.initUndistortRectifyMap(K_right, D_right, R_right, P_right, stereo_size, m1type)
     undistort_rectify = {"left"  : (lm1, lm2),
                          "right" : (rm1, rm2)}
-
 
     while True:
         # Check if the camera has acquired any frames
@@ -196,5 +196,6 @@ try:
         key = cv2.waitKey(1)
         if key == ord('q') or cv2.getWindowProperty(WINDOW_TITLE, cv2.WND_PROP_VISIBLE) < 1:
             break
+
 finally:
     pipe.stop()
