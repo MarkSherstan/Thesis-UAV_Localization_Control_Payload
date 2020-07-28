@@ -94,12 +94,7 @@ try:
                "right" : profiles.get_stream(rs.stream.fisheye, 2).as_video_stream_profile()}
     intrinsics = {"left"  : streams["left"].get_intrinsics(),
                   "right" : streams["right"].get_intrinsics()}
-
-    # Print information about both cameras
-    print("Left camera:",  intrinsics["left"])
-    print("Right camera:", intrinsics["right"])
-    time.sleep(3)
-    
+   
     # Translate the intrinsics from librealsense into OpenCV
     K_left  = camera_matrix(intrinsics["left"])
     D_left  = fisheye_distortion(intrinsics["left"])
@@ -108,8 +103,6 @@ try:
 
     # Get the relative extrinsics between the left and right camera
     (R, T) = get_extrinsics(streams["left"], streams["right"])
-    print(R, T)
-    time.sleep(3)
 
     # We calculate the undistorted focal length:
     #
@@ -121,7 +114,7 @@ try:
     #      \ fov /
     #        \|/
     stereo_fov_rad = 90 * (pi/180)   # 90 degree desired fov
-    stereo_height_px = 900           # 300x300 pixel stereo output
+    stereo_height_px = 848           # 300x300 pixel stereo output
     stereo_focal_px = stereo_height_px/2 / tan(stereo_fov_rad/2)
 
     # We set the left rotation to identity and the right rotation
@@ -180,17 +173,24 @@ try:
                                           interpolation = cv2.INTER_LINEAR)}
 
             # Left and right stream
-            L = center_undistorted["left"]
-            R = center_undistorted["right"]
+            # L = center_undistorted["left"]
+            # R = center_undistorted["right"]
 
             # L = frame_copy["left"]
             # R = frame_copy["right"]
 
             # Get some info in prep for processing
-            print(type(L), type(R), L.shape, R.shape)
+            # print(type(L), type(R), L.shape, R.shape)
 
             # Show the frame
-            cv2.imshow(WINDOW_TITLE, np.hstack((L, R)))
+            # cv2.imshow(WINDOW_TITLE, np.hstack((L, R)))
+
+            # Create matrix image
+            A = np.concatenate((frame_copy["left"], frame_copy["right"]), axis=1)
+            B = np.concatenate((center_undistorted["left"], center_undistorted["right"]), axis=1)
+            C = np.concatenate((A, B), axis=0)
+            cv2.imshow(WINDOW_TITLE, C)
+
 
         # Actual display sequencing 
         key = cv2.waitKey(1)
