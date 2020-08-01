@@ -22,15 +22,6 @@ https://docs.opencv.org/3.4/db/d58/group__calib3d__fisheye.html
 """
 
 """
-Returns R, T transform from src to dst
-"""
-def get_extrinsics(src, dst):
-    extrinsics = src.get_extrinsics_to(dst)
-    R = np.reshape(extrinsics.rotation, [3,3]).T
-    T = np.array(extrinsics.translation)
-    return (R, T)
-
-"""
 Returns a camera matrix K from librealsense intrinsics
 """
 def camera_matrix(intrinsics):
@@ -101,9 +92,6 @@ try:
     K_right = camera_matrix(intrinsics["right"])
     D_right = fisheye_distortion(intrinsics["right"])
 
-    # Get the relative extrinsics between the left and right camera
-    (R, T) = get_extrinsics(streams["left"], streams["right"])
-
     # We calculate the undistorted focal length:
     #
     #         h
@@ -120,7 +108,7 @@ try:
     # We set the left rotation to identity and the right rotation
     # the rotation between the cameras
     R_left = np.eye(3)
-    R_right = R
+    R_right = np.eye(3)
 
     # The stereo algorithm needs max_disp extra pixels in order to produce valid
     # disparity on the desired output region. This changes the width, but the
@@ -137,7 +125,6 @@ try:
                        [0, stereo_focal_px, stereo_cy, 0],
                        [0,               0,         1, 0]])
     P_right = P_left.copy()
-    P_right[0][3] = T[0]*stereo_focal_px
 
     # Create an undistortion map for the left and right camera which applies the
     # rectification and undoes the camera distortion. This only has to be done
@@ -173,12 +160,13 @@ try:
                                           interpolation = cv2.INTER_LINEAR)}
 
             # Left and right stream
-            # L = center_undistorted["left"]
-            # R = center_undistorted["right"]
+            L = center_undistorted["left"]
+            R = center_undistorted["right"]
 
-            # L = frame_copy["left"]
-            # R = frame_copy["right"]
+            LL = frame_copy["left"]
+            RR = frame_copy["right"]
 
+            print(L.shape, R.shape, LL.shape, RR.shape)
             # Get some info in prep for processing
             # print(type(L), type(R), L.shape, R.shape)
 
