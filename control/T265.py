@@ -21,18 +21,14 @@ distortion model in their "fisheye" module, more details can be found here:
 https://docs.opencv.org/3.4/db/d58/group__calib3d__fisheye.html
 """
 
-"""
-Returns a camera matrix K from librealsense intrinsics
-"""
 def camera_matrix(intrinsics):
+    # Returns a camera matrix K from librealsense intrinsics
     return np.array([[intrinsics.fx,             0, intrinsics.ppx],
                      [            0, intrinsics.fy, intrinsics.ppy],
                      [            0,             0,              1]])
 
-"""
-Returns the fisheye distortion from librealsense intrinsics
-"""
 def fisheye_distortion(intrinsics):
+    # Returns the fisheye distortion from librealsense intrinsics
     return np.array(intrinsics.coeffs[:4])
 
 # Set up a mutex to share data between threads 
@@ -43,13 +39,13 @@ frame_data = {"left"  : None,
               "timestamp_ms" : None
               }
 
-"""
-This callback is called on a separate thread, so we must use a mutex
-to ensure that data is synchronized properly. We should also be
-careful not to do much work on this thread to avoid data backing up in the
-callback queue.
-"""
 def callback(frame):
+    """
+    This callback is called on a separate thread, so we must use a mutex
+    to ensure that data is synchronized properly. We should also be
+    careful not to do much work on this thread to avoid data backing up in the
+    callback queue.
+    """
     global frame_data
     if frame.is_frameset():
         frameset = frame.as_frameset()
@@ -129,9 +125,17 @@ try:
     # Create an undistortion map for the left and right camera which applies the
     # rectification and undoes the camera distortion. This only has to be done
     # once
-    m1type = cv2.CV_32FC1
-    (lm1, lm2) = cv2.fisheye.initUndistortRectifyMap(K_left, D_left, R_left, P_left, stereo_size, m1type)
-    (rm1, rm2) = cv2.fisheye.initUndistortRectifyMap(K_right, D_right, R_right, P_right, stereo_size, m1type)
+    
+    # Provided method
+    # m1type = cv2.CV_32FC1
+    # (lm1, lm2) = cv2.fisheye.initUndistortRectifyMap(K_left, D_left, R_left, P_left, stereo_size, m1type)
+    # (rm1, rm2) = cv2.fisheye.initUndistortRectifyMap(K_right, D_right, R_right, P_right, stereo_size, m1type)
+    
+    # Method two
+    DIM = (800, 848)
+    (lm1, lm2) = cv2.fisheye.initUndistortRectifyMap(K_left, D_left, np.eye(3), K_left, DIM, cv2.CV_16SC2)
+    (rm1, rm2) = cv2.fisheye.initUndistortRectifyMap(K_right, D_right, np.eye(3), K_right, DIM, cv2.CV_16SC2)
+    
     undistort_rectify = {"left"  : (lm1, lm2),
                          "right" : (rm1, rm2)}
 
@@ -153,11 +157,13 @@ try:
             center_undistorted = {"left" : cv2.remap(src = frame_copy["left"],
                                           map1 = undistort_rectify["left"][0],
                                           map2 = undistort_rectify["left"][1],
-                                          interpolation = cv2.INTER_LINEAR),
+                                          interpolation = cv2.INTER_LINEAR,
+                                          borderMode=cv2.BORDER_CONSTANT),
                                   "right" : cv2.remap(src = frame_copy["right"],
                                           map1 = undistort_rectify["right"][0],
                                           map2 = undistort_rectify["right"][1],
-                                          interpolation = cv2.INTER_LINEAR)}
+                                          interpolation = cv2.INTER_LINEAR,
+                                          borderMode=cv2.BORDER_CONSTANT)}
 
             # Left and right stream
             L = center_undistorted["left"]
