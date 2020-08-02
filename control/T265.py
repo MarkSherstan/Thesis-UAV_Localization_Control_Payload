@@ -44,11 +44,11 @@ class T265:
             right_data = np.asanyarray(f2.get_data())
             ts = frameset.get_timestamp()
             
-            frameMutex.acquire()
+            self.frameMutex.acquire()
             self.frameData["left"] = left_data
             self.frameData["right"] = right_data
             self.frameData["timestamp_ms"] = ts
-            frameMutex.release()
+            self.frameMutex.release()
 
     def camera_matrix(self, intrinsics):
         # Returns a camera matrix K from librealsense intrinsics
@@ -69,10 +69,10 @@ class T265:
                       "right" : streams["right"].get_intrinsics()}
     
         # Translate the intrinsics from librealsense into OpenCV
-        K_left  = camera_matrix(intrinsics["left"])
-        D_left  = fisheye_distortion(intrinsics["left"])
-        K_right = camera_matrix(intrinsics["right"])
-        D_right = fisheye_distortion(intrinsics["right"])
+        K_left  = self.camera_matrix(intrinsics["left"])
+        D_left  = self.fisheye_distortion(intrinsics["left"])
+        K_right = self.camera_matrix(intrinsics["right"])
+        D_right = self.fisheye_distortion(intrinsics["right"])
 
         # Method two
         (lm1, lm2) = cv2.fisheye.initUndistortRectifyMap(K_left, D_left, np.eye(3), K_left, (800, 848), cv2.CV_16SC2)
@@ -87,23 +87,25 @@ class T265:
             valid = self.frameData["timestamp_ms"] is not None
             self.frameMutex.release()
 
+            print(valid)
+
             # If frames are ready to process
             if valid:
                 # Hold the mutex only long enough to copy the stereo frames
                 self.frameMutex.acquire()
-                frame_copy = {"left"  : frameData["left"].copy(),
-                              "right" : frameData["right"].copy()}
+                frame_copy = {"left"  : self.frameData["left"].copy(),
+                              "right" : self.frameData["right"].copy()}
                 self.frameMutex.release()
 
                 # Undistort and crop the center of the frames
                 center_undistorted = {"left" : cv2.remap(src = frame_copy["left"],
-                                            map1 = undistort_rectify["left"][0],
-                                            map2 = undistort_rectify["left"][1],
+                                            map1 = self.undistort_rectify["left"][0],
+                                            map2 = self.undistort_rectify["left"][1],
                                             interpolation = cv2.INTER_LINEAR,
                                             borderMode=cv2.BORDER_CONSTANT),
                                       "right" : cv2.remap(src = frame_copy["right"],
-                                            map1 = undistort_rectify["right"][0],
-                                            map2 = undistort_rectify["right"][1],
+                                            map1 = self.undistort_rectify["right"][0],
+                                            map2 = self.undistort_rectify["right"][1],
                                             interpolation = cv2.INTER_LINEAR,
                                             borderMode=cv2.BORDER_CONSTANT)}
 
@@ -124,15 +126,11 @@ class T265:
                     if key & 0xFF == ord('q'):
                         break
                 
-                
     def close(self):
         self.pipe.stop()
 
 def main():
     cam = T265()
-    
-    time.sleep(5)
-    print('Starting')
     
     try:
         cam.run()
