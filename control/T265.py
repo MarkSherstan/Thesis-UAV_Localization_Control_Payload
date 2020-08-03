@@ -153,6 +153,9 @@ def main():
         if key != -1:
             if key & 0xFF == ord('q'):
                 break
+            if key & 0xFF == ord(' '):
+                cv2.imwrite('raw.png',cam.rawImg1)
+                cv2.imwrite('flat.png',cam.Img1)
     
     cv2.destroyAllWindows()    
     cam.close()   
