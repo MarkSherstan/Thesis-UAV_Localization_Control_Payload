@@ -165,6 +165,7 @@ pipeline = rs.pipeline()
 config = rs.config()
 config.enable_stream(rs.stream.fisheye, 1)
 config.enable_stream(rs.stream.fisheye, 2)       
+config.enable_stream(rs.stream.pose)
 
 # Start streaming
 pipeline.start(config)
@@ -175,20 +176,28 @@ try:
         frames = pipeline.wait_for_frames()
         f1 = frames.get_fisheye_frame(1)
         f2 = frames.get_fisheye_frame(2)
+        pose = frames.get_pose_frame()
         
-        if not f1 or not f2:
+        if not f1 or not f2 or not pose:
             continue
 
         img1 = np.asanyarray(f1.get_data())
         img2 = np.asanyarray(f2.get_data())
+        data = pose.get_pose_data()
 
-        # # Stack both images horizontally
+        # Stack both images horizontally
         images = np.hstack((img1, img2))
+        print(data.angular_velocity)
 
-        # # Show images
+        # Show images
         cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
         cv2.imshow('RealSense', images)
-        cv2.waitKey(1)
+        key = cv2.waitKey(1)
+
+        # Exit conditions
+        if key != -1:
+            if key & 0xFF == ord('q'):
+                break
 
 finally:
     # Stop streaming
