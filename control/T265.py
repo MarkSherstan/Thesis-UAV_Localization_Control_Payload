@@ -1,3 +1,4 @@
+from threading import Thread
 import pyrealsense2 as rs
 import numpy as np
 import time
@@ -15,6 +16,9 @@ class T265:
         self.isRunFrame = True
         self.frameThread = None
         self.frame = None
+
+        # Performance
+        self.frameCount = 0
         
         # Pipeline 
         self.pipe = None
@@ -62,7 +66,7 @@ class T265:
             # Start the timer 
             self.frameStartTime = time.time()
             
-    def acquireFrame(self, cam):
+    def acquireFrame(self):
         # Acquire until closed
         while(self.isRunFrame):
             # Wait for data (blocking)
@@ -107,33 +111,36 @@ class T265:
                                   "right" : (rm1, rm2)}
                 
     def close(self):
+        # Close the capture thread
+        self.isRunFrame = False
+        self.frameThread.join()
+        print('Capture thread closed')
+        
+        # Close the pipe
         self.pipe.stop()
 
 def main():
     cam = T265()
     
-    try:
+    while(True):
         # Show the image frames 
         showFrame = np.concatenate((cam.rawImg1, cam.rawImg2), axis=1)
         cv2.imshow('Frame', showFrame)
-
-        # Small delay
-        time.sleep(1/45)
         
         # Exit
         key = cv2.waitKey(1)
         if key != -1:
             if key & 0xFF == ord('q'):
                 break
-    except:
-        cam.close()
-
+    
+    cv2.destroyAllWindows()    
+    cam.close()   
 
 if __name__ == "__main__":
     main()
 
 
-
+# https://github.com/IntelRealSense/librealsense/blob/master/doc/t265.md
 
 
 
