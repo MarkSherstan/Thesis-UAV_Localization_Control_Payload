@@ -264,7 +264,7 @@ class CalibrateCamera:
 
             # Outline the aruco markers found in the query image
             aruco.drawDetectedMarkers(image=img, corners=corners)
-
+       
             # Get charuco corners and ids from detected aruco markers
             response, charucoCorners, charucoIDs = aruco.interpolateCornersCharuco(
                     markerCorners=corners,
@@ -278,7 +278,7 @@ class CalibrateCamera:
                 aruco.drawDetectedCornersCharuco(image=img, charucoCorners=charucoCorners, charucoIds=charucoIDs)
                 
                 # Resize image and save to list
-                data.append(cv2.resize(img,(320,180)))
+                data.append(img)
                 
                 # Incrememnt counter
                 ii += 1     
@@ -296,8 +296,9 @@ class CalibrateCamera:
         C = np.concatenate((data[6], data[7], data[8]), axis=1)
         D = np.concatenate((A, B, C), axis=0)
                 
-        # Display matrix image
+        # Display and save matrix image
         cv2.imshow('Photo Matrix', D)
+        cv2.imwrite('PhotoMatrix.png', D)
         cv2.waitKey(0)
         cv2.destroyAllWindows()
     
