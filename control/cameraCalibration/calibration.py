@@ -84,7 +84,7 @@ class CalibrateCamera:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def captureCalibrationImages(self, T265 = True, C920 = False):
+    def captureCalibrationImages(self, T265=True, camIdx=1, C920=False):
         # Start the proper capture device
         if T265 is True:
             self.startT265()
@@ -100,7 +100,13 @@ class CalibrateCamera:
         while(True):
             # Get a frame
             if T265 is True:
-                frame = self.cam.Img1 # Or switch to Img2
+                if camIdx == 1:
+                    frame = self.cam.Img1
+                elif camIdx == 2:
+                    frame = self.cam.Img2
+                else:
+                    print("ERROR: Camera index, use 1 or 2 for the T265")
+                    return
             elif C920 is True:
                 _, frame = self.cam.read()
             else:
