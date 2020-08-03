@@ -33,6 +33,15 @@ class CalibrateCamera:
             print('Camera start')
         except:
             print('Camera setup failed')        
+    
+    def startT265(self):
+        # Import custom class
+        import sys
+        sys.path.append('../')
+        from T265 import T265
+        
+        # Save the object to this class
+        self.cam = T265()
         
     def generateCharucoBoard(self, rows=7, columns=5):
         # Create the board
@@ -75,14 +84,30 @@ class CalibrateCamera:
         cv2.waitKey(0)
         cv2.destroyAllWindows()
 
-    def captureCalibrationImages(self):
+    def captureCalibrationImages(self, T265 = True, C920 = False):
+        # Start the proper capture device
+        if T265 is True:
+            self.startT265()
+        elif C920 is True:
+            self.startCamera()
+        else:
+            print('ERROR')
+            return
+
         # Initialize snapshot counter
         index = 0
 
         while(True):
-            # Get frame and show
-            _, frame = self.cam.read()
-            frame = cv2.rotate(frame, cv2.ROTATE_180)
+            # Get a frame
+            if T265 is True:
+                frame = self.cam.Img1 # Or switch to Img2
+            elif C920 is True:
+                _, frame = self.cam.read()
+            else:
+                print('ERROR')
+                return
+
+            # Show the image
             cv2.imshow('Frame', frame)
 
             # Check keyboard commands
@@ -99,8 +124,13 @@ class CalibrateCamera:
                 elif key & 0xFF == ord('q'):
                     break
 
-        # Clear connections and window
-        self.cam.release()
+        # Clear connections
+        if T265 is True:
+            self.cam.close()
+        elif C920 is True:
+            self.cam.release()
+
+        # Close all windows
         cv2.destroyAllWindows()
 
     def calibrateCamera(self, rows=7, columns=5, lengthSquare=0.0354, lengthMarker=0.0177):
@@ -284,7 +314,6 @@ def main():
     # CC.generateArucoBoard()
     # CC.generateArucoMarker()
 
-    # CC.startCamera()
     # CC.captureCalibrationImages()
     # CC.calibrateCamera()
     # CC.generateCalibrationImg()
