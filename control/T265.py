@@ -11,6 +11,7 @@ class T265:
         self.rawImg1 = None
         self.rawImg2 = None
         self.psi     = None
+        self.temp    = None
         
         # Capture threading parameters
         self.isReceivingFrame = False
@@ -48,7 +49,7 @@ class T265:
         self.pipe.start(cfg)        
         
         # Calculate the camera mappings 
-        self.prepCamera()
+        self.createMaps()
         
         # Start streaming data in another thread
         self.startFrameThread()
@@ -87,6 +88,9 @@ class T265:
             self.rawImg2 = np.asanyarray(f2.get_data())
             self.psi = pose.get_pose_data().angular_velocity.y
         
+            #
+            self.temp = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            
             # Performance and threading
             self.frameCount += 1
             self.isReceivingFrame = True
@@ -101,7 +105,7 @@ class T265:
         # Returns the fisheye distortion from librealsense intrinsics
         return np.array(intrinsics.coeffs[:4])
                             
-    def prepCamera(self):
+    def createMaps(self):
         # Retreive the stream and intrinsic properties for both cameras
         profiles = self.pipe.get_active_profile()
         streams = {"f1" : profiles.get_stream(rs.stream.fisheye, 1).as_video_stream_profile(),
@@ -140,8 +144,9 @@ def main():
         cv2.imshow('Frame', showFrame)
         
         # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
-        print(cam.psi)
-
+        # print(cam.psi)
+        print(cam.rawImg1.shape, cam.temp.shape)
+        
         # Exit
         key = cv2.waitKey(1)
         if key != -1:
