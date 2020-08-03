@@ -125,11 +125,6 @@ class T265:
         (self.map1A, self.map1B) = cv2.fisheye.initUndistortRectifyMap(K1, D1, np.eye(3), K1, (848, 800), cv2.CV_16SC2)
         (self.map2A, self.map2B) = cv2.fisheye.initUndistortRectifyMap(K2, D2, np.eye(3), K2, (848, 800), cv2.CV_16SC2)
 
-        # Test crop region
-        balance = 0.0
-        new_K = cv2.fisheye.estimateNewCameraMatrixForUndistortRectify(K1, D1, (848, 800), np.eye(3), balance=balance)
-        (self.map1A, self.map1B) = cv2.fisheye.initUndistortRectifyMap(K1, D1, np.eye(3), new_K, (848, 800), cv2.CV_16SC2)
-        
     def close(self):
         # Close the capture thread
         self.isRunFrame = False
