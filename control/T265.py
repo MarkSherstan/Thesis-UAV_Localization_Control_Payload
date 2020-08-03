@@ -10,6 +10,8 @@ class T265:
         # Data
         self.rawImg1 = None
         self.rawImg2 = None
+        self.Img1    = None
+        self.Img2    = None
         self.psi     = None
         self.temp    = None
         
@@ -88,8 +90,9 @@ class T265:
             self.rawImg2 = np.asanyarray(f2.get_data())
             self.psi = pose.get_pose_data().angular_velocity.y
         
-            #
-            self.temp = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            # Undistort the images
+            self.Img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            self.Img2 = cv2.remap(self.rawImg2, self.map2A, self.map2B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
             
             # Performance and threading
             self.frameCount += 1
@@ -114,14 +117,14 @@ class T265:
                       "f2" : streams["f2"].get_intrinsics()}
     
         # Translate the intrinsics from librealsense into OpenCV
-        K1 = self.cameraMatrix(intrinsics["left"])
-        D1 = self.fisheyeDistortion(intrinsics["left"])
-        K2 = self.cameraMatrix(intrinsics["right"])
-        D2 = self.fisheyeDistortion(intrinsics["right"])
+        K1 = self.cameraMatrix(intrinsics["f1"])
+        D1 = self.fisheyeDistortion(intrinsics["f1"])
+        K2 = self.cameraMatrix(intrinsics["f2"])
+        D2 = self.fisheyeDistortion(intrinsics["f2"])
 
         # Find mappings for fixing image
-        (self.map1A, self.map1B) = cv2.fisheye.initUndistortRectifyMap(K1, D1, np.eye(3), K1, (800, 848), cv2.CV_16SC2)
-        (self.map2A, self.map2B) = cv2.fisheye.initUndistortRectifyMap(K2, D2, np.eye(3), K2, (800, 848), cv2.CV_16SC2)
+        (self.map1A, self.map1B) = cv2.fisheye.initUndistortRectifyMap(K1, D1, np.eye(3), K1, (848, 800), cv2.CV_16SC2)
+        (self.map2A, self.map2B) = cv2.fisheye.initUndistortRectifyMap(K2, D2, np.eye(3), K2, (848, 800), cv2.CV_16SC2)
 
     def close(self):
         # Close the capture thread
@@ -140,13 +143,12 @@ def main():
     
     while(True):
         # Show the image frames 
-        showFrame = np.concatenate((cam.rawImg1, cam.rawImg2), axis=1)
+        showFrame = np.concatenate((cam.rawImg1, cam.Img1), axis=1)
         cv2.imshow('Frame', showFrame)
         
         # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
-        # print(cam.psi)
-        print(cam.rawImg1.shape, cam.temp.shape)
-        
+        print(cam.psi)
+
         # Exit
         key = cv2.waitKey(1)
         if key != -1:
