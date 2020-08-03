@@ -10,6 +10,7 @@ class T265:
         # Data
         self.rawImg1 = None
         self.rawImg2 = None
+        self.psi     = None
         
         # Capture threading parameters
         self.isReceivingFrame = False
@@ -18,6 +19,7 @@ class T265:
         self.frame = None
 
         # Performance
+        self.frameStartTime = None
         self.frameCount = 0
         
         # Pipeline 
@@ -81,10 +83,10 @@ class T265:
             if not f1 or not f2 or not pose:
                 continue
 
-            # Data type conversion
+            # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
             self.rawImg2 = np.asanyarray(f2.get_data())
-            poseData = pose.get_pose_data()
+            self.psi = pose.get_pose_data().angular_velocity.y
         
             # Performance and threading
             self.frameCount += 1
@@ -116,6 +118,9 @@ class T265:
         self.frameThread.join()
         print('Capture thread closed')
         
+        # Performance
+        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),1))
+
         # Close the pipe
         self.pipe.stop()
 
@@ -127,6 +132,9 @@ def main():
         showFrame = np.concatenate((cam.rawImg1, cam.rawImg2), axis=1)
         cv2.imshow('Frame', showFrame)
         
+        # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
+        print(cam.psi)
+
         # Exit
         key = cv2.waitKey(1)
         if key != -1:
