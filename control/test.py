@@ -1,10 +1,7 @@
 from T265 import T265
 from draw import Draw
-
-# undirsort test????
-# Oclusion pic
-# Just marker 
-# Board 
+import numpy as np
+import cv2
 
 def main():
     # Camera matrices 
@@ -24,10 +21,14 @@ def main():
     d2 = Draw(mtx2, dist2)
     
     while(True):
-        # Process the frame
+        # Process the frame (ArUco board)
         img1 = d1.arucoBoard(cam.Img1)
         img2 = d2.arucoBoard(cam.Img2)
         
+        # Process the frame (ArUco marker)
+        # img1 = d1.arucoMarker(cam.Img1)
+        # img2 = d2.arucoMarker(cam.Img2)
+
         # Show the image frames 
         showFrame = np.concatenate((img1, img2), axis=1)
         cv2.imshow('Frame', showFrame)
@@ -38,8 +39,8 @@ def main():
             if key & 0xFF == ord('q'):
                 break
             if key & 0xFF == ord(' '):
-                cv2.imwrite('raw.png',img1)
-                cv2.imwrite('flat.png',img2)
+                cv2.imwrite('Cam1.png',img1)
+                cv2.imwrite('Cam2.png',img2)
     
     cv2.destroyAllWindows()    
     cam.close()   

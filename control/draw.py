@@ -34,7 +34,8 @@ class Draw:
         
     def arucoBoard(self, frame):
         # Convert frame to gray and rotate to normal
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = frame
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
@@ -46,7 +47,7 @@ class Draw:
             
             # Draw
             aruco.drawDetectedMarkers(frame, corners, ids)
-            aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 5)
+            aruco.drawAxis(frame, self.mtx, self.dist, rvec, tvec, 7)
 
             # Save translation and rotation for next iteration 
             self.rvec = rvec
@@ -57,7 +58,8 @@ class Draw:
 
     def arucoMarker(self, frame):
         # Convert frame to gray and rotate to normal
-        gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
+        gray = frame
+        frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2BGR)
 
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
@@ -65,11 +67,11 @@ class Draw:
         # Only continue if a marker was found
         if np.all(ids != None):
             # Estimate the pose
-            rvec, tvec, _ =	aruco.estimatePoseSingleMarkers(corners, self.markerLength, self.mtx, self.dist, self.rvec, self.tvec)
+            rvec, tvec, _ =	aruco.estimatePoseSingleMarkers(corners, self.lengthMarker, self.mtx, self.dist, self.rvec, self.tvec)
             
             # Draw
             aruco.drawDetectedMarkers(frame, corners, ids)
-            aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 5)
+            aruco.drawAxis(frame, self.mtx, self.dist, rvec, tvec, 3)
 
             # Save translation and rotation for next iteration 
             self.rvec = rvec
