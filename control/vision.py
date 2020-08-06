@@ -82,7 +82,7 @@ class Vision:
         # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
-        self.parm.minMarkerPerimeterRate = 0.1
+        self.parm.minMarkerPerimeterRate = 0.12
         self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
         self.parm.cornerRefinementWinSize = 5
         self.parm.cornerRefinementMaxIterations = 100
