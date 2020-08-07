@@ -12,7 +12,7 @@ import datetime
 import math
 import time
 
-printFlag = False
+printFlag = True
 
 def startSim(vehicle, targetAltitude=1.5):
     # Wait till vehicle is ready
@@ -35,14 +35,14 @@ def startSim(vehicle, targetAltitude=1.5):
     vehicle.simple_takeoff(targetAltitude)
 
     # Wait until actual altitude is achieved
-    while abs(vehicle.location.local_frame.down) <= (targetAltitude*0.9):
+    while abs(vehicle.location.local_frame.down) <= (0.8):
         print(round(vehicle.location.local_frame.down,3))
         time.sleep(0.2)
     
 def falseVisionData(Q, UAV):
-    A = UAV.location.local_frame.north
-    B = UAV.location.local_frame.east
-    C = UAV.location.local_frame.down
+    A = UAV.location.local_frame.north * 100.0
+    B = UAV.location.local_frame.east * 100.0
+    C = UAV.location.local_frame.down * -100.0
     D = math.degrees(UAV.attitude.yaw)
 
     Q.put([A, B, C, D])
@@ -134,21 +134,21 @@ def main():
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
 
             # Smooth vision data with moving average low pass filter and/or kalman filter
-            # northV = nAvg.update(northVraw)
-            # eastV  = eAvg.update(eastVraw)
-            # downV  = dAvg.update(downVraw)
+            northV = nAvg.update(northVraw)
+            eastV  = eAvg.update(eastVraw)
+            downV  = dAvg.update(downVraw)
             # yawV   = yAvg.update(yawVraw)
             yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-            northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
-            eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
-            downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
+            # northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
+            # eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
+            # downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
             kalmanTimer = time.time()
 
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
-            C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
+            C.sendAttitudeTarget(-rollControl, pitchControl, yawControl, thrustControl)
             
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
