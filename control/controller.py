@@ -175,10 +175,10 @@ class Controller:
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
-        # Mixer
+        # Mixer -> Test this
         # psi = -math.radians(actual[3])
-        # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
-        # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
+        # rollAngle = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
+        # pitchAngle = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
 
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
