@@ -1,17 +1,9 @@
 from dronekit import connect, VehicleMode, LocationGlobal, LocationGlobalRelative, LocationLocal
-from pymavlink import mavutil
-import time 
-
-
-
-
 from filter import MovingAverage, KalmanFilterRot, KalmanFilterPos
 from multiprocessing import Process, Queue
-from dronekit import connect, VehicleMode
 from controller import Controller
 from setpoints import SetPoints
 from pymavlink import mavutil
-from vision import Vision
 from IMU import MyVehicle
 import pandas as pd
 import numpy as np
@@ -22,6 +14,40 @@ import time
 
 printFlag = False
 
+def startSim(vehicle, targetAltitude=1.5):
+    # Wait till vehicle is ready
+    while not vehicle.is_armable:
+        print(" Waiting for vehicle to initialize...")
+        time.sleep(1)
+    print("Arming motors")
+
+    # Set vehicle mode
+    vehicle.mode = VehicleMode("GUIDED")
+
+    # Arm the vehicle
+    while not vehicle.armed:
+        print(" Waiting for arming...")
+        vehicle.armed = True
+        time.sleep(1)
+
+    # Take off
+    print("Taking off!")
+    vehicle.simple_takeoff(targetAltitude)
+
+    # Wait until actual altitude is achieved
+    while abs(vehicle.location.local_frame.down) <= (targetAltitude*0.9):
+        print(round(vehicle.location.local_frame.down,3))
+        time.sleep(0.2)
+    
+def falseVisionData(Q, UAV):
+    A = UAV.location.local_frame.north
+    B = UAV.location.local_frame.east
+    C = UAV.location.local_frame.down
+    D = math.degrees(UAV.attitude.yaw)
+
+    Q.put([A, B, C, D])
+    time.sleep(1/30)
+    
 def getVision(Q):
     # Vision Data
     temp = Q.get()
@@ -36,9 +62,9 @@ def getVehicleAttitude(UAV):
 
 def main():
     # Connect to the Vehicle
-    connection_string = "/dev/ttyS1"
+    connection_string = "127.0.0.1:14551"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000, vehicle_class=MyVehicle)
+    vehicle = connect(connection_string, wait_ready=["attitude"], vehicle_class=MyVehicle)
 
     # Set attitude request message rate
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -59,14 +85,12 @@ def main():
     time.sleep(0.5)
 
     # Connect to vision, create the queue, and start the core
-    V = Vision()
     Q = Queue()
-    P = Process(target=V.processFrame, args=(Q, ))
-    P.start()
+    falseVisionData(Q, vehicle)
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(10, 20, 125)
+    SP = SetPoints(100, 200, 125)
 
     # Create low pass filters
     nAvg = MovingAverage(5)
@@ -79,40 +103,31 @@ def main():
     eKF = KalmanFilterPos()
     dKF = KalmanFilterPos()
     yKF = KalmanFilterRot()
-    kalmanTimer = time.time()
 
     # Logging variables
     freqList = []
     data = []
 
-    # Wait till we switch modes to prevent integral windup and keep everything happy
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        # Current mode
-        print(vehicle.mode.name)
-
-        # Keep vision queue empty
-        northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
-
-        # Start Kalman filter to limit start up error
-        zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
-        _ = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-        _ = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
-        _ = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
-        _ = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
-        kalmanTimer = time.time()
+    # Start sim
+    startSim(vehicle)
 
     # Select set point method
+    for _ in range(15):
+        falseVisionData(Q, vehicle)
+        
     SP.selectMethod(Q, trajectory=True)
     modeState = 0
 
     # Loop timer(s)
     startTime = time.time()
     loopTimer = time.time()
+    kalmanTimer = time.time()
     C.startController()
 
     try:
         while(True):
             # Get vision data
+            falseVisionData(Q, vehicle)
             northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
 
             # Get IMU data and convert to deg/s
@@ -160,15 +175,24 @@ def main():
             if (vehicle.mode.name == "STABILIZE"):
                 modeState = 1
             
-            if (vehicle.mode.name == "GUIDED_NOGPS") and (modeState == 1):
+            if (vehicle.mode.name == "GUIDED") and (modeState == 1):
                 modeState = 0
-                C.resetIntegral()
+            
+                for _ in range(15):
+                    falseVisionData(Q, vehicle)
                 SP.selectMethod(Q, trajectory=True)
+                
+                C.resetIntegral()
                 
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
         
+        # Land the UAV and close connection
+        print("Closing vehicle connection and land\n")
+        vehicle.mode = VehicleMode("LAND")
+        vehicle.close()
+
     finally:        
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
@@ -183,46 +207,9 @@ def main():
 
         # Save data to CSV
         now = datetime.datetime.now()
-        fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
+        fileName = "flightData/SIM_" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
         df.to_csv(fileName, index=None, header=True)
         print('File saved to:' + fileName)
 
 if __name__ == "__main__":
     main()
-
-
-# Connect to the Vehicle
-connection_string = "127.0.0.1:14551"
-print('Connecting to vehicle on: %s\n' % connection_string)
-vehicle = connect(connection_string, wait_ready=True)
-
-# Wait till vehicle is ready
-while not vehicle.is_armable:
-    print(" Waiting for vehicle to initialize...")
-    time.sleep(1)
-print("Arming motors")
-
-# Set vehicle mode
-vehicle.mode = VehicleMode("GUIDED")
-
-# Arm the vehicle
-while not vehicle.armed:
-    print(" Waiting for arming...")
-    vehicle.armed = True
-    time.sleep(1)
-
-# Take off
-targetAltitude = 3.0
-print("Taking off!")
-vehicle.simple_takeoff(targetAltitude)
-
-# Wait until actual altitude is achieved
-while abs(vehicle.location.local_frame.down) <= (targetAltitude*0.9):
-    print(round(vehicle.location.local_frame.down,3))
-    time.sleep(0.2)
-
-# Land the UAV and close connection
-print("Closing vehicle connection\n")
-vehicle.mode = VehicleMode("LAND")
-vehicle.close()
-
