@@ -13,13 +13,13 @@ import datetime
 import math
 import time
 
-printFlag = True
+printFlag = False
 
 def gains(C):
     # PID Gains: NORTH (pitch)
-    C.kp_NORTH = 0.1
-    C.ki_NORTH = 0.000
-    C.kd_NORTH = 0.000
+    C.kp_NORTH = 0.001
+    C.ki_NORTH = 0.0005
+    C.kd_NORTH = 0.00
 
     # PID Gains: EAST (roll)
     C.kp_EAST = C.kp_NORTH
@@ -36,6 +36,12 @@ def gains(C):
     C.ki_YAW = 0.1
     C.kd_YAW = 0.5
 
+    # Maximum controller output constraints
+    C.rollConstrain  = [-10, 10]         # Deg
+    C.pitchConstrain = C.rollConstrain   # Deg
+    C.thrustConstrain = [-0.5, 0.5]	     # Normalized
+    C.yawRateConstrain = [-10, 10]       # Deg / s
+    
 def startSim(vehicle, targetAltitude=1.0):
     # Wait till vehicle is ready
     while not vehicle.is_armable:
@@ -181,7 +187,7 @@ def main():
             freqList.append(freqLocal)
 
             if printFlag is True:
-                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(Q.qsize(), northV, eastV, downV, yawV))
+                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
                 # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             
             loopTimer = time.time()
@@ -194,19 +200,6 @@ def main():
                         rollControl, pitchControl, yawControl, thrustControl,
                         northVraw, eastVraw, downVraw, yawVraw, zGyro])
 
-            # Reset integral and generate new trajectory whenever there is a mode switch 
-            if (vehicle.mode.name == "STABILIZE"):
-                modeState = 1
-            
-            if (vehicle.mode.name == "GUIDED") and (modeState == 1):
-                modeState = 0
-            
-                for _ in range(15):
-                    falseVisionData(Q, vehicle)
-                SP.selectMethod(Q, trajectory=True)
-                
-                C.resetIntegral()
-                
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
