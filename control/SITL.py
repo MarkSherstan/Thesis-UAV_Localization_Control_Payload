@@ -3,6 +3,7 @@ from filter import MovingAverage, KalmanFilterRot, KalmanFilterPos
 from multiprocessing import Process, Queue
 from controller import Controller
 from setpoints import SetPoints
+import matplotlib.pyplot as plt
 from pymavlink import mavutil
 from IMU import MyVehicle
 import pandas as pd
@@ -16,9 +17,9 @@ printFlag = True
 
 def gains(C):
     # PID Gains: NORTH (pitch)
-    C.kp_NORTH = 0.001
-    C.ki_NORTH = 0.0001
-    C.kd_NORTH = 0.0001
+    C.kp_NORTH = 0.000
+    C.ki_NORTH = 0.000
+    C.kd_NORTH = 0.000
 
     # PID Gains: EAST (roll)
     C.kp_EAST = C.kp_NORTH
@@ -35,7 +36,7 @@ def gains(C):
     C.ki_YAW = 0.1
     C.kd_YAW = 0.5
 
-def startSim(vehicle, targetAltitude=1.5):
+def startSim(vehicle, targetAltitude=1.0):
     # Wait till vehicle is ready
     while not vehicle.is_armable:
         print(" Waiting for vehicle to initialize...")
@@ -56,18 +57,18 @@ def startSim(vehicle, targetAltitude=1.5):
     vehicle.simple_takeoff(targetAltitude)
 
     # Wait until actual altitude is achieved
-    while abs(vehicle.location.local_frame.down) <= (0.8):
+    while abs(vehicle.location.local_frame.down) <= (targetAltitude*0.95):
         print(round(vehicle.location.local_frame.down,3))
         time.sleep(0.2)
     
-def falseVisionData(Q, UAV):
+def falseVisionData(Q, UAV, delay =1/30):
     A = UAV.location.local_frame.north * 100.0
     B = UAV.location.local_frame.east * 100.0
     C = UAV.location.local_frame.down * -100.0
     D = math.degrees(UAV.attitude.yaw)
 
     Q.put([A, B, C, D])
-    time.sleep(1/30)
+    time.sleep(delay)
     
 def getVision(Q):
     # Vision Data
@@ -112,7 +113,7 @@ def main():
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
     gains(C)
-    SP = SetPoints(100, 200, 125)
+    SP = SetPoints(100, 50, 125)
 
     # Create low pass filters
     nAvg = MovingAverage(5)
@@ -134,8 +135,8 @@ def main():
     startSim(vehicle)
 
     # Select set point method
-    for _ in range(15):
-        falseVisionData(Q, vehicle)
+    for _ in range(10):
+        falseVisionData(Q, vehicle, delay=0)
         
     SP.selectMethod(Q, trajectory=True)
     modeState = 0
@@ -181,7 +182,7 @@ def main():
             freqList.append(freqLocal)
 
             if printFlag is True:
-                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
+                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(Q.qsize(), northV, eastV, downV, yawV))
                 # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             
             loopTimer = time.time()
@@ -229,10 +230,83 @@ def main():
                             'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
 
         # Save data to CSV
-        now = datetime.datetime.now()
-        fileName = "flightData/SIM_" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
-        df.to_csv(fileName, index=None, header=True)
-        print('File saved to:' + fileName)
+        # now = datetime.datetime.now()
+        # fileName = "flightData/SIM_" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
+        # df.to_csv(fileName, index=None, header=True)
+        # print('File saved to:' + fileName)
+
+        # Plot 
+        ########################
+        # Master
+        ########################
+        fig = plt.figure()
+
+        ########################
+        # Roll and Pitch
+        ########################
+        plt.subplot(2, 2, 1)
+        ax0 = plt.gca()
+
+        df.plot(kind='line', x='Time', y='Roll-Control',  color='#FB8604', style='-', ax=ax0)
+        df.plot(kind='line', x='Time', y='Pitch-Control', color='#700CBC', style='-', ax=ax0)
+
+        df.plot(kind='line', x='Time', y='Roll-UAV',  color='#FB8604', style='--',  ax=ax0)
+        df.plot(kind='line', x='Time', y='Pitch-UAV', color='#700CBC', style='--',  ax=ax0)
+
+        ax0.set_title('Roll & Pitch Control', fontsize=14, fontweight='bold')
+        ax0.set_xlabel('Time [s]', fontweight='bold')
+        ax0.set_ylabel('Angle [deg]', fontweight='bold')
+
+        ########################
+        # Yaw
+        ########################
+        plt.subplot(2, 2, 2)
+        ax1 = plt.gca()
+
+        df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
+        df.plot(kind='line', x='Time', y='Yaw-Control', color='tab:blue', style='--', ax=ax1)
+
+        ax1.set_title('Yaw Control', fontsize=14, fontweight='bold')
+        ax1.set_xlabel('Time [s]', fontweight='bold')
+        ax1.set_ylabel('Angle [Deg or Deg/s]', fontweight='bold')
+
+        ########################
+        # North East
+        ########################
+        plt.subplot(2, 2, 3)
+        ax3 = plt.gca()
+
+        df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
+        df.plot(kind='line', x='Time', y='East-Vision',  color='#FB8604', style='-',  ax=ax3)
+        df.plot(kind='line', x='Time', y='Down-Vision',  color='#7FBD32', style='-',  ax=ax3)
+
+        df.plot(kind='line', x='Time', y='North-Desired', color='#700CBC', style='--',  ax=ax3)
+        df.plot(kind='line', x='Time', y='East-Desired',  color='#FB8604', style='--',  ax=ax3)
+        df.plot(kind='line', x='Time', y='Down-Desired',  color='#7FBD32',  style='--',  ax=ax3)
+
+        ax3.set_title('NED Position', fontsize=14, fontweight='bold')
+        ax3.set_xlabel('Time [s]', fontweight='bold')
+        ax3.set_ylabel('Position [cm]', fontweight='bold')
+
+        ax3.legend(['N', 'E', 'D'])
+
+        ########################
+        # Thrust
+        ########################
+        plt.subplot(2, 2, 4)
+        ax4 = plt.gca()
+
+        df.plot(kind='line', x='Time', y='Thrust-Control', color='#7FBD32', style='-', ax=ax4)
+
+        ax4.set_title('Thrust Control', fontsize=14, fontweight='bold')
+        ax4.set_xlabel('Time [s]', fontweight='bold')
+        ax4.set_ylabel('Normalized Thrust Command', fontweight='bold')
+        ax4.get_legend().remove()
+
+        ########################
+        # Show the plots
+        ########################
+        plt.show()
 
 if __name__ == "__main__":
     main()
