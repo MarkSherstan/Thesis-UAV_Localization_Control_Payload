@@ -17,7 +17,7 @@ printFlag = True
 
 def gains(C):
     # PID Gains: NORTH (pitch)
-    C.kp_NORTH = 0.000
+    C.kp_NORTH = 0.1
     C.ki_NORTH = 0.000
     C.kd_NORTH = 0.000
 
@@ -61,7 +61,7 @@ def startSim(vehicle, targetAltitude=1.0):
         print(round(vehicle.location.local_frame.down,3))
         time.sleep(0.2)
     
-def falseVisionData(Q, UAV, delay =1/30):
+def falseVisionData(Q, UAV, delay=1/30):
     A = UAV.location.local_frame.north * 100.0
     B = UAV.location.local_frame.east * 100.0
     C = UAV.location.local_frame.down * -100.0
@@ -108,7 +108,6 @@ def main():
 
     # Connect to vision, create the queue, and start the core
     Q = Queue()
-    falseVisionData(Q, vehicle)
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
@@ -157,14 +156,14 @@ def main():
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
 
             # Smooth vision data with moving average low pass filter and/or kalman filter
-            # northV = nAvg.update(northVraw)
-            # eastV  = eAvg.update(eastVraw)
-            # downV  = dAvg.update(downVraw)
-            # yawV   = yAvg.update(yawVraw)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-            northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
-            eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
-            downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
+            northV = nAvg.update(northVraw)
+            eastV  = eAvg.update(eastVraw)
+            downV  = dAvg.update(downVraw)
+            yawV   = yAvg.update(yawVraw)
+            # yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            # northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
+            # eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
+            # downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
             kalmanTimer = time.time()
 
             # Calculate control and execute
