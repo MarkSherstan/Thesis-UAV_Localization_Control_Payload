@@ -7,7 +7,7 @@ class Controller:
         self.UAV = vehicle
 
         # Thrust compensation scaling factor
-        self.thrustScaleFactor = 1.0
+        self.thrustScaleFactor = 0
 
         # Maximum controller output constraints
         self.rollConstrain  = [-3, 3]               # Deg
@@ -48,10 +48,10 @@ class Controller:
         self.yawI = 0
 
         # Integral term constraints
-        self.northIcontstrain = [-1000, 1000]
-        self.eastIcontstrain = [-1000, 1000]
-        self.downIcontstrain = [-1000, 1000]
-        self.yawIcontstrain = [-1000, 1000]
+        self.northIcontstrain = [-500, 500]
+        self.eastIcontstrain  = [-500, 500]
+        self.downIcontstrain  = [-500, 500]
+        self.yawIcontstrain   = [-500, 500]
 
         # Timing
         self.timer = None
@@ -147,7 +147,7 @@ class Controller:
         scale = self.gainScale(thrustControl)
         
         # Run the remainder of the control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale)
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale, debug=True)
         pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH*scale, self.ki_NORTH*scale, self.kd_NORTH*scale)
         yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW*scale, self.ki_YAW*scale, self.kd_YAW*scale)
         
