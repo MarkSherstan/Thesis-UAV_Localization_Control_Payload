@@ -14,6 +14,27 @@ import time
 
 printFlag = True
 
+def gains(C):
+    # PID Gains: NORTH (pitch)
+    C.kp_NORTH = 0.001
+    C.ki_NORTH = 0.0001
+    C.kd_NORTH = 0.0001
+
+    # PID Gains: EAST (roll)
+    C.kp_EAST = C.kp_NORTH
+    C.ki_EAST = C.ki_NORTH
+    C.kd_EAST = C.kd_NORTH
+
+    # PID Gains: DOWN (thrust)
+    C.kp_DOWN = 0.001
+    C.ki_DOWN = 0.0
+    C.kd_DOWN = 0.0
+
+    # PID Gains: YAW (yaw rate)
+    C.kp_YAW = 0.7
+    C.ki_YAW = 0.1
+    C.kd_YAW = 0.5
+
 def startSim(vehicle, targetAltitude=1.5):
     # Wait till vehicle is ready
     while not vehicle.is_armable:
@@ -90,6 +111,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
+    gains(C)
     SP = SetPoints(100, 200, 125)
 
     # Create low pass filters
@@ -134,21 +156,22 @@ def main():
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
 
             # Smooth vision data with moving average low pass filter and/or kalman filter
-            northV = nAvg.update(northVraw)
-            eastV  = eAvg.update(eastVraw)
-            downV  = dAvg.update(downVraw)
+            # northV = nAvg.update(northVraw)
+            # eastV  = eAvg.update(eastVraw)
+            # downV  = dAvg.update(downVraw)
             # yawV   = yAvg.update(yawVraw)
             yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-            # northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
-            # eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
-            # downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
+            northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
+            eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
+            downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
             kalmanTimer = time.time()
 
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
-            C.sendAttitudeTarget(-rollControl, pitchControl, yawControl, thrustControl)
+            rollControl = -rollControl
+            C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
