@@ -42,7 +42,7 @@ def gains(C):
     C.thrustConstrain = [-0.5, 0.5]	     # Normalized
     C.yawRateConstrain = [-10, 10]       # Deg / s
     
-def startSim(vehicle, targetAltitude=1.0):
+def startSim(vehicle, C, targetAltitude=1.0):
     # Wait till vehicle is ready
     while not vehicle.is_armable:
         print(" Waiting for vehicle to initialize...")
@@ -64,6 +64,7 @@ def startSim(vehicle, targetAltitude=1.0):
 
     # Wait until actual altitude is achieved
     while abs(vehicle.location.local_frame.down) <= (targetAltitude*0.95):
+        C.sendAttitudeTarget(0, 0, 0, 0.58)
         print(round(vehicle.location.local_frame.down,3))
         time.sleep(0.2)
     
@@ -151,7 +152,7 @@ def main():
     data = []
 
     # Start sim
-    startSim(vehicle)
+    startSim(vehicle, C)
 
     # Select set point method
     for _ in range(10):
@@ -244,7 +245,7 @@ def main():
         # print('File saved to:' + fileName)
 
         ##########################################################################################
-        fig = plt.figure()
+        # fig = plt.figure()
 
         # ax3 = plt.gca()
 
@@ -263,20 +264,21 @@ def main():
         # ax3.legend(('North Actual','North Desired', 'East Actual', 'East Desired', 'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
         # ax3.grid()
         # plt.show()
+        # exit()
 
-        ########################
-        ax1 = plt.gca()
+        # ########################
+        # ax1 = plt.gca()
 
-        df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
-        plt.axhline(y=desiredYaw, color='tab:blue', linestyle='--')
+        # df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
+        # plt.axhline(y=desiredYaw, color='tab:blue', linestyle='--')
 
-        ax1.set_xlabel('Time [s]', fontweight='bold')
-        ax1.set_ylabel('Angle [Deg]', fontweight='bold')
-        ax1.grid()
-        ax1.legend(['Yaw Actual', 'Yaw Desired'])
-        plt.show()
+        # ax1.set_xlabel('Time [s]', fontweight='bold')
+        # ax1.set_ylabel('Angle [Deg]', fontweight='bold')
+        # ax1.grid()
+        # ax1.legend(['Yaw Actual', 'Yaw Desired'])
+        # plt.show()
 
-        exit()
+        # exit()
 
         ##########################################################################################
 
