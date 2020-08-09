@@ -17,17 +17,17 @@ printFlag = False
 
 def gains(C):
     # PID Gains: NORTH (pitch)
-    C.kp_NORTH = 0.007 #0.01      # 0.01
-    C.ki_NORTH = 0.001 #0.0008    # 0.0005
-    C.kd_NORTH = 0.035 #0.01      # 0.005
+    C.kp_NORTH = 0.025
+    C.ki_NORTH = 0.0055
+    C.kd_NORTH = 0.065
 
     # PID Gains: EAST (roll)
-    C.kp_EAST = 0.008
-    C.ki_EAST = 0.001
-    C.kd_EAST = 0.055
+    C.kp_EAST = 0.035
+    C.ki_EAST = 0.00525
+    C.kd_EAST = 0.075
 
     # PID Gains: DOWN (thrust)
-    C.kp_DOWN = 0.001
+    C.kp_DOWN = 0.0015
     C.ki_DOWN = 0.0
     C.kd_DOWN = 0.0
 
@@ -88,11 +88,14 @@ def getVehicleAttitude(UAV):
     yaw   = math.degrees(UAV.attitude.yaw)
     return roll, pitch, yaw
 
-def main():
-    # Connect to the Vehicle
-    connection_string = "127.0.0.1:14551"
-    print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], vehicle_class=MyVehicle)
+def setRate(vehicle):
+    # Set position data message rate
+    msg = vehicle.message_factory.request_data_stream_encode(
+        0, 0,
+        mavutil.mavlink.MAV_DATA_STREAM_POSITION,
+        50, # Rate (Hz)
+        1)   # Turn on
+    vehicle.send_mavlink(msg)
 
     # Set attitude request message rate
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -101,7 +104,6 @@ def main():
         150, # Rate (Hz)
         1)   # Turn on
     vehicle.send_mavlink(msg)
-    time.sleep(0.5)
 
     # Set raw IMU data message rate
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -110,7 +112,17 @@ def main():
         150, # Rate (Hz)
         1)   # Turn on
     vehicle.send_mavlink(msg)
-    time.sleep(0.5)
+
+    vehicle.flush()
+
+def main():
+    # Connect to the Vehicle
+    connection_string = "127.0.0.1:14551"
+    print('Connecting to vehicle on: %s\n' % connection_string)
+    vehicle = connect(connection_string, wait_ready=["attitude"], vehicle_class=MyVehicle)
+
+    # Set position data message rate
+    setRate(vehicle)
 
     # Connect to vision, create the queue, and start the core
     Q = Queue()
@@ -118,13 +130,13 @@ def main():
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
     gains(C)
-    SP = SetPoints(100, 50, 125)
+    SP = SetPoints(75, 50, 125)
 
     # Create low pass filters
-    nAvg = MovingAverage(5)
-    eAvg = MovingAverage(5)
-    dAvg = MovingAverage(5)
-    yAvg = MovingAverage(5)
+    nAvg = MovingAverage(2)
+    eAvg = MovingAverage(2)
+    dAvg = MovingAverage(2)
+    yAvg = MovingAverage(2)
 
     # Create a Kalman filters
     nKF = KalmanFilterPos()
@@ -153,10 +165,11 @@ def main():
     C.startController()
 
     try:
-        while(time.time() < startTime + 20):
+        while(time.time() < startTime + 15):
             # Get vision data
             falseVisionData(Q, vehicle)
             northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
+            setRate(vehicle)
 
             # Get IMU data and convert to deg/s
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
@@ -230,39 +243,23 @@ def main():
         ##########################################################################################
         fig = plt.figure()
 
-        ax3 = plt.gca()
+        # ax3 = plt.gca()
 
-        df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
-        df.plot(kind='line', x='Time', y='North-Desired', color='#700CBC', style='--',  ax=ax3)
+        # df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
+        # df.plot(kind='line', x='Time', y='North-Desired', color='#700CBC', style='--',  ax=ax3)
 
-        df.plot(kind='line', x='Time', y='East-Vision',  color='#FB8604', style='-',  ax=ax3)
-        df.plot(kind='line', x='Time', y='East-Desired',  color='#FB8604', style='--',  ax=ax3)
+        # df.plot(kind='line', x='Time', y='East-Vision',  color='#FB8604', style='-',  ax=ax3)
+        # df.plot(kind='line', x='Time', y='East-Desired',  color='#FB8604', style='--',  ax=ax3)
         
-        df.plot(kind='line', x='Time', y='Down-Vision',  color='#7FBD32', style='-',  ax=ax3)        
-        df.plot(kind='line', x='Time', y='Down-Desired',  color='#7FBD32',  style='--',  ax=ax3)
+        # df.plot(kind='line', x='Time', y='Down-Vision',  color='#7FBD32', style='-',  ax=ax3)        
+        # df.plot(kind='line', x='Time', y='Down-Desired',  color='#7FBD32',  style='--',  ax=ax3)
 
-        ax3.set_xlabel('Time [s]', fontweight='bold')
-        ax3.set_ylabel('Position [cm]', fontweight='bold')
+        # ax3.set_xlabel('Time [s]', fontweight='bold')
+        # ax3.set_ylabel('Position [cm]', fontweight='bold')
 
-        ax3.legend(('North Actual','North Desired', 'East Actual', 'East Desired', 'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
-        ax3.grid()
-        plt.show()
-        exit()
-
-
-
-        ######################## -> Dp sp,etjomg mpm stamdard?
-        # plt.subplot(2, 2, 2)
-        # ax1 = plt.gca()
-
-        # df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
-        # df.plot(kind='line', x='Time', y='Yaw-Control', color='tab:blue', style='--', ax=ax1)
-
-        # ax1.set_title('Yaw Control', fontsize=14, fontweight='bold')
-        # ax1.set_xlabel('Time [s]', fontweight='bold')
-        # ax1.set_ylabel('Angle [Deg or Deg/s]', fontweight='bold')
-
-
+        # ax3.legend(('North Actual','North Desired', 'East Actual', 'East Desired', 'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
+        # ax3.grid()
+        # plt.show()
 
         ##########################################################################################
 
