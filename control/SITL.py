@@ -32,9 +32,9 @@ def gains(C):
     C.kd_DOWN = 0.0
 
     # PID Gains: YAW (yaw rate)
-    C.kp_YAW = 0.7
-    C.ki_YAW = 0.1
-    C.kd_YAW = 0.5
+    C.kp_YAW = 0.4
+    C.ki_YAW = 0 
+    C.kd_YAW = 0 
 
     # Maximum controller output constraints
     C.rollConstrain  = [-3, 3]           # Deg
@@ -116,6 +116,8 @@ def setRate(vehicle):
     vehicle.flush()
 
 def main():
+    desiredYaw = 0
+
     # Connect to the Vehicle
     connection_string = "127.0.0.1:14551"
     print('Connecting to vehicle on: %s\n' % connection_string)
@@ -188,6 +190,7 @@ def main():
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
+            desired.append(desiredYaw)
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
             rollControl = -rollControl
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
@@ -260,6 +263,20 @@ def main():
         # ax3.legend(('North Actual','North Desired', 'East Actual', 'East Desired', 'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
         # ax3.grid()
         # plt.show()
+
+        ########################
+        ax1 = plt.gca()
+
+        df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
+        plt.axhline(y=desiredYaw, color='tab:blue', linestyle='--')
+
+        ax1.set_xlabel('Time [s]', fontweight='bold')
+        ax1.set_ylabel('Angle [Deg]', fontweight='bold')
+        ax1.grid()
+        ax1.legend(['Yaw Actual', 'Yaw Desired'])
+        plt.show()
+
+        exit()
 
         ##########################################################################################
 
