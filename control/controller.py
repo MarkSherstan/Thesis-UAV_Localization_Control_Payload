@@ -12,7 +12,7 @@ class Controller:
         # Maximum controller output constraints
         self.rollConstrain  = [-3, 3]               # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
-        self.thrustConstrain = [-0.5, 0.5]	    # Normalized
+        self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-10, 10]           # Deg / s
 
         # PID Gains: NORTH (pitch)
@@ -147,7 +147,7 @@ class Controller:
         scale = self.gainScale(thrustControl)
         
         # Run the remainder of the control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale, debug=True)
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale)
         pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH*scale, self.ki_NORTH*scale, self.kd_NORTH*scale)
         yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW*scale, self.ki_YAW*scale, self.kd_YAW*scale)
         
