@@ -17,14 +17,14 @@ printFlag = False
 
 def gains(C):
     # PID Gains: NORTH (pitch)
-    C.kp_NORTH = 0.001
-    C.ki_NORTH = 0.0005
-    C.kd_NORTH = 0.00
+    C.kp_NORTH = 0.007 #0.01      # 0.01
+    C.ki_NORTH = 0.001 #0.0008    # 0.0005
+    C.kd_NORTH = 0.035 #0.01      # 0.005
 
     # PID Gains: EAST (roll)
-    C.kp_EAST = C.kp_NORTH
-    C.ki_EAST = C.ki_NORTH
-    C.kd_EAST = C.kd_NORTH
+    C.kp_EAST = 0.008
+    C.ki_EAST = 0.001
+    C.kd_EAST = 0.055
 
     # PID Gains: DOWN (thrust)
     C.kp_DOWN = 0.001
@@ -37,7 +37,7 @@ def gains(C):
     C.kd_YAW = 0.5
 
     # Maximum controller output constraints
-    C.rollConstrain  = [-10, 10]         # Deg
+    C.rollConstrain  = [-3, 3]           # Deg
     C.pitchConstrain = C.rollConstrain   # Deg
     C.thrustConstrain = [-0.5, 0.5]	     # Normalized
     C.yawRateConstrain = [-10, 10]       # Deg / s
@@ -153,7 +153,7 @@ def main():
     C.startController()
 
     try:
-        while(True):
+        while(time.time() < startTime + 20):
             # Get vision data
             falseVisionData(Q, vehicle)
             northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
@@ -203,13 +203,13 @@ def main():
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
-        
+
+    finally:   
         # Land the UAV and close connection
         print("Closing vehicle connection and land\n")
         vehicle.mode = VehicleMode("LAND")
         vehicle.close()
 
-    finally:        
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
@@ -226,6 +226,45 @@ def main():
         # fileName = "flightData/SIM_" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
         # df.to_csv(fileName, index=None, header=True)
         # print('File saved to:' + fileName)
+
+        ##########################################################################################
+        fig = plt.figure()
+
+        ax3 = plt.gca()
+
+        df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
+        df.plot(kind='line', x='Time', y='North-Desired', color='#700CBC', style='--',  ax=ax3)
+
+        df.plot(kind='line', x='Time', y='East-Vision',  color='#FB8604', style='-',  ax=ax3)
+        df.plot(kind='line', x='Time', y='East-Desired',  color='#FB8604', style='--',  ax=ax3)
+        
+        df.plot(kind='line', x='Time', y='Down-Vision',  color='#7FBD32', style='-',  ax=ax3)        
+        df.plot(kind='line', x='Time', y='Down-Desired',  color='#7FBD32',  style='--',  ax=ax3)
+
+        ax3.set_xlabel('Time [s]', fontweight='bold')
+        ax3.set_ylabel('Position [cm]', fontweight='bold')
+
+        ax3.legend(('North Actual','North Desired', 'East Actual', 'East Desired', 'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
+        ax3.grid()
+        plt.show()
+        exit()
+
+
+
+        ######################## -> Dp sp,etjomg mpm stamdard?
+        # plt.subplot(2, 2, 2)
+        # ax1 = plt.gca()
+
+        # df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
+        # df.plot(kind='line', x='Time', y='Yaw-Control', color='tab:blue', style='--', ax=ax1)
+
+        # ax1.set_title('Yaw Control', fontsize=14, fontweight='bold')
+        # ax1.set_xlabel('Time [s]', fontweight='bold')
+        # ax1.set_ylabel('Angle [Deg or Deg/s]', fontweight='bold')
+
+
+
+        ##########################################################################################
 
         # Plot 
         ########################
