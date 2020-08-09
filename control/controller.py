@@ -134,7 +134,7 @@ class Controller:
         errorNorth = desired[0] - actual[0]
         errorEast  = desired[1] - actual[1]
         errorDown  = desired[2] - actual[2]
-        errorYaw   = -actual[3]
+        errorYaw   = desired[3] - actual[3]
 
         # Get time delta
         dt = time.time() - self.timer
