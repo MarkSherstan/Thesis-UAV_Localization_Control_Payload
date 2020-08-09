@@ -175,10 +175,12 @@ class Controller:
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
-        # Mixer -> Test this
-        # psi = -math.radians(actual[3])
-        # rollAngle = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
-        # pitchAngle = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
+        # Mixer -> Works perfect in SITL
+        psi = -math.radians(actual[3])
+        pitchAngleTemp = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
+        rollAngleTemp = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
+        pitchAngle = pitchAngleTemp
+        rollAngle = rollAngleTemp
 
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust
