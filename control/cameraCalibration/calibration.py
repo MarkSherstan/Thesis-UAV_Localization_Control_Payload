@@ -291,10 +291,9 @@ class CalibrateCamera:
                 break
 
         # Create matrix image
-        A = np.concatenate((data[0], data[1], data[2]), axis=1)
-        B = np.concatenate((data[3], data[4], data[5]), axis=1)
-        C = np.concatenate((data[6], data[7], data[8]), axis=1)
-        D = np.concatenate((A, B, C), axis=0)
+        A = np.concatenate((data[0], data[1], data[2], data[3]), axis=1)
+        B = np.concatenate((data[4], data[5], data[6], data[7]), axis=1)
+        D = np.concatenate((A, B), axis=0)
                 
         # Display and save matrix image
         cv2.imshow('Photo Matrix', D)
