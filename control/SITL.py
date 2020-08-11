@@ -117,6 +117,7 @@ def setRate(vehicle):
     vehicle.flush()
 
 def main():
+    # Set desired yaw to zero
     desiredYaw = 0
 
     # Connect to the Vehicle
@@ -238,15 +239,19 @@ def main():
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
                             'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
 
-        # Save data to CSV
+        # ##########################
+        # # Save data to CSV
+        # ##########################
         # now = datetime.datetime.now()
         # fileName = "flightData/SIM_" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
         # df.to_csv(fileName, index=None, header=True)
         # print('File saved to:' + fileName)
 
-        ##########################################################################################
+        # ##########################
+        # # NED Thesis Plot
+        # ##########################
+        
         # fig = plt.figure()
-
         # ax3 = plt.gca()
 
         # df.plot(kind='line', x='Time', y='North-Vision', color='#700CBC', style='-',  ax=ax3)
@@ -260,13 +265,17 @@ def main():
 
         # ax3.set_xlabel('Time [s]', fontweight='bold')
         # ax3.set_ylabel('Position [cm]', fontweight='bold')
-
         # ax3.legend(('North Actual','North Desired', 'East Actual', 'East Desired', 'Down Actual', 'Down Desired'), ncol=3, loc='lower center')
         # ax3.grid()
+        
         # plt.show()
         # exit()
 
-        # ########################
+        # ##########################
+        # # Yaw Thesis Plot
+        # ##########################
+        
+        # fig = plt.figure()
         # ax1 = plt.gca()
 
         # df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
@@ -274,23 +283,18 @@ def main():
 
         # ax1.set_xlabel('Time [s]', fontweight='bold')
         # ax1.set_ylabel('Angle [Deg]', fontweight='bold')
-        # ax1.grid()
         # ax1.legend(['Yaw Actual', 'Yaw Desired'])
-        # plt.show()
+        # ax1.grid()
 
+        # plt.show()
         # exit()
 
-        ##########################################################################################
-
-        # Plot 
-        ########################
-        # Master
-        ########################
+        # ##########################
+        # # Debug Jumbo Plot
+        # ##########################
         fig = plt.figure()
 
-        ########################
         # Roll and Pitch
-        ########################
         plt.subplot(2, 2, 1)
         ax0 = plt.gca()
 
@@ -304,9 +308,7 @@ def main():
         ax0.set_xlabel('Time [s]', fontweight='bold')
         ax0.set_ylabel('Angle [deg]', fontweight='bold')
 
-        ########################
         # Yaw
-        ########################
         plt.subplot(2, 2, 2)
         ax1 = plt.gca()
 
@@ -317,9 +319,7 @@ def main():
         ax1.set_xlabel('Time [s]', fontweight='bold')
         ax1.set_ylabel('Angle [Deg or Deg/s]', fontweight='bold')
 
-        ########################
         # North East
-        ########################
         plt.subplot(2, 2, 3)
         ax3 = plt.gca()
 
@@ -337,9 +337,7 @@ def main():
 
         ax3.legend(['N', 'E', 'D'])
 
-        ########################
         # Thrust
-        ########################
         plt.subplot(2, 2, 4)
         ax4 = plt.gca()
 
@@ -350,9 +348,7 @@ def main():
         ax4.set_ylabel('Normalized Thrust Command', fontweight='bold')
         ax4.get_legend().remove()
 
-        ########################
         # Show the plots
-        ########################
         plt.show()
 
 if __name__ == "__main__":
