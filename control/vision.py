@@ -1,3 +1,4 @@
+from multiprocessing import Queue
 import cv2.aruco as aruco
 from T265 import T265
 import numpy as np
@@ -184,3 +185,21 @@ class Vision:
         # Print the results
         print('Pose rate: ', round((self.poseCount / 2) / (self.endTime - self.startTime),1))
         print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
+
+def main():
+    # Initialize
+    v = Vision()
+    Q = Queue()
+    
+    # Start the processing
+    v.processFrame(Q)
+    
+    # Print values
+    try: 
+        while(True):
+            print(Q.get())
+    except KeyboardInterrupt:
+        pass
+        
+if __name__ == "__main__":
+    main()
