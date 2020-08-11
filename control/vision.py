@@ -1,5 +1,5 @@
-from threading import Thread
 import cv2.aruco as aruco
+from T265 import T265
 import numpy as np
 import math
 import time
@@ -10,36 +10,29 @@ class Vision:
         # Board properties
         self.lengthMarker = lengthMarker
         self.spacing = spacing
-
-        # Camera config
-        self.desiredWidth  = 1280
-        self.desiredHeight = 720
-        self.desiredFPS    = 30
-        self.cameraIdx     = 0      
         
-        # Capture threading parameters
-        self.isReceivingFrame = False
-        self.isRunFrame = True
-        self.frameThread = None
-        self.frame = None
-
         # Performance parameters
-        self.frameCount = 0
         self.loopCount  = 0
         self.poseCount  = 0
         self.startTime  = None
         self.endTime    = None
-        self.frameStartTime = None
 
-        # Camera calibration matrix 
-        self.mtx = np.array([[915.03603689,  0.0,            665.08947886],
-                             [0.0,           913.98237919,   353.51979348],
-                             [0.0,           0.0,            1.0         ]])
-        self.dist = np.array([[0.08750648, -0.17636763, -0.00021177, 0.00591364, 0.04690385]])
+        # Camera calibration matrices 
+        self.mtx1 = np.array([[284.65527842,  0.0,            420.10118496],
+                        [0.0,           285.43891088,   403.82029423],
+                        [0.0,           0.0,            1.0         ]])
+        self.dist1 = np.array([[-0.01159942, 0.00393409, 0.00059457, -0.0002535, -0.0006091]])
+
+        self.mtx2 = np.array([[287.8954394,  0.0,            418.40412543],
+                        [0.0,           287.99235758,   410.12408383],
+                        [0.0,           0.0,            1.0         ]])
+        self.dist2 = np.array([[-0.00818909, 0.00187817, 0.00132013, -0.00018278, -0.00044735]])
 
         # Initial conditions for pose calculation 
-        self.rvec = None
-        self.tvec = None
+        self.rvec1 = None
+        self.tvec1 = None
+        self.rvec2 = None
+        self.tvec2 = None
         
         # Camera to body frame values in cm
         self.offsetNorth = 0
@@ -52,31 +45,6 @@ class Vision:
         #   East  (negative when UAV is to the right of the target)
         #   Down  (negative when UAV is below the target -> always positive)
         #   Yaw   (Positive clockwise viewing UAV from top)
-        self.North = 0
-        self.East  = 0
-        self.Down  = 0 
-        self.Yaw   = 0 
-
-    def startFrameThread(self, cam):
-        # Create a thread
-        if self.frameThread == None:
-            self.frameThread = Thread(target=self.acquireFrame, args=(cam,))
-            self.frameThread.start()
-            print('Capture thread start')
-
-            # Block till we start receiving values
-            while self.isReceivingFrame != True:
-                time.sleep(0.1)
-
-            # Start the timer 
-            self.frameStartTime = time.time()
-
-    def acquireFrame(self, cam):
-        # Acquire until closed
-        while(self.isRunFrame):
-            _, self.frame = cam.read()
-            self.frameCount += 1
-            self.isReceivingFrame = True
 
     def processFrame(self, q):
         # Aruco dictionary and parameter to be used for pose processing
@@ -88,7 +56,7 @@ class Vision:
         self.parm.cornerRefinementMaxIterations = 100
         self.parm.cornerRefinementMinAccuracy = 0.00001
 
-        # Create the board
+        # Create the ArUco board
         self.board = aruco.GridBoard_create(
             markersX=4,                      # Columns
             markersY=3,                      # Rows
@@ -96,22 +64,8 @@ class Vision:
             markerSeparation=self.spacing,   # cm
             dictionary=self.arucoDict)
         
-        # Start the connection to the camera
-        try:
-            cam = cv2.VideoCapture(0, cv2.CAP_V4L)
-            cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
-            cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
-            cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-            cam.set(cv2.CAP_PROP_FOCUS, 0)
-            cam.set(cv2.CAP_PROP_ZOOM, 0)
-            print('Camera start')
-        except:
-            print('Camera setup failed')
-
-        # Start the capture thread
-        self.startFrameThread(cam)
+        # Start the connection to the T265
+        cam = T265()
 
         # Start the performance metrics
         self.startTime = time.time()
@@ -119,11 +73,26 @@ class Vision:
         # Process data until closed
         try: 
             while(True):
-                # Process a frame
-                self.getPose()
-
+                # Get data from T265: Save local approximating a locked thread before pose calcs
+                gray1 = cam.Img1
+                gray2 = cam.Img2
+                psi = cam.psi
+                vx  = cam.vx
+                vy  = cam.vy
+                vz  = cam.vz
+                
+                # Process frames
+                N1, E1, D1, Y1, self.rvec1, self.tvec1 = self.getPose(gray1, self.mtx1, self.dist1, self.rvec1, self.tvec1)
+                N2, E2, D2, Y2, self.rvec2, self.tvec2 = self.getPose(gray2, self.mtx2, self.dist2, self.rvec2, self.tvec2)
+                
+                # Average the results between cameras
+                North = (N1 + N2) / 2.0
+                East  = (E1 + E2) / 2.0
+                Down  = (D1 + D2) / 2.0
+                Yaw   = (Y1 + Y2) / 2.0
+                
                 # Add data to the queue
-                q.put([self.North, self.East, self.Down, self.Yaw])
+                q.put([North, East, Down, Yaw, psi, vx, vy, vz])
 
                 # Increment the counter 
                 self.loopCount += 1
@@ -136,42 +105,31 @@ class Vision:
         # Close the capture thread and camera, post perfromance metrics
         self.close(cam)
  
-    def getPose(self):
-        # Convert frame to gray and rotate to normal
-        gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
-
+    def getPose(self, gray, mtx, dist, rvec, tvec):
         # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=self.mtx, distCoeff=self.dist)
+        corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=mtx, distCoeff=dist)
 
-        # Only continue if a marker was found
+        # Only estimate the pose if a marker was found
         if np.all(ids != None):
-            # Estimate the pose
-            _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, self.board, self.mtx, self.dist, self.rvec, self.tvec)
+            _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, self.board, mtx, dist, rvec, tvec)
 
-            # Convert from vector to rotation matrix and then transform to body frame
-            R, _ = cv2.Rodrigues(rvec)
-            R, t = self.transform2Body(R, tvec)
+        # Convert from vector to rotation matrix and then transform to body frame
+        R, _ = cv2.Rodrigues(rvec)
+        R, t = self.transform2Body(R, tvec)
 
-            # Get yaw
-            _, _, yaw = self.rotationMatrix2EulerAngles(R)
+        # Get yaw
+        _, _, yaw = self.rotationMatrix2EulerAngles(R)
 
-            # Save values
-            self.North =  t[1] 
-            self.East  = -t[0]
-            self.Down  =  t[2]
-            self.Yaw   = -yaw
+        # Save values
+        North =  t[1] 
+        East  = -t[0]
+        Down  =  t[2]
+        Yaw   = -yaw
 
-            # Increment counter
-            self.poseCount += 1
-            
-            # Save translation and rotation for next iteration 
-            self.rvec = rvec
-            self.tvec = tvec
-        # else:
-        #     self.North = np.nan 
-        #     self.East  = np.nan
-        #     self.Down  = np.nan
-        #     self.Yaw   = np.nan
+        # Increment counter
+        self.poseCount += 1
+        
+        return North, East, Down, Yaw, rvec, tvec
 
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
@@ -222,16 +180,9 @@ class Vision:
         return R, t
 
     def close(self, cam):
-        # Close the capture thread
-        self.isRunFrame = False
-        self.frameThread.join()
-        print('Camera thread closed')
-
         # Camera closed
-        cam.release()
-        print('Camera closed\n')
+        cam.close()
 
         # Print the results
-        print('Frame rate: ', round(self.frameCount / (self.endTime - self.frameStartTime),1))
-        print('Pose rate: ', round(self.poseCount / (self.endTime - self.startTime),1))
+        print('Pose rate: ', round((self.poseCount / 2) / (self.endTime - self.startTime),1))
         print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
