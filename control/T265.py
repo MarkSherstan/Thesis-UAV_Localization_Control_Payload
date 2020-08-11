@@ -11,7 +11,7 @@ class T265:
         self.rawImg2 = None
         self.Img1    = None
         self.Img2    = None
-        self.psi     = None
+        self.psiRate = None
         self.vx      = None
         self.vy      = None
         self.vz      = None 
@@ -89,7 +89,7 @@ class T265:
             # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
             self.rawImg2 = np.asanyarray(f2.get_data())
-            self.psi = pose.get_pose_data().angular_velocity.y
+            self.psiRate = pose.get_pose_data().angular_velocity.y
             self.vx = pose.get_pose_data().velocity.x
             self.vy = pose.get_pose_data().velocity.y
             self.vz = pose.get_pose_data().velocity.z 
@@ -151,7 +151,7 @@ def main():
         cv2.imshow('Frame', showFrame)
         
         # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
-        print(cam.psi)
+        print(cam.psiRate)
         print(cam.vx, cam.vy, cam.vz)
 
         # Exit
