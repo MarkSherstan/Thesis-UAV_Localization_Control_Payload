@@ -117,9 +117,6 @@ def setRate(vehicle):
     vehicle.flush()
 
 def main():
-    # Set desired yaw to zero
-    desiredYaw = 0
-
     # Connect to the Vehicle
     connection_string = "127.0.0.1:14551"
     print('Connecting to vehicle on: %s\n' % connection_string)
@@ -128,13 +125,13 @@ def main():
     # Set position data message rate
     setRate(vehicle)
 
-    # Connect to vision, create the queue, and start the core
+    # Connect to vision, create the queue, and "start the core"
     Q = Queue()
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
     gains(C)
-    SP = SetPoints(75, 50, 125)
+    SP = SetPoints(75, 50, 125, yawDesired=0)
 
     # Create low pass filters
     nAvg = MovingAverage(2)
@@ -192,7 +189,6 @@ def main():
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
-            desired.append(desiredYaw)
             rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
             rollControl = -rollControl
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
@@ -279,7 +275,7 @@ def main():
         # ax1 = plt.gca()
 
         # df.plot(kind='line', x='Time', y='Yaw-Vision', color='tab:blue', style='-', ax=ax1)
-        # plt.axhline(y=desiredYaw, color='tab:blue', linestyle='--')
+        # plt.axhline(y=desired[3], color='tab:blue', linestyle='--')
 
         # ax1.set_xlabel('Time [s]', fontweight='bold')
         # ax1.set_ylabel('Angle [Deg]', fontweight='bold')
