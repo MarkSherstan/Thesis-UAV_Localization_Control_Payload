@@ -98,6 +98,8 @@ ax3.set_title('NED Position', fontsize=14, fontweight='bold')
 ax3.set_xlabel('Time [s]', fontweight='bold')
 ax3.set_ylabel('Position [cm]', fontweight='bold')
 
+ax3.legend(['N', 'E', 'D'])
+
 for ii in range(0,len(idx),2):
     plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
  

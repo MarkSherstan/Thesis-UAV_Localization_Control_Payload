@@ -6,16 +6,19 @@ class Controller:
         # Vehicle class
         self.UAV = vehicle
 
+        # Thrust compensation scaling factor
+        self.thrustScaleFactor = 0
+
         # Maximum controller output constraints
-        self.rollConstrain  = [-2, 2]	            # Deg
+        self.rollConstrain  = [-3, 3]               # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
-        self.thrustConstrain = [-0.5, 0.5]	    # Normalized
-        self.yawRateConstrain = [-5, 5]             # Deg / s
+        self.thrustConstrain = [-0.5, 0.5]	        # Normalized
+        self.yawRateConstrain = [-10, 10]           # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.04
-        self.ki_NORTH = 0.001
-        self.kd_NORTH = 0.004
+        self.kp_NORTH = 0.05
+        self.ki_NORTH = 0.00
+        self.kd_NORTH = 0.00
 
         # PID Gains: EAST (roll)
         self.kp_EAST = self.kp_NORTH * 0.9
@@ -28,9 +31,9 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.07
-        self.ki_YAW = 0.0
-        self.kd_YAW = 0.0
+        self.kp_YAW = 0.7
+        self.ki_YAW = 0.1
+        self.kd_YAW = 0.5
 
         # Previous errors
         self.northPrevError = 0
@@ -44,24 +47,30 @@ class Controller:
         self.downI = 0
         self.yawI = 0
 
-        # Integral term constraints 
-        self.northIcontstrain = [-1000, 1000]
-        self.eastIcontstrain = [-1000, 1000]
-        self.downIcontstrain = [-1000, 1000]
-        self.yawIcontstrain = [-1000, 1000]
+        # Integral term constraints
+        self.northIcontstrain = [-500, 500]
+        self.eastIcontstrain  = [-500, 500]
+        self.downIcontstrain  = [-500, 500]
+        self.yawIcontstrain   = [-500, 500]
 
         # Timing
         self.timer = None
-    
+
     def startController(self):
         self.timer = time.time()
-    
+
     def resetIntegral(self):
         self.northI = 0
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
-        
+
+    def gainScale(self, thr):
+        if (thr >= 0):
+            return 1.0
+        else:
+            return 1.0 + abs(thr) * self.thrustScaleFactor
+
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
         roll = math.radians(roll)
@@ -125,17 +134,22 @@ class Controller:
         errorNorth = desired[0] - actual[0]
         errorEast  = desired[1] - actual[1]
         errorDown  = desired[2] - actual[2]
-        errorYaw   = -actual[3]
+        errorYaw   = desired[3] - actual[3]
 
         # Get time delta
         dt = time.time() - self.timer
         self.timer = time.time()
 
-        # Run some control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
-        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
+        # Calculate thrust control
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
+        
+        # Perform gain scaling
+        scale = self.gainScale(thrustControl)
+        
+        # Run the remainder of the control
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale)
+        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH*scale, self.ki_NORTH*scale, self.kd_NORTH*scale)
+        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW*scale, self.ki_YAW*scale, self.kd_YAW*scale)
         
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
@@ -157,14 +171,16 @@ class Controller:
 
         # Inverse direction of controller if required
         rollAngle  = -rollAngle
-        pitchAngle = pitchAngle
+        pitchAngle = -pitchAngle
         thrust     = thrust + 0.5
         yawRate    = yawRate
 
-        # Mixer
-        # psi = -math.radians(actual[3])
-        # rollAngle = rollAngle*math.cos(psi) - pitchAngle*math.sin(psi)
-        # pitchAngle = rollAngle*math.sin(psi) + pitchAngle*math.cos(psi)
+        # Mixer -> Works perfect in SITL
+        psi = -math.radians(actual[3])
+        pitchAngleTemp = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
+        rollAngleTemp = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
+        pitchAngle = pitchAngleTemp
+        rollAngle = rollAngleTemp
 
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust

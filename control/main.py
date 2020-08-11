@@ -1,4 +1,4 @@
-from filter import MovingAverage, KalmanFilter
+from filter import MovingAverage, KalmanFilterRot, KalmanFilterPos
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
@@ -59,15 +59,19 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(250, -25, 30) #250, -34, -100
+    SP = SetPoints(10, 20, 125)
 
     # Create low pass filters
     nAvg = MovingAverage(5)
-    eAvg = MovingAverage(3)
-    dAvg = MovingAverage(3)
+    eAvg = MovingAverage(5)
+    dAvg = MovingAverage(5)
+    yAvg = MovingAverage(5)
 
-    # Create a Kalman filter
-    yKF = KalmanFilter()
+    # Create a Kalman filters
+    nKF = KalmanFilterPos()
+    eKF = KalmanFilterPos()
+    dKF = KalmanFilterPos()
+    yKF = KalmanFilterRot()
     kalmanTimer = time.time()
 
     # Logging variables
@@ -84,11 +88,15 @@ def main():
 
         # Start Kalman filter to limit start up error
         zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
-        yawV  = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+        _ = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+        _ = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
+        _ = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
+        _ = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
         kalmanTimer = time.time()
 
     # Select set point method
     SP.selectMethod(Q, trajectory=True)
+    modeState = 0
 
     # Loop timer(s)
     startTime = time.time()
@@ -103,11 +111,15 @@ def main():
             # Get IMU data and convert to deg/s
             zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
 
-            # Smooth vision data with moving average low pass filter and a kalman filter
-            northV = nAvg.update(northVraw)
-            eastV  = eAvg.update(eastVraw)
-            downV  = dAvg.update(downVraw)
+            # Smooth vision data with moving average low pass filter and/or kalman filter
+            # northV = nAvg.update(northVraw)
+            # eastV  = eAvg.update(eastVraw)
+            # downV  = dAvg.update(downVraw)
+            # yawV   = yAvg.update(yawVraw)
             yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
+            northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
+            eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
+            downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
             kalmanTimer = time.time()
 
             # Calculate control and execute
@@ -137,13 +149,19 @@ def main():
                         rollControl, pitchControl, yawControl, thrustControl,
                         northVraw, eastVraw, downVraw, yawVraw, zGyro])
 
-            # Reset integral whenever there is a mode change 
+            # Reset integral and generate new trajectory whenever there is a mode switch 
             if (vehicle.mode.name == "STABILIZE"):
-                C.resetIntegral()
+                modeState = 1
             
+            if (vehicle.mode.name == "GUIDED_NOGPS") and (modeState == 1):
+                modeState = 0
+                C.resetIntegral()
+                SP.selectMethod(Q, trajectory=True)
+                
     except KeyboardInterrupt:
         # Print final remarks
         print('Closing')
+        
     finally:        
         # Post main loop rate
         print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
