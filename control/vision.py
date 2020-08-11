@@ -29,18 +29,15 @@ class Vision:
         self.dist2 = np.array([[-0.00818909, 0.00187817, 0.00132013, -0.00018278, -0.00044735]])
 
         # Initial conditions for pose calculation 
-        self.rvec1 = None
-        self.tvec1 = None
-        self.rvec2 = None
-        self.tvec2 = None
+        self.rvec1 = None;  self.rvec2 = None
+        self.tvec1 = None;  self.tvec2 = None
         
         # Camera to body frame values in cm
-        self.offsetNorth = 0
-        self.offsetEast  = 0
-        self.offsetDown  = 0
-
+        self.offset1 = [0, 0, 0]
+        self.offset2 = [0, 0, 0]
+        
         # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from above)
-        # Where the marker is from the UAV
+        # Where the marker is from the UAV. Psi and velocity follow camera pose frame. 
         #   North (negative when UAV is behind the target)
         #   East  (negative when UAV is to the right of the target)
         #   Down  (negative when UAV is below the target -> always positive)
@@ -73,17 +70,17 @@ class Vision:
         # Process data until closed
         try: 
             while(True):
-                # Get data from T265: Save local approximating a locked thread before pose calcs
+                # Get data from T265: Save local approximating a locked thread before heavy pose calcs
                 gray1 = cam.Img1
                 gray2 = cam.Img2
-                psi = cam.psi
+                psiRate = cam.psiRate
                 vx  = cam.vx
                 vy  = cam.vy
                 vz  = cam.vz
                 
                 # Process frames
-                N1, E1, D1, Y1, self.rvec1, self.tvec1 = self.getPose(gray1, self.mtx1, self.dist1, self.rvec1, self.tvec1)
-                N2, E2, D2, Y2, self.rvec2, self.tvec2 = self.getPose(gray2, self.mtx2, self.dist2, self.rvec2, self.tvec2)
+                N1, E1, D1, Y1, self.rvec1, self.tvec1 = self.getPose(gray1, self.mtx1, self.dist1, self.rvec1, self.tvec1, self.offset1)
+                N2, E2, D2, Y2, self.rvec2, self.tvec2 = self.getPose(gray2, self.mtx2, self.dist2, self.rvec2, self.tvec2, self.offset2)
                 
                 # Average the results between cameras
                 North = (N1 + N2) / 2.0
@@ -92,10 +89,11 @@ class Vision:
                 Yaw   = (Y1 + Y2) / 2.0
                 
                 # Add data to the queue
-                q.put([North, East, Down, Yaw, psi, vx, vy, vz])
+                q.put([North, East, Down, Yaw, psiRate, vx, vy, vz])
 
                 # Increment the counter 
                 self.loopCount += 1
+
         except KeyboardInterrupt:
             pass
             
@@ -105,17 +103,20 @@ class Vision:
         # Close the capture thread and camera, post perfromance metrics
         self.close(cam)
  
-    def getPose(self, gray, mtx, dist, rvec, tvec):
+    def getPose(self, gray, mtx, dist, rvec, tvec, offset):
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=mtx, distCoeff=dist)
 
         # Only estimate the pose if a marker was found
         if np.all(ids != None):
             _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, self.board, mtx, dist, rvec, tvec)
+            
+            # Increment counter
+            self.poseCount += 1
 
         # Convert from vector to rotation matrix and then transform to body frame
         R, _ = cv2.Rodrigues(rvec)
-        R, t = self.transform2Body(R, tvec)
+        R, t = self.transform2Body(R, tvec, offset)
 
         # Get yaw
         _, _, yaw = self.rotationMatrix2EulerAngles(R)
@@ -125,9 +126,6 @@ class Vision:
         East  = -t[0]
         Down  =  t[2]
         Yaw   = -yaw
-
-        # Increment counter
-        self.poseCount += 1
         
         return North, East, Down, Yaw, rvec, tvec
 
@@ -156,15 +154,15 @@ class Vision:
             print('Not a rotation matrix')
             return 0, 0, 0
 
-    def transform2Body(self, R, t):
+    def transform2Body(self, R, t, offset):
         # Original (ArUco wrt camera)
         Tca = np.append(R, t, axis=1)
         Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
         # Transformation (camera wrt drone body frame)
-        Tbc = np.array([[1,  0,  0,  self.offsetEast],
-                        [0,  1,  0,  self.offsetDown],
-                        [0,  0,  1,  self.offsetNorth],
+        Tbc = np.array([[1,  0,  0,  offset[0]],
+                        [0,  1,  0,  offset[1]],
+                        [0,  0,  1,  offset[2]],
                         [0,  0,  0,  1]])
 
         # Resultant pose (ArUco wrt drone body frame)
