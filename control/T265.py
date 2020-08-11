@@ -12,8 +12,10 @@ class T265:
         self.Img1    = None
         self.Img2    = None
         self.psi     = None
-        self.temp    = None
-        
+        self.vx      = None
+        self.vy      = None
+        self.vz      = None 
+
         # Capture threading parameters
         self.isReceivingFrame = False
         self.isRunFrame = True
@@ -88,6 +90,9 @@ class T265:
             self.rawImg1 = np.asanyarray(f1.get_data())
             self.rawImg2 = np.asanyarray(f2.get_data())
             self.psi = pose.get_pose_data().angular_velocity.y
+            self.vx = pose.get_pose_data().velocity.x
+            self.vy = pose.get_pose_data().velocity.y
+            self.vz = pose.get_pose_data().velocity.z 
         
             # Undistort the images
             self.Img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
@@ -147,6 +152,7 @@ def main():
         
         # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
         print(cam.psi)
+        print(cam.vx, cam.vy, cam.vz)
 
         # Exit
         key = cv2.waitKey(1)
