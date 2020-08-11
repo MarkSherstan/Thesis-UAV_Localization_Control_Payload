@@ -1,11 +1,12 @@
 import numpy as np
 
 class SetPoints:
-    def __init__(self, northDesired, eastDesired, downDesired):
-        # Desired positions
+    def __init__(self, northDesired, eastDesired, downDesired, yawDesired=0):
+        # Desired Pose
         self.northDesired = northDesired 
         self.eastDesired  = eastDesired
         self.downDesired  = downDesired
+        self.yawDesired   = yawDesired
     
     def reset(self):
         # Trajectory list
@@ -51,7 +52,7 @@ class SetPoints:
             
         # Increment counter and return values
         self.index += 1
-        return [northSP, eastSP, downSP]
+        return [northSP, eastSP, downSP, self.yawDesired]
     
     def initialPosition(self, Q, pts=10):
         # Initialize counter
