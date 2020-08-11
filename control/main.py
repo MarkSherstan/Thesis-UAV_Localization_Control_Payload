@@ -5,7 +5,6 @@ from controller import Controller
 from setpoints import SetPoints
 from pymavlink import mavutil
 from vision import Vision
-from IMU import MyVehicle
 import pandas as pd
 import numpy as np
 import statistics
@@ -31,21 +30,12 @@ def main():
     # Connect to the Vehicle
     connection_string = "/dev/ttyS1"
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000, vehicle_class=MyVehicle)
+    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000)
 
     # Set attitude request message rate
     msg = vehicle.message_factory.request_data_stream_encode(
         0, 0,
         mavutil.mavlink.MAV_DATA_STREAM_EXTRA1,
-        150, # Rate (Hz)
-        1)   # Turn on
-    vehicle.send_mavlink(msg)
-    time.sleep(0.5)
-
-    # Set raw IMU data message rate
-    msg = vehicle.message_factory.request_data_stream_encode(
-        0, 0,
-        mavutil.mavlink.MAV_DATA_STREAM_RAW_SENSORS,
         150, # Rate (Hz)
         1)   # Turn on
     vehicle.send_mavlink(msg)
@@ -107,9 +97,6 @@ def main():
         while(True):
             # Get vision data
             northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
-
-            # Get IMU data and convert to deg/s
-            zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
 
             # Smooth vision data with moving average low pass filter and/or kalman filter
             # northV = nAvg.update(northVraw)
