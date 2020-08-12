@@ -1,4 +1,4 @@
-from filter import MovingAverage, KalmanFilterRot, KalmanFilterPos
+from filter import MovingAverage, KalmanFilter1x, KalmanFilter2x
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
@@ -55,16 +55,16 @@ def main():
     SP = SetPoints(10, 20, 125)
 
     # Create low pass filters
-    nAvg = MovingAverage(5)
-    eAvg = MovingAverage(5)
-    dAvg = MovingAverage(5)
-    yAvg = MovingAverage(5)
+    nAvg = MovingAverage(3)
+    eAvg = MovingAverage(3)
+    dAvg = MovingAverage(3)
+    yAvg = MovingAverage(3)
 
-    # Create a Kalman filters
-    nKF = KalmanFilterPos()
-    eKF = KalmanFilterPos()
-    dKF = KalmanFilterPos()
-    yKF = KalmanFilterRot()
+    # Place holder
+    yKF = KalmanFilter2x(1.0, 2.0, 10.0)
+    nKF = KalmanFilter1x(1.0, 10.0)
+    eKF = KalmanFilter1x(1.0, 10.0)
+    dKF = KalmanFilter1x(1.0, 10.0)
     kalmanTimer = time.time()
 
     # Logging variables
@@ -128,7 +128,8 @@ def main():
             if printFlag is True:
                 print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
                 # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-            
+                # print('N: {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], pos[1], vel[1], pos[2], vel[2], psi[0], psi[1]))
+
             loopTimer = time.time()
 
             # Log data
