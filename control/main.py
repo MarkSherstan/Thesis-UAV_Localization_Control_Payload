@@ -17,7 +17,10 @@ printFlag = False
 def getVision(Q):
     # Vision Data
     temp = Q.get()
-    return temp[0], temp[1], temp[2], temp[3]
+    posTemp = [temp[0], temp[1], temp[2]]
+    velTemp = [temp[3], temp[4], temp[5]]
+    psiTemp = [temp[6], temp[7]]
+    return posTemp, velTemp, psiTemp
 
 def getVehicleAttitude(UAV):
     # Actual vehicle attitude
@@ -74,14 +77,13 @@ def main():
         print(vehicle.mode.name)
 
         # Keep vision queue empty
-        northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
-
+        pos, vel, psi = getVision(Q)
+        
         # Start Kalman filter to limit start up error
-        zGyro = vehicle.raw_imu.zgyro * (180 / (1000 * np.pi))
-        _ = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-        _ = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
-        _ = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
-        _ = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
+        _ = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
+        _ = nKF.update(time.time() - kalmanTimer, np.array([pos[0]]))
+        _ = eKF.update(time.time() - kalmanTimer, np.array([pos[1]]))
+        _ = dKF.update(time.time() - kalmanTimer, np.array([pos[2]]))
         kalmanTimer = time.time()
 
     # Select set point method
@@ -96,17 +98,18 @@ def main():
     try:
         while(True):
             # Get vision data
-            northVraw, eastVraw, downVraw, yawVraw = getVision(Q)
+            pos, vel, psi = getVision(Q)
 
             # Smooth vision data with moving average low pass filter and/or kalman filter
             # northV = nAvg.update(northVraw)
             # eastV  = eAvg.update(eastVraw)
             # downV  = dAvg.update(downVraw)
             # yawV   = yAvg.update(yawVraw)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([yawVraw, zGyro]).T)
-            northV = nKF.update(time.time() - kalmanTimer, np.array([northVraw]))
-            eastV = eKF.update(time.time() - kalmanTimer, np.array([eastVraw]))
-            downV = dKF.update(time.time() - kalmanTimer, np.array([downVraw]))
+            
+            yawV = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
+            northV = nKF.update(time.time() - kalmanTimer, np.array([pos[0]]))
+            eastV = eKF.update(time.time() - kalmanTimer, np.array([pos[1]]))
+            downV = dKF.update(time.time() - kalmanTimer, np.array([pos[2]]))
             kalmanTimer = time.time()
 
             # Calculate control and execute
@@ -134,8 +137,10 @@ def main():
                         desired[0], desired[1], desired[2], 
                         roll, pitch, yaw, 
                         rollControl, pitchControl, yawControl, thrustControl,
-                        northVraw, eastVraw, downVraw, yawVraw, zGyro])
-
+                        pos[0], pos[1], pos[2], 
+                        vel[0], vel[1], vel[2],
+                        psi[0], psi[1], Q.qsize()])
+            
             # Reset integral and generate new trajectory whenever there is a mode switch 
             if (vehicle.mode.name == "STABILIZE"):
                 modeState = 1
@@ -159,7 +164,9 @@ def main():
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
+                            'northVraw', 'eastVraw', 'downVraw', 
+                            'N-Velocity', 'E-Velocity', 'D-Velocity'
+                            'yawVraw', 'yawRate', 'Q-Size'])
 
         # Save data to CSV
         now = datetime.datetime.now()
