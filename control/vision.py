@@ -38,17 +38,16 @@ class Vision:
         self.offset2 = [0, 0, 0]
         
         # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from above)
-        # Where the marker is from the UAV. Psi and velocity follow camera pose frame. 
+        # Where the UAV is relative to marker following ArUco coords
         #   North (negative when UAV is behind the target)
-        #   East  (negative when UAV is to the right of the target)
+        #   East  (negative when UAV is to the left of the target)
         #   Down  (negative when UAV is below the target -> always positive)
-        #   Yaw   (Positive clockwise viewing UAV from top)
+        #   Yaw   (Positive counter clockwise viewing UAV from top)
 
     def processFrame(self, q):
         # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
-        self.parm.minMarkerPerimeterRate = 0.03
         self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
         self.parm.cornerRefinementWinSize = 5
         self.parm.cornerRefinementMaxIterations = 100
@@ -75,10 +74,10 @@ class Vision:
                 gray1 = cam.Img1
                 gray2 = cam.Img2
                 psiRate = cam.psiRate   # Deg/s
-                vx  = cam.vx * 100.0    # Cm/s
-                vy  = cam.vy * 100.0    # Cm/s
-                vz  = cam.vz * 100.0    # Cm/s
-                
+                vN  = cam.vz * -100.0    # Cm/s
+                vE  = cam.vx *  100.0    # Cm/s
+                vD  = cam.vy *  100.0    # Cm/s
+
                 # Process frames
                 N1, E1, D1, Y1, self.rvec1, self.tvec1 = self.getPose(gray1, self.mtx1, self.dist1, self.rvec1, self.tvec1, self.offset1)
                 N2, E2, D2, Y2, self.rvec2, self.tvec2 = self.getPose(gray2, self.mtx2, self.dist2, self.rvec2, self.tvec2, self.offset2)
@@ -90,7 +89,7 @@ class Vision:
                 Yaw   = (Y1 + Y2) / 2.0
                 
                 # Add data to the queue
-                q.put([North, East, Down, Yaw, psiRate, vx, vy, vz])
+                q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
 
                 # Increment the counter 
                 self.loopCount += 1
@@ -127,10 +126,10 @@ class Vision:
         _, _, yaw = self.rotationMatrix2EulerAngles(R)
 
         # Save values
-        North =  t[1] 
-        East  = -t[0]
-        Down  =  t[2]
-        Yaw   = -yaw
+        North = t[1] 
+        East  = t[0]
+        Down  = t[2]
+        Yaw   = yaw
         
         return North, East, Down, Yaw, rvec, tvec
 
