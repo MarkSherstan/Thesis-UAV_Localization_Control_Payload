@@ -34,8 +34,8 @@ class Vision:
         self.tvec1 = None;  self.tvec2 = None
         
         # Camera to body frame values in cm
-        self.offset1 = [-2.3, 0, 0]
-        self.offset2 = [4.1, 0, 0]
+        self.offset1 = [-2.3, -15.0, 0]
+        self.offset2 = [4.1, -15.0, 0]
         
         # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from above)
         # Where the UAV is relative to marker following ArUco coords
