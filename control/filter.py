@@ -1,4 +1,4 @@
-from simdkalman.primitives import update, update_with_nan_check, predict_observation, predict
+from simdkalman.primitives import update, predict_observation, predict
 import numpy as np
 
 class MovingAverage:
@@ -33,12 +33,37 @@ class KalmanFilterRot:
         stateTransition  = np.array([[1, dt],[0,1]])                        # A
         processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE**2      # Q 
         
-        m, P = update_with_nan_check(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
+        m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
         self.m, self.P = predict(m, P, stateTransition, processNoise)
 
         return dataOut[0][0]
 
+class KalmanFilterPosVel:
+    def __init__(self):
+        # Standard deviations 
+        self.sigmaE = 10.0  # cm / s / s
+        sigmaPos  = 3.0     # cm
+        sigmaVel  = 3.0     # cm / s
+        
+        # Configure the filter
+        self.observationModel = np.diag([1, 1])                         # H
+        self.observationNoise = np.diag([sigmaPos**2, sigmaVel**2])     # R
+
+        # Initial state
+        self.m = np.array([0, 1])
+        self.P = np.eye(2)
+
+    def update(self, dt, dataIn):
+        stateTransition  = np.array([[1, dt],[0,1]])                        # A
+        processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE**2      # Q 
+        
+        m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
+        dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
+        self.m, self.P = predict(m, P, stateTransition, processNoise)
+
+        return dataOut[0][0]
+    
 class KalmanFilterPos:
     def __init__(self):
         # Standard deviations 
@@ -57,7 +82,7 @@ class KalmanFilterPos:
         stateTransition  = np.array([[1, dt],[0,1]])                        # A
         processNoise = np.diag([0.25*(dt**4), dt**2]) * self.sigmaE**2      # Q 
         
-        m, P = update_with_nan_check(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
+        m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
         self.m, self.P = predict(m, P, stateTransition, processNoise)
 
