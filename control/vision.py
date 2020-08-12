@@ -7,7 +7,7 @@ import time
 import cv2
 
 class Vision:
-    def __init__(self, lengthMarker=4.50, spacing=2.25):
+    def __init__(self, lengthMarker=6.43, spacing=3.22):
         # Board properties
         self.lengthMarker = lengthMarker
         self.spacing = spacing
@@ -48,7 +48,7 @@ class Vision:
         # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
-        self.parm.minMarkerPerimeterRate = 0.12
+        self.parm.minMarkerPerimeterRate = 0.03
         self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
         self.parm.cornerRefinementWinSize = 5
         self.parm.cornerRefinementMaxIterations = 100
@@ -74,10 +74,10 @@ class Vision:
                 # Get data from T265: Save local approximating a locked thread before heavy pose calcs
                 gray1 = cam.Img1
                 gray2 = cam.Img2
-                psiRate = cam.psiRate
-                vx  = cam.vx
-                vy  = cam.vy
-                vz  = cam.vz
+                psiRate = cam.psiRate   # Deg/s
+                vx  = cam.vx * 100.0    # Cm/s
+                vy  = cam.vy * 100.0    # Cm/s
+                vz  = cam.vz * 100.0    # Cm/s
                 
                 # Process frames
                 N1, E1, D1, Y1, self.rvec1, self.tvec1 = self.getPose(gray1, self.mtx1, self.dist1, self.rvec1, self.tvec1, self.offset1)
@@ -114,6 +114,10 @@ class Vision:
             
             # Increment counter
             self.poseCount += 1
+
+        # Prevent error when no target is found (start up)
+        if np.all(rvec == None) or np.all(tvec == None):
+            return 0, 0, 0, 0, None, None
 
         # Convert from vector to rotation matrix and then transform to body frame
         R, _ = cv2.Rodrigues(rvec)
@@ -185,21 +189,3 @@ class Vision:
         # Print the results
         print('Pose rate: ', round((self.poseCount / 2) / (self.endTime - self.startTime),1))
         print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
-
-def main():
-    # Initialize
-    v = Vision()
-    Q = Queue()
-    
-    # Start the processing
-    v.processFrame(Q)
-    
-    # Print values
-    try: 
-        while(True):
-            print(Q.get())
-    except KeyboardInterrupt:
-        pass
-        
-if __name__ == "__main__":
-    main()
