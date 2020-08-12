@@ -1,6 +1,7 @@
 from threading import Thread
 import pyrealsense2 as rs
 import numpy as np
+import math
 import time
 import cv2
 
@@ -89,7 +90,7 @@ class T265:
             # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
             self.rawImg2 = np.asanyarray(f2.get_data())
-            self.psiRate = pose.get_pose_data().angular_velocity.y
+            self.psiRate = math.degrees(pose.get_pose_data().angular_velocity.y)
             self.vx = pose.get_pose_data().velocity.x
             self.vy = pose.get_pose_data().velocity.y
             self.vz = pose.get_pose_data().velocity.z 
@@ -147,21 +148,17 @@ def main():
     
     while(True):
         # Show the image frames 
-        showFrame = np.concatenate((cam.rawImg1, cam.Img1), axis=1)
+        showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
         cv2.imshow('Frame', showFrame)
         
-        # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
-        print(cam.psiRate)
-        print(cam.vx, cam.vy, cam.vz)
-
         # Exit
         key = cv2.waitKey(1)
         if key != -1:
             if key & 0xFF == ord('q'):
                 break
             if key & 0xFF == ord(' '):
-                cv2.imwrite('raw.png',cam.rawImg1)
-                cv2.imwrite('flat.png',cam.Img1)
+                cv2.imwrite('raw.png',cam.Img1)
+                cv2.imwrite('flat.png',cam.Img2)
     
     cv2.destroyAllWindows()    
     cam.close()   
