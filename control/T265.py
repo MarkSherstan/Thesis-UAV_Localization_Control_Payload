@@ -70,6 +70,7 @@ class T265:
                 time.sleep(0.1)
 
             # Start the timer 
+            self.frameCount = 0
             self.frameStartTime = time.time()
             
     def acquireFrame(self):
