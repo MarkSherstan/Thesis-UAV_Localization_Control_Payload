@@ -10,7 +10,7 @@ def main():
     for ii in range(len(desiredWidth)):
         # Camera properties 
         v = Vision(desiredWidth[ii], desiredHeight[ii], desiredFPS)
-        v.startFrameThread()
+        # v.startFrameThread()
         v.startPoseThread()
     
         # Counting variables
@@ -31,7 +31,7 @@ def main():
 
         # Record final time and frame size            
         endTime = time.time()
-        actualHeight, actualWidth, _ = v.frame.shape 
+        actualHeight, actualWidth = v.frame.shape 
 
         # Print results
         print('Frame Width\tD: ', desiredWidth[ii], '\tA: ', actualWidth)

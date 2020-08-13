@@ -4,6 +4,7 @@ import math
 import time
 import cv2
 import cv2.aruco as aruco
+from T265 import T265
 
 class Vision:
     def __init__(self, desiredWidth, desiredHeight, desiredFPS, src=-1):
@@ -116,17 +117,17 @@ class Vision:
         self.Yaw   = 0
         self.isReady = False
 
-        # Start the connection to the camera
-        try:
-            self.cam = cv2.VideoCapture(src, cv2.CAP_V4L)
-            self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
-            self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
-            self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
-            self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
-            self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
-            print('Camera start')
-        except:
-            print('Camera setup failed')
+        # # Start the connection to the camera
+        # try:
+        #     self.cam = cv2.VideoCapture(src, cv2.CAP_V4L)
+        #     self.cam.set(cv2.CAP_PROP_FOURCC, cv2.VideoWriter_fourcc('M', 'J', 'P', 'G'))
+        #     self.cam.set(cv2.CAP_PROP_FRAME_WIDTH, self.desiredWidth)
+        #     self.cam.set(cv2.CAP_PROP_FRAME_HEIGHT, self.desiredHeight)
+        #     self.cam.set(cv2.CAP_PROP_FPS, self.desiredFPS)
+        #     self.cam.set(cv2.CAP_PROP_AUTOFOCUS, 0)
+        #     print('Camera start')
+        # except:
+        #     print('Camera setup failed')
 
     def startFrameThread(self):
         # Create a thread
@@ -147,10 +148,6 @@ class Vision:
             self.isReceivingFrame = True
 
     def startPoseThread(self):
-        # Block until a frame has been acquired
-        while self.frame is None:
-            time.sleep(0.1)
-
         # Create a thread
         if self.poseThread == None:
             self.poseThread = Thread(target=self.processFrame)
@@ -162,19 +159,24 @@ class Vision:
                 time.sleep(0.1)
 
     def processFrame(self):
+        cam = T265()
+
         # Process data until closed
         while(self.isRunPose):
+            self.frame = cam.Img1
             self.getPose()
             self.isReceivingPose = True
 
+        cam.close()
+
     def getPose(self):
         # Get frame and convert to gray
-        gray = cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
+        gray = self.frame #cv2.cvtColor(self.frame, cv2.COLOR_BGR2GRAY)
 
         # lists of ids and corners belonging to each id
         corners, ids, _ = aruco.detectMarkers(gray, self.arucoDict, parameters=self.parm)
 
-        # Only count processed frames
+        # Only count processed frames -> false
         self.poseCount += 1
         
         # Only continue if a marker was found and is the correct ID
@@ -236,11 +238,11 @@ class Vision:
         self.poseThread.join()
         print('\nFrame processing thread closed')
 
-        # Close the capture thread
-        self.isRunFrame = False
-        self.frameThread.join()
-        print('Camera thread closed')
+        # # Close the capture thread
+        # self.isRunFrame = False
+        # self.frameThread.join()
+        # print('Camera thread closed')
 
-        # Rlease the camera connection
-        self.cam.release()
-        print('Camera closed')
+        # # Rlease the camera connection
+        # self.cam.release()
+        # print('Camera closed')
