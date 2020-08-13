@@ -21,7 +21,6 @@ class T265:
         self.isReceivingFrame = False
         self.isRunFrame = True
         self.frameThread = None
-        self.frame = None
 
         # Performance
         self.frameStartTime = None
