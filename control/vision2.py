@@ -1,4 +1,5 @@
 from multiprocessing import Queue
+from threading import Thread
 import cv2.aruco as aruco
 from T265 import T265
 import numpy as np
@@ -7,14 +8,9 @@ import time
 import cv2
 
 class Vision:
-    def __init__(self, lengthMarker=6.43, spacing=3.22):
-        # Board properties
-        self.lengthMarker = lengthMarker
-        self.spacing = spacing
-        
+    def __init__(self):
         # Performance parameters
         self.loopCount  = 0
-        self.poseCount  = 0
         self.startTime  = None
         self.endTime    = None
 
@@ -28,10 +24,6 @@ class Vision:
                         [0.0,           287.99235758,   410.12408383],
                         [0.0,           0.0,            1.0         ]])
         self.dist2 = np.array([[-0.00818909, 0.00187817, 0.00132013, -0.00018278, -0.00044735]])
-
-        # Initial conditions for pose calculation 
-        self.rvec1 = None;  self.rvec2 = None
-        self.tvec1 = None;  self.tvec2 = None
         
         # Camera to body frame values in cm
         self.offset1 = [-2.3, -15.0, 0]
@@ -45,22 +37,6 @@ class Vision:
         #   Yaw   (Positive counter clockwise viewing UAV from top)
 
     def processFrame(self, q):
-        # Aruco dictionary and parameter to be used for pose processing
-        self.arucoDict = aruco.custom_dictionary(17, 3)
-        self.parm = aruco.DetectorParameters_create()
-        self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
-        self.parm.cornerRefinementWinSize = 5
-        self.parm.cornerRefinementMaxIterations = 100
-        self.parm.cornerRefinementMinAccuracy = 0.00001
-
-        # Create the ArUco board
-        self.board = aruco.GridBoard_create(
-            markersX=4,                      # Columns
-            markersY=3,                      # Rows
-            markerLength=self.lengthMarker,  # cm
-            markerSeparation=self.spacing,   # cm
-            dictionary=self.arucoDict)
-        
         # Start the connection to the T265
         cam = T265()
 
@@ -102,37 +78,116 @@ class Vision:
 
         # Close the capture thread and camera, post perfromance metrics
         self.close(cam)
- 
-    def getPose(self, gray, mtx, dist, rvec, tvec, offset):
+
+    def close(self, cam):
+        # Camera closed
+        cam.close()
+
+        # Print the results
+        print('Pose rate: ', round((self.poseCount / 2) / (self.endTime - self.startTime),1))
+        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
+
+class VisionPose:
+    def __init__(self, ID, mtx, dist, offset, lengthMarker=6.43, spacing=3.22):        
+        # ID
+        self.ID = ID
+        
+        # Camera parameters (intrinsic and extrensic)
+        self.mtx = mtx
+        self.dist = dist
+        self.offset = offset
+        
+        # Initial conditions for pose calculation 
+        self.rvec = None
+        self.tvec = None
+        
+        # Threading parameters
+        self.isReceiving = False
+        self.isRun = True
+        self.threadX = None
+
+        # Performance
+        self.startTime = None
+        self.endTime = None
+        self.loopCounter = 0
+        self.poseCounter = 0
+        
+        # Aruco dictionary and parameter to be used for pose processing
+        self.arucoDict = aruco.custom_dictionary(17, 3)
+        self.parm = aruco.DetectorParameters_create()
+        self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
+        self.parm.cornerRefinementWinSize = 5
+        self.parm.cornerRefinementMaxIterations = 100
+        self.parm.cornerRefinementMinAccuracy = 0.00001
+
+        # Create the ArUco board
+        self.board = aruco.GridBoard_create(
+            markersX=4,                      # Columns
+            markersY=3,                      # Rows
+            markerLength=self.lengthMarker,  # cm
+            markerSeparation=self.spacing,   # cm
+            dictionary=self.arucoDict)
+
+        # Output data
+        self.N = 0
+        self.E = 0
+        self.D = 0
+        self.Y = 0
+
+    def startThread(self):
+        # Create a thread
+        if self.threadX == None:
+            self.threadX = Thread(target=self.run)
+            self.threadX.start()
+            print('Thread ' + self.ID + ' start.')
+
+            # Block till we start receiving values
+            while self.isReceiving != True:
+                time.sleep(0.1)
+
+            # Start the timer and reset counters
+            self.loopCounter = 0
+            self.poseCounter = 0
+            self.startTime = time.time()
+    
+    def run(self):
+        # Run until thread is closed
+        while(self.isRun):
+            self.getPose()
+            self.loopCounter += 1
+            self.isReceiving = True
+        
+        # Record end time 
+        self.endTime = time.time()
+        
+    def updateImg(self, frame):
+        self.gray = frame
+        
+    def getPose(self):
         # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(image=gray, dictionary=self.arucoDict, parameters=self.parm, cameraMatrix=mtx, distCoeff=dist)
+        corners, ids, _ = aruco.detectMarkers(image=self.gray, dictionary=self.arucoDict, 
+                                              parameters=self.parm, cameraMatrix=self.mtx, 
+                                              distCoeff=self.dist)
 
         # Only estimate the pose if a marker was found
         if np.all(ids != None):
-            _, rvec, tvec = aruco.estimatePoseBoard(corners, ids, self.board, mtx, dist, rvec, tvec)
+            _, self.rvec, self.tvec = aruco.estimatePoseBoard(corners=corners, ids=ids, board=self.board, 
+                                                              cameraMatrix=self.mtx, distCoeffs=self.dist, 
+                                                              rvec=self.rvec, tvec=self.tvec)
             
-            # Increment counter
-            self.poseCount += 1
+            # Convert from vector to rotation matrix and then transform to body frame
+            R, _ = cv2.Rodrigues(self.rvec)
+            R, t = self.transform2Body(R, self.tvec)
 
-        # Prevent error when no target is found (start up)
-        if np.all(rvec == None) or np.all(tvec == None):
-            return 0, 0, 0, 0, None, None
+            # Get yaw
+            _, _, yaw = self.rotationMatrix2EulerAngles(R)
 
-        # Convert from vector to rotation matrix and then transform to body frame
-        R, _ = cv2.Rodrigues(rvec)
-        R, t = self.transform2Body(R, tvec, offset)
-
-        # Get yaw
-        _, _, yaw = self.rotationMatrix2EulerAngles(R)
-
-        # Save values
-        North = t[1] 
-        East  = t[0]
-        Down  = t[2]
-        Yaw   = yaw
+            # Save values
+            self.N = t[1] 
+            self.E = t[0]
+            self.D = t[2]
+            self.Y = yaw
         
-        return North, East, Down, Yaw, rvec, tvec
-
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
         Rt = np.transpose(R)
@@ -158,15 +213,15 @@ class Vision:
             print('Not a rotation matrix')
             return 0, 0, 0
 
-    def transform2Body(self, R, t, offset):
+    def transform2Body(self, R, t):
         # Original (ArUco wrt camera)
         Tca = np.append(R, t, axis=1)
         Tca = np.append(Tca, np.array([[0, 0, 0, 1]]), axis=0)
 
         # Transformation (camera wrt drone body frame)
-        Tbc = np.array([[1,  0,  0,  offset[0]],
-                        [0,  1,  0,  offset[1]],
-                        [0,  0,  1,  offset[2]],
+        Tbc = np.array([[1,  0,  0,  self.offset[0]],
+                        [0,  1,  0,  self.offset[1]],
+                        [0,  0,  1,  self.offset[2]],
                         [0,  0,  0,  1]])
 
         # Resultant pose (ArUco wrt drone body frame)
@@ -181,10 +236,12 @@ class Vision:
         # Return reults 
         return R, t
 
-    def close(self, cam):
-        # Camera closed
-        cam.close()
-
-        # Print the results
-        print('Pose rate: ', round((self.poseCount / 2) / (self.endTime - self.startTime),1))
-        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
+    def close(self):
+        # Close the thread
+        self.isRun = False
+        self.threadX.join()
+        print('Thread ' + self.ID + ' closed.')
+        
+        # Print performance
+        print('Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
+        print('Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
