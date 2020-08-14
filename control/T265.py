@@ -138,7 +138,7 @@ class T265:
         print('Capture thread closed')
         
         # Performance
-        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),1))
+        print('Frame rate T265: ', round(self.frameCount / (time.time() - self.frameStartTime),1))
 
         # Close the pipe
         self.pipe.stop()
