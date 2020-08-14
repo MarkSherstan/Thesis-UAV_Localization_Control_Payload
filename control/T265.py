@@ -62,7 +62,7 @@ class T265:
         if self.frameThread == None:
             self.frameThread = Thread(target=self.acquireFrame)
             self.frameThread.start()
-            print('Capture thread start')
+            print('T265 (Thread 0) start.')
 
             # Block till we start receiving values
             while self.isReceivingFrame != True:
@@ -135,10 +135,10 @@ class T265:
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
-        print('Capture thread closed')
+        print('\nThread 0 closed.')
         
         # Performance
-        print('Frame rate T265: ', round(self.frameCount / (time.time() - self.frameStartTime),1))
+        print('  Frame rate (T265): ', round(self.frameCount / (time.time() - self.frameStartTime),1))
 
         # Close the pipe
         self.pipe.stop()

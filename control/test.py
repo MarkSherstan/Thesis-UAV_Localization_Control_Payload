@@ -33,6 +33,7 @@ def main():
             # print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(pos[0], pos[1], pos[2]))
             # print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(vel[0], vel[1], vel[2]))
             print('{:<8.1f} {:<8.1f}'.format(psi[0], psi[1]))
+            time.sleep(1/30)
 
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
@@ -41,11 +42,8 @@ def main():
 
     except KeyboardInterrupt:
         # Print final remarks
-        print('Closing')
-        
-    finally:        
-        # Post main loop rate
-        print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
+        print('Closing Main!')
+        print("Main average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
 
         
 if __name__ == "__main__":

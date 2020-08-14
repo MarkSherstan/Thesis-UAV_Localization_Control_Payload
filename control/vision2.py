@@ -61,6 +61,7 @@ class Vision:
                 
                 # Add data to the queue
                 Q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
+                time.sleep(1/30)
 
                 # Increment the counter 
                 self.counter += 1
@@ -71,13 +72,14 @@ class Vision:
             print('Closing Vision!')
         
         finally: 
-            # Close all the threads
+            # Close all the threads (small delay for printing results)
+            time.sleep(0.5)
             cam.close()
             VP1.close()
             VP2.close()
             
             # Performance of main thread
-            print('Main vision thread rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
+            print('\nMaster vision thread rate: ', round(self.counter / (self.endTime - self.startTime),1))
 
 class VisionPose:
     def __init__(self, ID, mtx, dist, offset, lengthMarker=6.43, spacing=3.22):        
