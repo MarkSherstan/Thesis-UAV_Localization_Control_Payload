@@ -1,4 +1,3 @@
-from multiprocessing import Queue
 from threading import Thread
 import cv2.aruco as aruco
 from T265 import T265
@@ -29,7 +28,7 @@ class Vision:
         self.offset1 = [-2.3, -15.0, 0]
         self.offset2 = [4.1, -15.0, 0]
     
-    def run(self, q):
+    def run(self, Q):
         # Start the connection to the T265
         cam = T265()
 
@@ -61,7 +60,7 @@ class Vision:
                 Yaw   = (VP1.Y + VP2.Y) / 2.0
                 
                 # Add data to the queue
-                q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
+                Q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
 
                 # Increment the counter 
                 self.counter += 1

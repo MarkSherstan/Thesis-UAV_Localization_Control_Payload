@@ -1,5 +1,6 @@
 from multiprocessing import Process, Queue
-from vision import Vision
+# from vision import Vision
+from vision2 import Vision
 import statistics
 import time
 
@@ -15,7 +16,7 @@ def main():
     # Connect to vision, create the queue, and start the core
     V = Vision()
     Q = Queue()
-    P = Process(target=V.processFrame, args=(Q, ))
+    P = Process(target=V.run, args=(Q, ))
     P.start()
 
     # Start timer
@@ -31,7 +32,7 @@ def main():
             # Print data
             # print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(pos[0], pos[1], pos[2]))
             # print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(vel[0], vel[1], vel[2]))
-            # print('{:<8.1f} {:<8.1f}'.format(psi[0], psi[1]))
+            print('{:<8.1f} {:<8.1f}'.format(psi[0], psi[1]))
 
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
