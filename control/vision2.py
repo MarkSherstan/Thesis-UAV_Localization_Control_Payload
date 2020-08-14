@@ -10,9 +10,9 @@ import cv2
 class Vision:
     def __init__(self):
         # Performance parameters
-        self.loopCount  = 0
-        self.startTime  = None
-        self.endTime    = None
+        self.startTime = None
+        self.endTime   = None
+        self.counter   = 0
 
         # Camera calibration matrices 
         self.mtx1 = np.array([[284.65527842,  0.0,            420.10118496],
@@ -28,64 +28,57 @@ class Vision:
         # Camera to body frame values in cm
         self.offset1 = [-2.3, -15.0, 0]
         self.offset2 = [4.1, -15.0, 0]
-        
-        # Output variables: Position of body frame wrt ArUco frame converted to UAV NED (observing from above)
-        # Where the UAV is relative to marker following ArUco coords
-        #   North (negative when UAV is behind the target)
-        #   East  (negative when UAV is to the left of the target)
-        #   Down  (negative when UAV is below the target -> always positive)
-        #   Yaw   (Positive counter clockwise viewing UAV from top)
-
-    def processFrame(self, q):
+    
+    def run(self, q):
         # Start the connection to the T265
         cam = T265()
 
-        # Start the performance metrics
+        # Start the threads
+        VP1 = VisionPose(ID='1', mtx=self.mtx1, dist=self.dist1, offset=self.offset1)
+        VP1.startThread(cam.Img1)
+        
+        VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
+        VP2.startThread(cam.Img2)
+        
+        # Start the main thread timer
         self.startTime = time.time()
 
         # Process data until closed
         try: 
             while(True):
-                # Get data from T265: Save local approximating a locked thread before heavy pose calcs
-                gray1 = cam.Img1
-                gray2 = cam.Img2
+                # Get data from T265
+                VP1.updateImg(cam.Img1)
+                VP2.updateImg(cam.Img2)
                 psiRate = cam.psiRate   # Deg/s
-                vN  = cam.vz * -100.0    # Cm/s
-                vE  = cam.vx *  100.0    # Cm/s
-                vD  = cam.vy *  100.0    # Cm/s
+                vN  = cam.vz * -100.0   # Cm/s
+                vE  = cam.vx *  100.0   # Cm/s
+                vD  = cam.vy *  100.0   # Cm/s
 
-                # Process frames
-                N1, E1, D1, Y1, self.rvec1, self.tvec1 = self.getPose(gray1, self.mtx1, self.dist1, self.rvec1, self.tvec1, self.offset1)
-                N2, E2, D2, Y2, self.rvec2, self.tvec2 = self.getPose(gray2, self.mtx2, self.dist2, self.rvec2, self.tvec2, self.offset2)
-                
                 # Average the results between cameras
-                North = (N1 + N2) / 2.0
-                East  = (E1 + E2) / 2.0
-                Down  = (D1 + D2) / 2.0
-                Yaw   = (Y1 + Y2) / 2.0
+                North = (VP1.N + VP2.N) / 2.0
+                East  = (VP1.E + VP2.E) / 2.0
+                Down  = (VP1.D + VP2.D) / 2.0
+                Yaw   = (VP1.Y + VP2.Y) / 2.0
                 
                 # Add data to the queue
                 q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
 
                 # Increment the counter 
-                self.loopCount += 1
+                self.counter += 1
 
         except KeyboardInterrupt:
-            pass
+            # Prep to close
+            self.endTime = time.time()
+            print('Closing Vision!')
+        
+        finally: 
+            # Close all the threads
+            cam.close()
+            VP1.close()
+            VP2.close()
             
-        # End performance metrics 
-        self.endTime = time.time()
-
-        # Close the capture thread and camera, post perfromance metrics
-        self.close(cam)
-
-    def close(self, cam):
-        # Camera closed
-        cam.close()
-
-        # Print the results
-        print('Pose rate: ', round((self.poseCount / 2) / (self.endTime - self.startTime),1))
-        print('Loop rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
+            # Performance of main thread
+            print('Main vision thread rate: ', round(self.loopCount / (self.endTime - self.startTime),1))
 
 class VisionPose:
     def __init__(self, ID, mtx, dist, offset, lengthMarker=6.43, spacing=3.22):        
@@ -128,7 +121,11 @@ class VisionPose:
             markerSeparation=spacing,   # cm
             dictionary=self.arucoDict)
 
-        # Output data
+        # Output variables: Position of body frame wrt ArUco frame (observing from above)
+        #   North (negative when UAV is behind the target)
+        #   East  (negative when UAV is to the left of the target)
+        #   Down  (negative when UAV is below the target -> always positive)
+        #   Yaw   (Positive counter clockwise viewing UAV from top)
         self.N = 0
         self.E = 0
         self.D = 0
