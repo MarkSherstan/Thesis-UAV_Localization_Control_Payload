@@ -122,10 +122,10 @@ class VisionPose:
 
         # Create the ArUco board
         self.board = aruco.GridBoard_create(
-            markersX=4,                      # Columns
-            markersY=3,                      # Rows
-            markerLength=self.lengthMarker,  # cm
-            markerSeparation=self.spacing,   # cm
+            markersX=4,                 # Columns
+            markersY=3,                 # Rows
+            markerLength=lengthMarker,  # cm
+            markerSeparation=spacing,   # cm
             dictionary=self.arucoDict)
 
         # Output data
@@ -134,7 +134,10 @@ class VisionPose:
         self.D = 0
         self.Y = 0
 
-    def startThread(self):
+    def startThread(self, img):
+        # Initialize an image before start
+        self.gray = img
+        
         # Create a thread
         if self.threadX == None:
             self.threadX = Thread(target=self.run)
@@ -160,8 +163,8 @@ class VisionPose:
         # Record end time 
         self.endTime = time.time()
         
-    def updateImg(self, frame):
-        self.gray = frame
+    def updateImg(self, img):
+        self.gray = img
         
     def getPose(self):
         # lists of ids and corners belonging to each id
@@ -243,5 +246,5 @@ class VisionPose:
         print('Thread ' + self.ID + ' closed.')
         
         # Print performance
-        print('Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
-        print('Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
+        print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
+        print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
