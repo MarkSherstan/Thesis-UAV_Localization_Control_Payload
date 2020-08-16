@@ -145,7 +145,10 @@ class T265:
 
 def main():
     cam = T265()
-    
+
+    # cv2.imwrite('Cam1.png',cam.Img1)
+    # cv2.imwrite('Cam2.png',cam.Img2)
+        
     while(True):
         # Show the image frames 
         showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
@@ -157,8 +160,8 @@ def main():
             if key & 0xFF == ord('q'):
                 break
             if key & 0xFF == ord(' '):
-                cv2.imwrite('raw.png',cam.Img1)
-                cv2.imwrite('flat.png',cam.Img2)
+                cv2.imwrite('Cam1.png',cam.Img1)
+                cv2.imwrite('Cam2.png',cam.Img2)
     
     cv2.destroyAllWindows()    
     cam.close()   
