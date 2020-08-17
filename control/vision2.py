@@ -113,6 +113,8 @@ class VisionPose:
         self.parm.cornerRefinementWinSize = 5
         self.parm.cornerRefinementMaxIterations = 100
         self.parm.cornerRefinementMinAccuracy = 0.00001
+        # self.parm.adaptiveThreshConstant = 7
+        # self.parm.minMarkerPerimeterRate = 0.05
 
         # Create the ArUco board
         self.board = aruco.GridBoard_create(
@@ -188,6 +190,9 @@ class VisionPose:
             self.E = t[0]
             self.D = t[2]
             self.Y = yaw
+
+            # Increment pose counter 
+            self.poseCounter += 1
         
     def isRotationMatrix(self, R):
         # Checks if matrix is valid

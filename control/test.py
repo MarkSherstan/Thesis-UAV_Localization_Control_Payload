@@ -30,10 +30,9 @@ def main():
             pos, vel, psi = getVision(Q)
 
             # Print data
-            # print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(pos[0], pos[1], pos[2]))
+            print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(pos[0], pos[1], pos[2]))
             # print('{:<8.1f} {:<8.1f} {:<8.1f}'.format(vel[0], vel[1], vel[2]))
-            print('{:<8.1f} {:<8.1f}'.format(psi[0], psi[1]))
-            time.sleep(1/30)
+            # print('{:<8.1f} {:<8.1f}'.format(psi[0], psi[1]))
 
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
