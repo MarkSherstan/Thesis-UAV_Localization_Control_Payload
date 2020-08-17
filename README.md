@@ -28,6 +28,11 @@ Open the `/MASTER` PlatformIO directory and build the project. All pinout is lab
 ## PCB
 The PCB's were designed with [KiCad 5](https://kicad-pcb.org/download/) and manufactured by [JLCPCB](https://jlcpcb.com).
 
+## Running Code with Realsense T265 Camera
+```
+sudo /home/mark/.virtualenvs/py3cv4/bin/python3.6 <script.py>
+```
+
 ## To Do
 * Instructions on how to use (e.g. - set up FC)
 * Move everything to wiki and/or explain better
