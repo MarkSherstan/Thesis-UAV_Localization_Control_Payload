@@ -31,7 +31,7 @@ def getVehicleAttitude(UAV):
 
 def main():
     # Connect to the Vehicle
-    connection_string = "/dev/ttyS1"
+    connection_string = "/dev/ttyS1" #/dev/ttyTHS1
     print('Connecting to vehicle on: %s\n' % connection_string)
     vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000)
 
