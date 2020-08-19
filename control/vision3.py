@@ -125,6 +125,16 @@ class VisionPose:
         self.poseCounter = 0
         self.imgCounter  = 0
         
+        # Image 
+        self.gray = None
+
+        # Output variables: Position of body frame wrt ArUco frame (observing from above)
+        #   North (negative when UAV is behind the target)
+        #   East  (negative when UAV is to the left of the target)
+        #   Down  (negative when UAV is below the target -> always positive)
+        #   Yaw   (Positive counter clockwise viewing UAV from top)
+
+    def createArucoStructures(self):
         # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
         self.parm = aruco.DetectorParameters_create()
@@ -143,15 +153,6 @@ class VisionPose:
             markerSeparation=spacing,   # cm
             dictionary=self.arucoDict)
         
-        # Image 
-        self.gray = None
-
-        # Output variables: Position of body frame wrt ArUco frame (observing from above)
-        #   North (negative when UAV is behind the target)
-        #   East  (negative when UAV is to the left of the target)
-        #   Down  (negative when UAV is below the target -> always positive)
-        #   Yaw   (Positive counter clockwise viewing UAV from top)
-
     def startThread(self, Qimg):        
         # Create a thread
         if self.threadX == None:
@@ -180,6 +181,9 @@ class VisionPose:
         self.endTimeImg = time.time()
         
     def run(self, Qimg, Qpose):
+        # Create aruco parameters and board (not pickalable for multiprocessing)
+        self.createArucoStructures()
+        
         # Start the image queue thread
         self.startThread(Qimg)
         
