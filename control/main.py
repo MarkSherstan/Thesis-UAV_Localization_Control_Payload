@@ -31,9 +31,9 @@ def getVehicleAttitude(UAV):
 
 def main():
     # Connect to the Vehicle
-    connection_string = "/dev/ttyS1" #/dev/ttyTHS1
+    connection_string = '/dev/ttyTHS1'
     print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=["attitude"], baud=1500000)
+    vehicle = connect(connection_string, wait_ready=['attitude'], baud=1500000)
 
     # Set attitude request message rate
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -47,7 +47,7 @@ def main():
     # Connect to vision, create the queue, and start the core
     V = Vision()
     Q = Queue()
-    P = Process(target=V.processFrame, args=(Q, ))
+    P = Process(target=V.run, args=(Q, ))
     P.start()
 
     # Connect to control scheme and prepare setpoints
@@ -143,10 +143,10 @@ def main():
                         psi[0], psi[1], Q.qsize()])
             
             # Reset integral and generate new trajectory whenever there is a mode switch 
-            if (vehicle.mode.name == "STABILIZE"):
+            if (vehicle.mode.name == 'STABILIZE'):
                 modeState = 1
             
-            if (vehicle.mode.name == "GUIDED_NOGPS") and (modeState == 1):
+            if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
                 C.resetIntegral()
                 SP.selectMethod(Q, trajectory=True)
@@ -157,7 +157,7 @@ def main():
         
     finally:        
         # Post main loop rate
-        print("Average loop rate: ", round(statistics.mean(freqList),2), "+/-", round(statistics.stdev(freqList), 2))
+        print('Average loop rate: ', round(statistics.mean(freqList),2), '+/-', round(statistics.stdev(freqList), 2))
 
         # Write data to a data frame
         df = pd.DataFrame(data, columns=['Mode', 'Time', 'Freq',
@@ -166,12 +166,12 @@ def main():
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
                             'northVraw', 'eastVraw', 'downVraw', 
-                            'N-Velocity', 'E-Velocity', 'D-Velocity'
+                            'N-Velocity', 'E-Velocity', 'D-Velocity',
                             'yawVraw', 'yawRate', 'Q-Size'])
 
         # Save data to CSV
         now = datetime.datetime.now()
-        fileName = "flightData/" + now.strftime("%Y-%m-%d__%H-%M-%S") + ".csv"
+        fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S') + '.csv'
         df.to_csv(fileName, index=None, header=True)
         print('File saved to:' + fileName)
 
