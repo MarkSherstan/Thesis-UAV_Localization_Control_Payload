@@ -82,7 +82,7 @@ class Vision:
             print('\nMaster vision thread rate: ', round(self.counter / (self.endTime - self.startTime),1))
 
 class VisionPose:
-    def __init__(self, ID, mtx, dist, offset, lengthMarker=6.43, spacing=3.22):        
+    def __init__(self, ID, mtx, dist, offset, lengthMarker=15.85, spacing=20.0):        
         # ID
         self.ID = ID
         
@@ -118,8 +118,8 @@ class VisionPose:
 
         # Create the ArUco board
         self.board = aruco.GridBoard_create(
-            markersX=4,                 # Columns
-            markersY=3,                 # Rows
+            markersX=3,                 # Columns
+            markersY=1,                 # Rows
             markerLength=lengthMarker,  # cm
             markerSeparation=spacing,   # cm
             dictionary=self.arucoDict)
