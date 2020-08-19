@@ -1,3 +1,4 @@
+from multiprocessing import Process, Queue
 from threading import Thread
 import cv2.aruco as aruco
 from T265 import T265
@@ -103,8 +104,10 @@ class VisionPose:
         # Performance
         self.startTime = None
         self.endTime = None
+        self.endTimeImg = None
         self.loopCounter = 0
         self.poseCounter = 0
+        self.imgCounter  = 0
         
         # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
@@ -123,24 +126,20 @@ class VisionPose:
             markerLength=lengthMarker,  # cm
             markerSeparation=spacing,   # cm
             dictionary=self.arucoDict)
+        
+        # Image 
+        self.gray = None
 
         # Output variables: Position of body frame wrt ArUco frame (observing from above)
         #   North (negative when UAV is behind the target)
         #   East  (negative when UAV is to the left of the target)
         #   Down  (negative when UAV is below the target -> always positive)
         #   Yaw   (Positive counter clockwise viewing UAV from top)
-        self.N = 0
-        self.E = 0
-        self.D = 0
-        self.Y = 0
 
-    def startThread(self, img):
-        # Initialize an image before start
-        self.gray = img
-        
+    def startThread(self, Qimg):        
         # Create a thread
         if self.threadX == None:
-            self.threadX = Thread(target=self.run)
+            self.threadX = Thread(target=self.getImg, args=(Qimg, ))
             self.threadX.start()
             print('Thread ' + self.ID + ' start.')
 
@@ -151,49 +150,66 @@ class VisionPose:
             # Start the timer and reset counters
             self.loopCounter = 0
             self.poseCounter = 0
+            self.imgCounter  = 0
             self.startTime = time.time()
     
-    def run(self):
+    def getImg(self, Qimg):
         # Run until thread is closed
         while(self.isRun):
-            self.getPose()
-            self.loopCounter += 1
+            self.gray = Qimg.get()
+            self.imgCounter += 1
             self.isReceiving = True
         
         # Record end time 
-        self.endTime = time.time()
+        self.endTimeImg = time.time()
         
-    def updateImg(self, img):
-        self.gray = img
+    def run(self, Qimg, Qpose):
+        # Start the image queue thread
+        self.startThread(Qimg)
         
-    def getPose(self):
-        # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(image=self.gray, dictionary=self.arucoDict, 
-                                              parameters=self.parm, cameraMatrix=self.mtx, 
-                                              distCoeff=self.dist)
+        # Run forever 
+        try: 
+            while(True):
+                # lists of ids and corners belonging to each id
+                corners, ids, _ = aruco.detectMarkers(image=self.gray, dictionary=self.arucoDict, 
+                                                    parameters=self.parm, cameraMatrix=self.mtx, 
+                                                    distCoeff=self.dist)
 
-        # Only estimate the pose if a marker was found
-        if np.all(ids != None):
-            _, self.rvec, self.tvec = aruco.estimatePoseBoard(corners=corners, ids=ids, board=self.board, 
-                                                              cameraMatrix=self.mtx, distCoeffs=self.dist, 
-                                                              rvec=self.rvec, tvec=self.tvec)
+                # Increment loop counter
+                self.loopCounter += 1
+                
+                # Only estimate the pose if a marker was found
+                if np.all(ids != None):
+                    _, self.rvec, self.tvec = aruco.estimatePoseBoard(corners=corners, ids=ids, board=self.board, 
+                                                                    cameraMatrix=self.mtx, distCoeffs=self.dist, 
+                                                                    rvec=self.rvec, tvec=self.tvec)
+                    
+                    # Convert from vector to rotation matrix and then transform to body frame
+                    R, _ = cv2.Rodrigues(self.rvec)
+                    R, t = self.transform2Body(R, self.tvec)
+
+                    # Get yaw
+                    _, _, yaw = self.rotationMatrix2EulerAngles(R)
+
+                    # Save values
+                    N = t[1] 
+                    E = t[0]
+                    D = t[2]
+                    Y = yaw
+
+                    # Put data in queue
+                    Qpose.put([N, E, D, Y])
+                    
+                    # Increment pose counter 
+                    self.poseCounter += 1
+        except:
+            # Prep to close
+            self.endTime = time.time()
+            print('Closing ' + self.ID)
             
-            # Convert from vector to rotation matrix and then transform to body frame
-            R, _ = cv2.Rodrigues(self.rvec)
-            R, t = self.transform2Body(R, self.tvec)
-
-            # Get yaw
-            _, _, yaw = self.rotationMatrix2EulerAngles(R)
-
-            # Save values
-            self.N = t[1] 
-            self.E = t[0]
-            self.D = t[2]
-            self.Y = yaw
-
-            # Increment pose counter 
-            self.poseCounter += 1
-        
+        finally:
+            self.close()
+            
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
         Rt = np.transpose(R)
@@ -251,3 +267,4 @@ class VisionPose:
         # Print performance
         print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
         print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
+        print('  Img rate  (' + self.ID + '): ', round(self.imgCounter / (self.endTimeImg - self.startTime),1))
