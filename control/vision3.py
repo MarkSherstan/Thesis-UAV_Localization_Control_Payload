@@ -29,17 +29,23 @@ class Vision:
         self.offset1 = [-2.3, -15.0, 0]
         self.offset2 = [4.1, -15.0, 0]
     
+        # Connect to vision, create the queue, and start the core
+        VP1 = VisionPose(ID='1', mtx=self.mtx1, dist=self.dist1, offset=self.offset1)
+        self.Q1img  = Queue()
+        self.Q1pose = Queue()
+        P1 = Process(target=VP1.run, args=(self.Q1img, self.Q1pose, ))
+        P1.start()
+        
+        VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
+        self.Q2img  = Queue()
+        self.Q2pose = Queue()
+        P2 = Process(target=VP2.run, args=(self.Q2img, self.Q2pose, ))
+        P2.start()
+        
     def run(self, Q):
         # Start the connection to the T265
         cam = T265()
 
-        # Start the threads
-        VP1 = VisionPose(ID='1', mtx=self.mtx1, dist=self.dist1, offset=self.offset1)
-        VP1.startThread(cam.Img1)
-        
-        VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
-        VP2.startThread(cam.Img2)
-        
         # Start the main thread timer
         self.startTime = time.time()
 
@@ -47,18 +53,28 @@ class Vision:
         try: 
             while(True):
                 # Get data from T265
-                VP1.updateImg(cam.Img1)
-                VP2.updateImg(cam.Img2)
+                self.Q1img.put(cam.Img1)
+                self.Q2img.put(cam.Img2)
                 psiRate = cam.psiRate   # Deg/s
                 vN  = cam.vz * -100.0   # Cm/s
                 vE  = cam.vx *  100.0   # Cm/s
                 vD  = cam.vy *  100.0   # Cm/s
 
+                # Get vision data
+                temp1 = self.Q1pose.get()
+                temp2 = self.Q2pose.get()
+                
+                # Extract the vision data
+                N1 = temp1[0];  N2 = temp2[0]
+                E1 = temp1[1];  E2 = temp2[1]
+                D1 = temp1[2];  D2 = temp2[2]
+                Y1 = temp1[3];  Y2 = temp2[3]
+                
                 # Average the results between cameras
-                North = (VP1.N + VP2.N) / 2.0
-                East  = (VP1.E + VP2.E) / 2.0
-                Down  = (VP1.D + VP2.D) / 2.0
-                Yaw   = (VP1.Y + VP2.Y) / 2.0
+                North = (N1 + N2) / 2.0
+                East  = (E1 + E2) / 2.0
+                Down  = (D1 + D2) / 2.0
+                Yaw   = (Y1 + Y2) / 2.0
                 
                 # Add data to the queue
                 Q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
