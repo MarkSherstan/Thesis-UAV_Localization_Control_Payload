@@ -1,6 +1,7 @@
 from threading import Thread
 import pyrealsense2 as rs
 import numpy as np
+import math
 import time
 import cv2
 
@@ -11,14 +12,15 @@ class T265:
         self.rawImg2 = None
         self.Img1    = None
         self.Img2    = None
-        self.psi     = None
-        self.temp    = None
-        
+        self.psiRate = None
+        self.vx      = None
+        self.vy      = None
+        self.vz      = None 
+
         # Capture threading parameters
         self.isReceivingFrame = False
         self.isRunFrame = True
         self.frameThread = None
-        self.frame = None
 
         # Performance
         self.frameStartTime = None
@@ -60,13 +62,14 @@ class T265:
         if self.frameThread == None:
             self.frameThread = Thread(target=self.acquireFrame)
             self.frameThread.start()
-            print('Capture thread start')
+            print('T265 (Thread 0) start.')
 
             # Block till we start receiving values
             while self.isReceivingFrame != True:
                 time.sleep(0.1)
 
             # Start the timer 
+            self.frameCount = 0
             self.frameStartTime = time.time()
             
     def acquireFrame(self):
@@ -87,7 +90,10 @@ class T265:
             # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
             self.rawImg2 = np.asanyarray(f2.get_data())
-            self.psi = pose.get_pose_data().angular_velocity.y
+            self.psiRate = math.degrees(pose.get_pose_data().angular_velocity.y)
+            self.vx = pose.get_pose_data().velocity.x
+            self.vy = pose.get_pose_data().velocity.y
+            self.vz = pose.get_pose_data().velocity.z 
         
             # Undistort the images
             self.Img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
@@ -129,35 +135,35 @@ class T265:
         # Close the capture thread
         self.isRunFrame = False
         self.frameThread.join()
-        print('Capture thread closed')
+        print('\nThread 0 closed.')
         
         # Performance
-        print('Frame rate: ', round(self.frameCount / (time.time() - self.frameStartTime),1))
+        print('  Frame rate (T265): ', round(self.frameCount / (time.time() - self.frameStartTime),1))
 
         # Close the pipe
         self.pipe.stop()
 
 def main():
     cam = T265()
-    
-    while(True):
-        # Show the image frames 
-        showFrame = np.concatenate((cam.rawImg1, cam.Img1), axis=1)
-        cv2.imshow('Frame', showFrame)
-        
-        # Rad / s -> https://intelrealsense.github.io/librealsense/python_docs/_generated/pyrealsense2.pose.html#pyrealsense2.pose
-        print(cam.psi)
 
-        # Exit
-        key = cv2.waitKey(1)
-        if key != -1:
-            if key & 0xFF == ord('q'):
-                break
-            if key & 0xFF == ord(' '):
-                cv2.imwrite('raw.png',cam.rawImg1)
-                cv2.imwrite('flat.png',cam.Img1)
+    cv2.imwrite('Cam1.png',cam.Img1)
+    cv2.imwrite('Cam2.png',cam.Img2)
+        
+    # while(True):
+    #     # Show the image frames 
+    #     showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
+    #     cv2.imshow('Frame', showFrame)
+        
+    #     # Exit
+    #     key = cv2.waitKey(1)
+    #     if key != -1:
+    #         if key & 0xFF == ord('q'):
+    #             break
+    #         if key & 0xFF == ord(' '):
+    #             cv2.imwrite('Cam1.png',cam.Img1)
+    #             cv2.imwrite('Cam2.png',cam.Img2)
     
-    cv2.destroyAllWindows()    
+    # cv2.destroyAllWindows()    
     cam.close()   
 
 if __name__ == "__main__":

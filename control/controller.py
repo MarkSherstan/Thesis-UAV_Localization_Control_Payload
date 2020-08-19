@@ -170,12 +170,12 @@ class Controller:
         yawRate    = self.constrain(yawControl, self.yawRateConstrain[0], self.yawRateConstrain[1])
 
         # Inverse direction of controller if required
-        rollAngle  = -rollAngle
+        rollAngle  = rollAngle
         pitchAngle = -pitchAngle
         thrust     = thrust + 0.5
-        yawRate    = yawRate
+        yawRate    = -yawRate
 
-        # Mixer -> Works perfect in SITL
+        # Mixer -> Works perfect in SITL (needs negative in real life)
         psi = -math.radians(actual[3])
         pitchAngleTemp = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
         rollAngleTemp = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
