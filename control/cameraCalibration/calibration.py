@@ -74,7 +74,7 @@ class CalibrateCamera:
         # Save it to a file
         cv2.imwrite('ArUcoBoard.png', img)
       
-    def generateArucoMarker(self, ID=0, size=700):
+    def generateArucoMarker(self, ID=2, size=450):
         # Create an image from the marker
         img = aruco.drawMarker(self.arucoDict, ID, size)
 
