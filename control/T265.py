@@ -32,6 +32,9 @@ class T265:
         self.map2A = None
         self.map2B = None
         
+        # Final cropped dimension in pixels (NxN)
+        self.NxN = 750
+
         # Pipeline 
         self.pipe = None
         
@@ -96,9 +99,15 @@ class T265:
             self.vz = pose.get_pose_data().velocity.z 
         
             # Undistort the images
-            self.Img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-            self.Img2 = cv2.remap(self.rawImg2, self.map2A, self.map2B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            img2 = cv2.remap(self.rawImg2, self.map2A, self.map2B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
             
+            # Crop the images
+            h, w = img1.shape
+            self.Img1 = img1[(h-self.NxN)//2 : (h+self.NxN)//2, (w-self.NxN)//2 : (w+self.NxN)//2]
+            h, w = img2.shape
+            self.Img2 = img2[(h-self.NxN)//2 : (h+self.NxN)//2, (w-self.NxN)//2 : (w+self.NxN)//2]
+
             # Performance and threading
             self.frameCount += 1
             self.isReceivingFrame = True
