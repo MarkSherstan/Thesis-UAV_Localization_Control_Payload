@@ -1,4 +1,9 @@
+# Add custom packages one directory up 
+import sys
+sys.path.append('../')
 from filter import MovingAverage, KalmanFilter1x, KalmanFilter2x
+
+# Import standard packages
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
@@ -9,14 +14,14 @@ import time
 # Import data
 ##########################
 try:        
-    fileName = '2020-06-24__21-19-35.csv'
+    fileName = '2020-08-19__15-40-31.csv'
     df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 'Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
                             'northVraw', 'eastVraw', 'downVraw', 
-                            'N-Velocity', 'E-Velocity', 'D-Velocity'
+                            'N-Velocity', 'E-Velocity', 'D-Velocity',
                             'yawVraw', 'yawRate', 'Q-Size'])
 except:
     print('Error with file.')
@@ -26,7 +31,7 @@ except:
 # Select data set
 ##########################
 lowRange = 0
-highRange = 1000
+highRange = 750
 
 timeData = np.array(df['Time'])
 
@@ -110,39 +115,39 @@ for ii in range(1, timeData.shape[0]):
 ##########################
 # Plot the data -> Rotation
 ##########################
-plt.plot(timeData, yawData, 'k-', alpha=0.2, label='Raw Yaw Data')
-plt.plot(timeData, gyroData, 'b-', alpha=0.2, label='Raw Gyro Data')
+plt.plot(timeData, yawData, 'k-', alpha=0.5, label='Raw Yaw Data')
+plt.plot(timeData, gyroData, 'k--', alpha=0.5, label='Raw Gyro Data')
 plt.plot(timeData[:-1], ylistKF, 'r-', label='Kalman Filter')
 plt.plot(timeData[:-1], ylistKF2, 'g-', label='Kalman Filter w/ Gyro')
 plt.plot(timeData[:-1], ylistAvg, 'b-', label='Moving Average')
 
 plt.xlabel('Time [s]')
-plt.ylabel('Yaw [deg] or Yaw Rate [deg/s]')
+plt.ylabel('Yaw [deg] \nYaw Rate [deg/s]')
 plt.legend()
 plt.show()
 
 ##########################
 # Plot the data -> Position
 ##########################
-plt.plot(timeData, northPosData, 'k-',   alpha=0.2, label='Raw N-Pos Data')
-plt.plot(timeData, northVelData, 'k--',  alpha=0.2, label='Raw N-Vel Data')
+plt.plot(timeData, northPosData, 'k-',   alpha=0.75, label='Raw N-Pos Data')
+plt.plot(timeData, northVelData, 'r--',  alpha=0.5, label='Raw N-Vel Data')
 plt.plot(timeData[:-1], nlistKF, 'r-',   label='Kalman Filter')
 plt.plot(timeData[:-1], nlistKF2, 'r--', label='Kalman Filter w/ Vel')
 plt.plot(timeData[:-1], nlistAvg, 'r.-', label='Moving Average')
 
-plt.plot(timeData, eastPosData, 'k-',    alpha=0.2, label='Raw E-Pos Data')
-plt.plot(timeData, eastVelData, 'k--',   alpha=0.2, label='Raw E-Vel Data')
+plt.plot(timeData, eastPosData, 'k-',    alpha=0.75, label='Raw E-Pos Data')
+plt.plot(timeData, eastVelData, 'g--',   alpha=0.5, label='Raw E-Vel Data')
 plt.plot(timeData[:-1], elistKF, 'g-',   label='Kalman Filter')
 plt.plot(timeData[:-1], elistKF2, 'g--', label='Kalman Filter w/ Vel')
 plt.plot(timeData[:-1], elistAvg, 'g.-', label='Moving Average')
 
-plt.plot(timeData, downPosData, 'k-',    alpha=0.2, label='Raw D-Pos Data')
-plt.plot(timeData, downVelData, 'k--',   alpha=0.2, label='Raw D-Vel Data')
+plt.plot(timeData, downPosData, 'k-',    alpha=0.75, label='Raw D-Pos Data')
+plt.plot(timeData, downVelData, 'b--',   alpha=0.5, label='Raw D-Vel Data')
 plt.plot(timeData[:-1], dlistKF, 'b-',   label='Kalman Filter')
 plt.plot(timeData[:-1], dlistKF2, 'b--', label='Kalman Filter w/ Vel')
 plt.plot(timeData[:-1], dlistAvg, 'b.-', label='Moving Average')
 
 plt.xlabel('Time [s]')
-plt.ylabel('Position [cm]')
+plt.ylabel('Position [cm] \nVelocity [cm/s]')
 plt.legend()
 plt.show()
