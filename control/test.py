@@ -1,6 +1,5 @@
 from multiprocessing import Process, Queue
-# from vision import Vision
-from vision2 import Vision
+from vision import Vision
 import statistics
 import time
 
