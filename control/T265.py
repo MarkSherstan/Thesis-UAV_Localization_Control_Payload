@@ -32,9 +32,6 @@ class T265:
         self.map2A = None
         self.map2B = None
         
-        # Final cropped dimension in pixels (NxN)
-        self.NxN = 750
-
         # Pipeline 
         self.pipe = None
         
@@ -99,15 +96,9 @@ class T265:
             self.vz = pose.get_pose_data().velocity.z 
         
             # Undistort the images
-            img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
-            img2 = cv2.remap(self.rawImg2, self.map2A, self.map2B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            self.Img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
+            self.Img2 = cv2.remap(self.rawImg2, self.map2A, self.map2B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
             
-            # Crop the images
-            h, w = img1.shape
-            self.Img1 = img1[(h-self.NxN)//2 : (h+self.NxN)//2, (w-self.NxN)//2 : (w+self.NxN)//2]
-            h, w = img2.shape
-            self.Img2 = img2[(h-self.NxN)//2 : (h+self.NxN)//2, (w-self.NxN)//2 : (w+self.NxN)//2]
-
             # Performance and threading
             self.frameCount += 1
             self.isReceivingFrame = True
@@ -155,24 +146,24 @@ class T265:
 def main():
     cam = T265()
 
-    # cv2.imwrite('Cam1.png',cam.Img1)
-    # cv2.imwrite('Cam2.png',cam.Img2)
+    cv2.imwrite('Cam1.png',cam.Img1)
+    cv2.imwrite('Cam2.png',cam.Img2)
         
-    while(True):
-        # Show the image frames 
-        showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
-        cv2.imshow('Frame', showFrame)
+    # while(True):
+    #     # Show the image frames 
+    #     showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
+    #     cv2.imshow('Frame', showFrame)
         
-        # Exit
-        key = cv2.waitKey(1)
-        if key != -1:
-            if key & 0xFF == ord('q'):
-                break
-            if key & 0xFF == ord(' '):
-                cv2.imwrite('Cam1.png',cam.Img1)
-                cv2.imwrite('Cam2.png',cam.Img2)
+    #     # Exit
+    #     key = cv2.waitKey(1)
+    #     if key != -1:
+    #         if key & 0xFF == ord('q'):
+    #             break
+    #         if key & 0xFF == ord(' '):
+    #             cv2.imwrite('Cam1.png',cam.Img1)
+    #             cv2.imwrite('Cam2.png',cam.Img2)
     
-    cv2.destroyAllWindows()    
+    # cv2.destroyAllWindows()    
     cam.close()   
 
 if __name__ == "__main__":
