@@ -111,10 +111,10 @@ class VisionPose:
         self.parm = aruco.DetectorParameters_create()
         self.parm.cornerRefinementMethod = aruco.CORNER_REFINE_SUBPIX
         self.parm.cornerRefinementWinSize = 5
-        self.parm.cornerRefinementMaxIterations = 100
-        self.parm.cornerRefinementMinAccuracy = 0.00001
-        # self.parm.adaptiveThreshConstant = 7
-        # self.parm.minMarkerPerimeterRate = 0.05
+        self.parm.cornerRefinementMaxIterations = 50
+        self.parm.cornerRefinementMinAccuracy = 0.01
+        self.parm.adaptiveThreshWinSizeStep = 15
+        self.parm.minMarkerPerimeterRate = 0.05
 
         # Create the ArUco board
         self.board = aruco.GridBoard_create(
