@@ -92,8 +92,6 @@ class Vision:
             # Close all the threads (small delay for printing results)
             time.sleep(0.5)
             cam.close()
-            VP1.close()
-            VP2.close()
             
             # Performance of main thread
             print('\nMaster vision thread rate: ', round(self.counter / (self.endTime - self.startTime),1))
@@ -128,6 +126,10 @@ class VisionPose:
         # Image 
         self.gray = None
 
+        # Marker parameters
+        self.lengthMarker = lengthMarker
+        self.spacing = spacing
+
         # Output variables: Position of body frame wrt ArUco frame (observing from above)
         #   North (negative when UAV is behind the target)
         #   East  (negative when UAV is to the left of the target)
@@ -142,15 +144,15 @@ class VisionPose:
         self.parm.cornerRefinementWinSize = 5
         self.parm.cornerRefinementMaxIterations = 50
         self.parm.cornerRefinementMinAccuracy = 0.01
-        self.parm.adaptiveThreshWinSizeStep = 15
+        # self.parm.adaptiveThreshWinSizeStep = 15
         self.parm.minMarkerPerimeterRate = 0.05
 
         # Create the ArUco board
         self.board = aruco.GridBoard_create(
             markersX=4,                 # Columns
             markersY=3,                 # Rows
-            markerLength=lengthMarker,  # cm
-            markerSeparation=spacing,   # cm
+            markerLength=self.lengthMarker,  # cm
+            markerSeparation=self.spacing,   # cm
             dictionary=self.arucoDict)
         
     def startThread(self, Qimg):        
@@ -173,7 +175,7 @@ class VisionPose:
     def getImg(self, Qimg):
         # Run until thread is closed
         while(self.isRun):
-            self.gray = Qimg.get()
+            self.gray = Qimg.get(timeout=3)
             self.imgCounter += 1
             self.isReceiving = True
         
@@ -283,8 +285,10 @@ class VisionPose:
         self.isRun = False
         self.threadX.join()
         print('Thread ' + self.ID + ' closed.')
+        time.sleep(1)
         
         # Print performance
         print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
         print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
-        print('  Img rate  (' + self.ID + '): ', round(self.imgCounter / (self.endTimeImg - self.startTime),1))
+        # print(self.imgCounter, self.endTimeImg, self.startTime)
+        print('  Img rate  (' + self.ID + '): ', round(self.imgCounter / (self.endTime - self.startTime),1))
