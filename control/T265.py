@@ -146,24 +146,24 @@ class T265:
 def main():
     cam = T265()
 
-    # cv2.imwrite('Cam1.png',cam.Img1)
-    # cv2.imwrite('Cam2.png',cam.Img2)
+    cv2.imwrite('Cam1.png',cam.Img1)
+    cv2.imwrite('Cam2.png',cam.Img2)
         
-    while(True):
-        # Show the image frames 
-        showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
-        cv2.imshow('Frame', showFrame)
+    # while(True):
+    #     # Show the image frames 
+    #     showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
+    #     cv2.imshow('Frame', showFrame)
         
-        # Exit
-        key = cv2.waitKey(1)
-        if key != -1:
-            if key & 0xFF == ord('q'):
-                break
-            if key & 0xFF == ord(' '):
-                cv2.imwrite('Cam1.png',cam.Img1)
-                cv2.imwrite('Cam2.png',cam.Img2)
+    #     # Exit
+    #     key = cv2.waitKey(1)
+    #     if key != -1:
+    #         if key & 0xFF == ord('q'):
+    #             break
+    #         if key & 0xFF == ord(' '):
+    #             cv2.imwrite('Cam1.png',cam.Img1)
+    #             cv2.imwrite('Cam2.png',cam.Img2)
     
-    cv2.destroyAllWindows()    
+    # cv2.destroyAllWindows()    
     cam.close()   
 
 if __name__ == "__main__":
