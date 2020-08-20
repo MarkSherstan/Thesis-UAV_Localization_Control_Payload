@@ -18,15 +18,15 @@ class Controller:
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.09
         self.ki_NORTH = 0.001
-        self.kd_NORTH = 0.01
+        self.kd_NORTH = 0.015
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.08
         self.ki_EAST = 0.001
-        self.kd_EAST = 0.01
+        self.kd_EAST = 0.015
 
         # PID Gains: DOWN (thrust)
-        self.kp_DOWN = 0.0015
+        self.kp_DOWN = 0.0017
         self.ki_DOWN = 0.0
         self.kd_DOWN = 0.0
 
