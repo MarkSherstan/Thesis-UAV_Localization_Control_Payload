@@ -21,7 +21,9 @@ try:
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw', 'yawVraw', 'zGyro'])
+                            'northVraw', 'eastVraw', 'downVraw', 
+                            'N-Velocity', 'E-Velocity', 'D-Velocity',
+                            'yawVraw', 'yawRate', 'Q-Size'])
 except:
     print('Error with file.')
     exit()
@@ -49,11 +51,11 @@ fig = plt.figure()
 plt.subplot(2, 2, 1)
 ax0 = plt.gca()
 
+df.plot(kind='line', x='Time', y='Roll-UAV',  color='#FB8604', alpha=0.5, style='-',  ax=ax0)
+df.plot(kind='line', x='Time', y='Pitch-UAV', color='#700CBC', alpha=0.5, style='-',  ax=ax0)
+
 df.plot(kind='line', x='Time', y='Roll-Control',  color='#FB8604', style='-', ax=ax0)
 df.plot(kind='line', x='Time', y='Pitch-Control', color='#700CBC', style='-', ax=ax0)
-
-df.plot(kind='line', x='Time', y='Roll-UAV',  color='#FB8604', style='--',  ax=ax0)
-df.plot(kind='line', x='Time', y='Pitch-UAV', color='#700CBC', style='--',  ax=ax0)
 
 ax0.set_title('Roll & Pitch Control', fontsize=14, fontweight='bold')
 ax0.set_xlabel('Time [s]', fontweight='bold')
