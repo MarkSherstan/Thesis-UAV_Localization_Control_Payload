@@ -74,10 +74,10 @@ def main():
         pos, vel, psi = getVision(Q)
         
         # Start Kalman filter to limit start up error
-        _ = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T))
-        _ = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T))
-        _ = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T))
-        _ = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T))
+        _ = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T)
+        _ = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T)
+        _ = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T)
+        _ = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
         kalmanTimer = time.time()
 
     # Select set point method
@@ -95,10 +95,10 @@ def main():
             pos, vel, psi = getVision(Q)
             
             # Fuse vision and IMU sensor data       
-            northV = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T))
-            eastV  = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T))
-            downV  = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T))
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T))
+            northV = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T)
+            eastV  = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T)
+            downV  = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T)
+            yawV   = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
             kalmanTimer = time.time()
 
             # Calculate control and execute
@@ -116,7 +116,7 @@ def main():
 
             if printFlag is True:
                 print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
-                # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+                print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
                 # print('N: {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], pos[1], vel[1], pos[2], vel[2], psi[0], psi[1]))
 
             loopTimer = time.time()
