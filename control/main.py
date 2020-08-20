@@ -1,6 +1,6 @@
-from filter import MovingAverage, KalmanFilter1x, KalmanFilter2x
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
+from filter import KalmanFilter2x
 from controller import Controller
 from setpoints import SetPoints
 from pymavlink import mavutil
@@ -54,17 +54,11 @@ def main():
     C = Controller(vehicle)
     SP = SetPoints(10, 20, 125)
 
-    # Create low pass filters
-    nAvg = MovingAverage(3)
-    eAvg = MovingAverage(3)
-    dAvg = MovingAverage(3)
-    yAvg = MovingAverage(3)
-
-    # Place holder
-    yKF = KalmanFilter2x(1.0, 2.0, 10.0)
-    nKF = KalmanFilter1x(1.0, 10.0)
-    eKF = KalmanFilter1x(1.0, 10.0)
-    dKF = KalmanFilter1x(1.0, 10.0)
+    # Kalman filter
+    nKF = KalmanFilter2x(3.0, 5.0, 10.0)
+    eKF = KalmanFilter2x(3.0, 5.0, 10.0)
+    dKF = KalmanFilter2x(3.0, 5.0, 10.0)
+    yKF = KalmanFilter2x(3.0, 5.0, 10.0)
     kalmanTimer = time.time()
 
     # Logging variables
@@ -80,10 +74,10 @@ def main():
         pos, vel, psi = getVision(Q)
         
         # Start Kalman filter to limit start up error
-        _ = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
-        _ = nKF.update(time.time() - kalmanTimer, np.array([pos[0]]))
-        _ = eKF.update(time.time() - kalmanTimer, np.array([pos[1]]))
-        _ = dKF.update(time.time() - kalmanTimer, np.array([pos[2]]))
+        _ = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T))
+        _ = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T))
+        _ = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T))
+        _ = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T))
         kalmanTimer = time.time()
 
     # Select set point method
@@ -99,17 +93,12 @@ def main():
         while(True):
             # Get vision data
             pos, vel, psi = getVision(Q)
-
-            # Smooth vision data with moving average low pass filter and/or kalman filter
-            # northV = nAvg.update(northVraw)
-            # eastV  = eAvg.update(eastVraw)
-            # downV  = dAvg.update(downVraw)
-            # yawV   = yAvg.update(yawVraw)
             
-            yawV = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
-            northV = nKF.update(time.time() - kalmanTimer, np.array([pos[0]]))
-            eastV = eKF.update(time.time() - kalmanTimer, np.array([pos[1]]))
-            downV = dKF.update(time.time() - kalmanTimer, np.array([pos[2]]))
+            # Fuse vision and IMU sensor data       
+            northV = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T))
+            eastV  = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T))
+            downV  = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T))
+            yawV   = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T))
             kalmanTimer = time.time()
 
             # Calculate control and execute
