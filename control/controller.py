@@ -26,7 +26,7 @@ class Controller:
         self.kd_EAST = 0.07
 
         # PID Gains: DOWN (thrust)
-        self.kp_DOWN = 0.0025
+        self.kp_DOWN = 0.002
         self.ki_DOWN = 0.0
         self.kd_DOWN = 0.0
 
