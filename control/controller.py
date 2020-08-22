@@ -21,9 +21,9 @@ class Controller:
         self.kd_NORTH = 0.07
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.07
+        self.kp_EAST = 0.075
         self.ki_EAST = 0.000 #0.0008
-        self.kd_EAST = 0.06
+        self.kd_EAST = 0.065
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -142,9 +142,9 @@ class Controller:
 
         # Gain scheduling
         if actual[2] < 25.0:
-            tempKp = self.kp_DOWN * 2.0
+            tempKp = self.kp_DOWN * 1.5
         elif actual[2] < 35.0:
-            tempKp = self.kp_DOWN * 1.7
+            tempKp = self.kp_DOWN * 1.3
         else: 
             tempKp = self.kp_DOWN
             
