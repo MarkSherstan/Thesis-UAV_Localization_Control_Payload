@@ -140,8 +140,12 @@ class Controller:
         dt = time.time() - self.timer
         self.timer = time.time()
 
+        # Gain scheduling
+        if actual[2] < 25.0:
+            tempKp = self.kp_DOWN * 1.5
+            
         # Calculate thrust control
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
         
         # Perform gain scaling
         scale = self.gainScale(thrustControl)
