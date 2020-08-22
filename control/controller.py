@@ -141,8 +141,8 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        if actual[2] < 25.0:
-            tempKp = self.kp_DOWN * 1.5
+        if actual[2] < 35.0:
+            tempKp = self.kp_DOWN * 1.7
         else: 
             tempKp = self.kp_DOWN
             
