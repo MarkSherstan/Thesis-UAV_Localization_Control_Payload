@@ -6,25 +6,25 @@
 #include "masterPayload.h"
 
 // Pinout Digital
-#define gLED            4
-#define rLED            5
-#define radioCE         7
-#define radioCSN        8
-#define lockServo       9
+#define LOCK_SERVO_PIN   4
+#define RED_LED          9
+#define GREEN_LED        10
+#define RADIO_CE         7
+#define RADIO_CSN        8
 
 // Servo pulses and timer
-#define lockClose         900
-#define lockOpen          1400
-#define loopTimeMicroSec  10000
+#define LOCK_CLOSE       900
+#define LOCK_OPEN        1400
+#define LOOP_TIME_US     20000
 
 // Variables
 byte radioByteIn, radioByteOut;
 byte serialByteIn, serialByteOut;
 
 // Setup classes
-MasterPayload MP;
 Servo lock;
-RF24 radio(radioCE, radioCSN);
+MasterPayload MP;
+RF24 radio(RADIO_CE, RADIO_CSN);
 RF24Network network(radio);
 
 // Functions
@@ -40,11 +40,11 @@ void setup() {
   Serial.begin(9600);
 
   // Configure digital pins
-  MP.setUpDigitalPins(rLED, gLED);
+  MP.setUpDigitalPins(RED_LED, GREEN_LED);
 
   // Set up clamping servo and set to release
-  lock.attach(lockServo);
-  lock.writeMicroseconds(lockOpen);
+  lock.attach(LOCK_SERVO_PIN);
+  lock.writeMicroseconds(LOCK_OPEN);
 
   // Set up radio
   SPI.begin();
@@ -52,8 +52,8 @@ void setup() {
   network.begin(CHANNEL, MASTER_NODE);
   radio.setDataRate(RF24_2MBPS);
 
-  // Start time sync (10000->100Hz, 5000->200Hz)
-  MP.startTimeSync(loopTimeMicroSec);
+  // Start time sync (10000->100Hz, 20000->50Hz)
+  MP.startTimeSync(LOOP_TIME_US);
 }
 
 // Run forever
@@ -66,12 +66,12 @@ void loop() {
     // Switch statment based on serial input
     switch (serialByteIn) {
       case ENGAGE:
-        lock.writeMicroseconds(lockClose);
+        lock.writeMicroseconds(LOCK_CLOSE);
         payloadReady();
         break;
 
       case RELEASE:
-        lock.writeMicroseconds(lockOpen);
+        lock.writeMicroseconds(LOCK_OPEN);
         break;
 
       case CAP:
