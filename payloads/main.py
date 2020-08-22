@@ -145,19 +145,19 @@ def main():
         state = input('What would you like to do? ')
 
         # Switch case options
-        if state is 'q':
+        if state == 'q':
             break
-        elif state is 'e':
+        elif state == 'e':
             q.engage()
-        elif state is 'r':
+        elif state == 'r':
             q.release()
-        elif state is 'o':
+        elif state == 'o':
             c.openJaws()
-        elif state is 'c':
+        elif state == 'c':
             c.closeJaws()
 
         # Clear the data line
-        s.writeSerialData(0xEE);
+        s.writeSerialData(0xEE)
 
     # Close the serial port
     s.close()
