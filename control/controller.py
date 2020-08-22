@@ -143,6 +143,8 @@ class Controller:
         # Gain scheduling
         if actual[2] < 25.0:
             tempKp = self.kp_DOWN * 1.5
+        else: 
+            tempKp = self.kp_DOWN
             
         # Calculate thrust control
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
