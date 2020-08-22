@@ -52,7 +52,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(0, 45, 10)
+    SP = SetPoints(-10, 40, 0)
 
     # Kalman filter
     nKF = KalmanFilter2x(3.0, 5.0, 10.0)
