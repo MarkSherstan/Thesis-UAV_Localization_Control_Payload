@@ -141,11 +141,11 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        if actual[2] < 20.0:
+        if (actual[2] < 25.0) and (abs(errorNorth) < 15) and (abs(errorEast) < 15):
             tempKp = self.kp_DOWN * 100
         elif actual[2] < 35.0:
-            tempKp = self.kp_DOWN * 1.3
-        else: 
+            tempKp = self.kp_DOWN * 1.5
+        else:
             tempKp = self.kp_DOWN
             
         # Calculate thrust control
