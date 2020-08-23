@@ -6,9 +6,6 @@ class Controller:
         # Vehicle class
         self.UAV = vehicle
 
-        # Thrust compensation scaling factor
-        self.thrustScaleFactor = 0
-
         # Maximum controller output constraints
         self.rollConstrain  = [-4, 4]               # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
@@ -17,17 +14,17 @@ class Controller:
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.09
-        self.ki_NORTH = 0.0005
+        self.ki_NORTH = 0.0007      # Max 0.35 deg with 500 bounds
         self.kd_NORTH = 0.07
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.075
-        self.ki_EAST = 0.0005
+        self.ki_EAST = 0.0007       # Max 0.35 deg with 500 bounds
         self.kd_EAST = 0.065
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
-        self.ki_DOWN = 0.0
+        self.ki_DOWN = 0.00004      # Max 0.02 with 500 bounds
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
@@ -64,12 +61,6 @@ class Controller:
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
-
-    def gainScale(self, thr):
-        if (thr >= 0):
-            return 1.0
-        else:
-            return 1.0 + abs(thr) * self.thrustScaleFactor
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
@@ -141,23 +132,20 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        if (actual[2] < 25.0) and (abs(errorNorth) < 15) and (abs(errorEast) < 15):
-            tempKp = self.kp_DOWN * 100
-        elif actual[2] < 35.0:
-            tempKp = self.kp_DOWN * 1.5
-        else:
-            tempKp = self.kp_DOWN
+        # if (actual[2] < 25.0) and (abs(errorNorth) < 15) and (abs(errorEast) < 15):
+        #     tempKp = self.kp_DOWN * 100
+        # elif actual[2] < 35.0:
+        #     tempKp = self.kp_DOWN * 1.5
+        # else:
+        #     tempKp = self.kp_DOWN
             
         # Calculate thrust control
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
-        
-        # Perform gain scaling
-        scale = self.gainScale(thrustControl)
-        
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
+                
         # Run the remainder of the control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST*scale, self.ki_EAST*scale, self.kd_EAST*scale)
-        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH*scale, self.ki_NORTH*scale, self.kd_NORTH*scale)
-        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW*scale, self.ki_YAW*scale, self.kd_YAW*scale)
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
+        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
+        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
         
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
