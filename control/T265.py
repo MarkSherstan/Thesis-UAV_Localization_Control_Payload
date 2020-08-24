@@ -146,9 +146,30 @@ class T265:
 def main():
     cam = T265()
 
+    ######################
+    # Take a Snapshot
+    ######################
     cv2.imwrite('Cam1.png',cam.Img1)
     cv2.imwrite('Cam2.png',cam.Img2)
+
+    ######################
+    # Observe Thresholding
+    ######################
+    # A = cv2.adaptiveThreshold(cam.Img1, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 3, 7)
+    # B = cv2.adaptiveThreshold(cam.Img1, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 7)
+
+    # C = cv2.adaptiveThreshold(cam.Img2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 3, 7)
+    # D = cv2.adaptiveThreshold(cam.Img2, 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, 15, 7)
+
+    # cv2.imwrite('Cam1-3.png',A)
+    # cv2.imwrite('Cam1-15.png',B)
         
+    # cv2.imwrite('Cam2-3.png',C)
+    # cv2.imwrite('Cam2-15.png',D)
+
+    ######################
+    # Real Time Stream
+    ######################
     # while(True):
     #     # Show the image frames 
     #     showFrame = np.concatenate((cam.Img1, cam.Img2), axis=1)
@@ -163,7 +184,9 @@ def main():
     #             cv2.imwrite('Cam1.png',cam.Img1)
     #             cv2.imwrite('Cam2.png',cam.Img2)
     
-    # cv2.destroyAllWindows()    
+    # cv2.destroyAllWindows()  
+
+    # Always close the camera  
     cam.close()   
 
 if __name__ == "__main__":
