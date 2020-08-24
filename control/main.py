@@ -63,11 +63,11 @@ def main():
     C = Controller(vehicle)
     SP = SetPoints(-10, 40, 0)
 
-    # # Connect to quick connect 
-    # s = SerialComs()
-    # s.serialThreadStart()
-    # qc = QuickConnect(s)
-    # qc.release()
+    # Connect to quick connect 
+    s = SerialComs()
+    s.serialThreadStart()
+    qc = QuickConnect(s)
+    qc.release()
     
     # Moving average for velocity and acceleration (trajectory generation)
     windowSize = 3
@@ -154,9 +154,9 @@ def main():
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
 
-            # # If landed engange the quick connect
-            # if (landState == True):
-            #     qc.engage()
+            # If landed, engange the quick connect
+            if (landState == True):
+                qc.engage()
             
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
@@ -190,8 +190,9 @@ def main():
                 SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
                 
     except KeyboardInterrupt:
-        # Print final remarks
+        # Print final remarks and close payload connection
         print('Closing')
+        s.close()
         
     finally:        
         # Post main loop rate

@@ -4,7 +4,7 @@ import struct
 import serial
 
 class SerialComs:
-    def __init__(self, serialPort='/dev/ttyUSB*', serialBaud=9600):
+    def __init__(self, serialPort='/dev/ttyUSB0', serialBaud=9600):
         # Class / object / constructor setup
         self.port = serialPort
         self.baud = serialBaud
@@ -45,13 +45,13 @@ class SerialComs:
             temp = self.serialConnection.read()
             self.byteOut = struct.unpack('B', temp)[0]
         except:
-            print('Failed to read and unpack byte')
+            pass
 
     def writeSerialData(self, msg):
         try:
             self.serialConnection.write(bytes([msg]))
         except:
-            print('Failed to write byte')
+            pass
 
     def close(self):
         # Close the serial port connection
@@ -132,12 +132,8 @@ class CAP:
             time.sleep(0.01)
 
 def main():
-    # Connect to serial port
-    portName = '/dev/cu.wchusbserial1410'
-    baudRate = 9600
-
     # Set up the class and start the serial port
-    s = SerialComs(portName, baudRate)
+    s = SerialComs()
     s.serialThreadStart()
 
     # Classes
