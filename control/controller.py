@@ -32,6 +32,10 @@ class Controller:
         self.ki_YAW = 0
         self.kd_YAW = 0.2
 
+        # Gain scheduling 
+        self.gainHeight = 35.0
+        self.gainFactor = 2.0
+        
         # Previous errors
         self.northPrevError = 0
         self.eastPrevError = 0
@@ -132,8 +136,8 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        if actual[2] < 35.0:
-            tempKp = self.kp_DOWN * 2.0
+        if actual[2] < self.gainHeight:
+            tempKp = self.kp_DOWN * self.gainFactor
         else:
             tempKp = self.kp_DOWN
             
