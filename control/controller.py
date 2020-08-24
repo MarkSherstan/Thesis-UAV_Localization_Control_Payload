@@ -36,6 +36,12 @@ class Controller:
         self.gainHeight = 35.0
         self.gainFactor = 2.0
         
+        # Landing check 
+        self.landErrorNE = 3.0
+        self.landHeight  = 15.0
+        self.landCount   = 0 
+        self.landCountRequired = 45
+
         # Previous errors
         self.northPrevError = 0
         self.eastPrevError = 0
@@ -60,11 +66,15 @@ class Controller:
     def startController(self):
         self.timer = time.time()
 
-    def resetIntegral(self):
+    def resetController(self):
+        # Reset integral terms
         self.northI = 0
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
+        
+        # Reset landing counter 
+        self.landCount = 0
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
@@ -173,12 +183,23 @@ class Controller:
         thrust     = thrust + 0.5
         yawRate    = -yawRate
 
-        # Mixer -> Works perfect in SITL (needs negative in real life)
+        # Mixer -> Psi: SITL (+), actual (-)
         psi = -math.radians(actual[3])
         pitchAngleTemp = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
         rollAngleTemp = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
         pitchAngle = pitchAngleTemp
         rollAngle = rollAngleTemp
 
+        # Check if UAV has landed
+        if ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
+                (actual[2] < self.landHeight) and (self.landCount >= self.landCountRequired)):
+            landState = True
+        elif ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
+                (actual[2] < self.landHeight)):
+            self.landCount += 1
+            landState = False
+        else:
+            landState = False
+
         # Return the values
-        return rollAngle, pitchAngle, yawRate, thrust
+        return rollAngle, pitchAngle, yawRate, thrust, landState

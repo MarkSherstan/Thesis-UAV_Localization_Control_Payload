@@ -1,4 +1,5 @@
 from filter import MovingAverage, KalmanFilter2x
+from payloads import SerialComs, QuickConnect
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from controller import Controller
@@ -62,6 +63,18 @@ def main():
     C = Controller(vehicle)
     SP = SetPoints(-10, 40, 0)
 
+    # # Connect to quick connect 
+    # s = SerialComs()
+    # s.serialThreadStart()
+    # qc = QuickConnect(s)
+    # qc.release()
+    
+    # Moving average for velocity and acceleration (trajectory generation)
+    windowSize = 3
+    nVelAvg = MovingAverage(windowSize); nAccAvg = MovingAverage(windowSize)
+    eVelAvg = MovingAverage(windowSize); eAccAvg = MovingAverage(windowSize)
+    dVelAvg = MovingAverage(windowSize); dAccAvg = MovingAverage(windowSize)
+    
     # Kalman filter
     nKF = KalmanFilter2x(3.0, 5.0, 10.0)
     eKF = KalmanFilter2x(3.0, 5.0, 10.0)
@@ -70,12 +83,6 @@ def main():
     tempKalmanTime = None
     kalmanTimer = time.time()
 
-    # Moving average for velocity and acceleration
-    windowSize = 3
-    nVelAvg = MovingAverage(windowSize); nAccAvg = MovingAverage(windowSize)
-    eVelAvg = MovingAverage(windowSize); eAccAvg = MovingAverage(windowSize)
-    dVelAvg = MovingAverage(windowSize); dAccAvg = MovingAverage(windowSize)
-    
     # Logging variables
     freqList = []
     data = []
@@ -141,12 +148,16 @@ def main():
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl = C.positionControl(actual, desired)
+            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actual, desired)
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
 
+            # # If landed engange the quick connect
+            # if (landState == True):
+            #     qc.engage()
+            
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
@@ -167,15 +178,15 @@ def main():
                         pos[0], pos[1], pos[2], 
                         vel[0], vel[1], vel[2],
                         acc[0], acc[1], acc[2],
-                        psi[0], psi[1], Q.qsize()])
+                        psi[0], psi[1], landState, Q.qsize()])
             
-            # Reset integral and generate new trajectory whenever there is a mode switch 
+            # Reset controller and generate new trajectory whenever there is a mode switch 
             if (vehicle.mode.name == 'STABILIZE'):
                 modeState = 1
             
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
-                C.resetIntegral()
+                C.resetController()
                 SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
                 
     except KeyboardInterrupt:
@@ -195,7 +206,7 @@ def main():
                             'northVraw', 'eastVraw', 'downVraw', 
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
                             'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
-                            'yawVraw', 'yawRate', 'Q-Size'])
+                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size'])
 
         # Save data to CSV
         now = datetime.datetime.now()
