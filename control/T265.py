@@ -16,6 +16,9 @@ class T265:
         self.vx      = None
         self.vy      = None
         self.vz      = None 
+        self.ax      = None 
+        self.ay      = None 
+        self.az      = None 
 
         # Capture threading parameters
         self.isReceivingFrame = False
@@ -94,6 +97,9 @@ class T265:
             self.vx = pose.get_pose_data().velocity.x
             self.vy = pose.get_pose_data().velocity.y
             self.vz = pose.get_pose_data().velocity.z 
+            self.ax = pose.get_pose_data().acceleration.x
+            self.ay = pose.get_pose_data().acceleration.y
+            self.az = pose.get_pose_data().acceleration.z
         
             # Undistort the images
             self.Img1 = cv2.remap(self.rawImg1, self.map1A, self.map1B, interpolation=cv2.INTER_LINEAR, borderMode=cv2.BORDER_CONSTANT)
