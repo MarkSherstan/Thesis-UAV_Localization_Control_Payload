@@ -24,7 +24,7 @@ class Controller:
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
-        self.ki_DOWN = 0.00008      # Max 0.04 with 500 bounds
+        self.ki_DOWN = 0.00008     # Max 0.04 with 500 bounds
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
@@ -132,8 +132,6 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        # if (actual[2] < 25.0) and (abs(errorNorth) < 15) and (abs(errorEast) < 15):
-        #     tempKp = self.kp_DOWN * 100
         if actual[2] < 35.0:
             tempKp = self.kp_DOWN * 2.0
         else:
