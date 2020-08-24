@@ -3,7 +3,7 @@ import time
 import struct
 import serial
 
-class COMS:
+class SerialComs:
     def __init__(self, serialPort, serialBaud):
         # Class / object / constructor setup
         self.port = serialPort
@@ -45,13 +45,13 @@ class COMS:
             temp = self.serialConnection.read()
             self.byteOut = struct.unpack('B', temp)[0]
         except:
-            pass
+            print('Failed to read and unpack byte')
 
     def writeSerialData(self, msg):
         try:
             self.serialConnection.write(bytes([msg]))
         except:
-            print('fail')
+            print('Failed to write byte')
 
     def close(self):
         # Close the serial port connection
@@ -79,12 +79,12 @@ class QuickConnect:
         # Send the command to engage
         self.ser.writeSerialData(self.ENGAGE)
 
-        # Wait till ready command is received
-        while(self.ser.byteOut != self.READY):
-            pass
+        # # Wait till ready command is received
+        # while(self.ser.byteOut != self.READY):
+        #     pass
 
-        # Acknowledge ready
-        self.ser.writeSerialData(self.READY)
+        # # Acknowledge ready
+        # self.ser.writeSerialData(self.READY)
 
     def release(self):
         # Send the command to engage
