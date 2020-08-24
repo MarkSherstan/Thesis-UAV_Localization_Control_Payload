@@ -15,22 +15,16 @@ class SetPoints:
         self.downDesiredList  = []
         self.index = 0
         
-    def selectMethod(self, Q, trajectory):
+    def createTrajectory(self, posIC, velIC, accIC):
         # Reset
         self.reset()
         
-        if (trajectory == True):
-            # Find the initial position
-            north0, east0, down0 = self.initialPosition(Q)
-            
-            # Calculate the trajectories
-            self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=3)
-            self.eastDesiredList  = self.trajectoryGen(east0, self.eastDesired, T=3)
-            self.downDesiredList  = self.trajectoryGen(down0, self.downDesired, T=5)
-            print('Trajectory ready')
-        else:
-            print('Standard setpoints ready')
-                    
+        # Calculate the trajectories
+        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=3)
+        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=3)
+        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=5)
+        print('Trajectory ready')
+
     def getDesired(self):
         # North
         if (self.index >= len(self.northDesiredList)):
@@ -54,31 +48,12 @@ class SetPoints:
         self.index += 1
         return [northSP, eastSP, downSP, self.yawDesired]
     
-    def initialPosition(self, Q, pts=10):
-        # Initialize counter
-        north = 0
-        east  = 0
-        down  = 0
-
-        # Sum points 
-        for _ in range(pts):
-            temp = Q.get()
-            north += temp[0]
-            east  += temp[1]
-            down  += temp[2]
-        
-        # Calc the average and return 
-        north0 = north / pts
-        east0  = east / pts     
-        down0  = down / pts  
-        return north0, east0, down0
-
-    def trajectoryGen(self, startPos, endPos, T, sampleRate=1/30):
+    def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
         tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
         pos = []
 
-        # Find coeffcients of 5th order polynomial using matrix operations. Zero vel and acc boundary conditions
+        # Find coeffcients of 5th order polynomial using matrix operations.
         A = np.array([[0, 0, 0, 0, 0, 1],
                     [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
                     [0, 0, 0, 0, 1, 0],
@@ -86,7 +61,7 @@ class SetPoints:
                     [0, 0, 0, 2, 0, 0],
                     [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
 
-        b = np.array([startPos, endPos, 0, 0, 0, 0])
+        b = np.array([pos0, endPos, vel0, 0, acc0, 0])
 
         x = np.linalg.solve(A, b)
 

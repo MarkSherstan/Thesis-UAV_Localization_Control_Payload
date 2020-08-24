@@ -106,8 +106,8 @@ def main():
         velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
         accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
         
-    # Select set point method
-    SP.selectMethod(Q, trajectory=True)
+    # Create a trajectory to follow
+    SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
     modeState = 0
 
     # Loop timer(s)
@@ -166,6 +166,7 @@ def main():
                         rollControl, pitchControl, yawControl, thrustControl,
                         pos[0], pos[1], pos[2], 
                         vel[0], vel[1], vel[2],
+                        acc[0], acc[1], acc[2],
                         psi[0], psi[1], Q.qsize()])
             
             # Reset integral and generate new trajectory whenever there is a mode switch 
@@ -175,7 +176,7 @@ def main():
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
                 C.resetIntegral()
-                SP.selectMethod(Q, trajectory=True)
+                SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
                 
     except KeyboardInterrupt:
         # Print final remarks
@@ -193,6 +194,7 @@ def main():
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
                             'northVraw', 'eastVraw', 'downVraw', 
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
+                            'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
                             'yawVraw', 'yawRate', 'Q-Size'])
 
         # Save data to CSV
