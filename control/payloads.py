@@ -77,7 +77,9 @@ class QuickConnect:
 
     def engage(self):
         # Send the command to engage
-        self.ser.writeSerialData(self.ENGAGE)
+        for _ in range(5):
+            self.ser.writeSerialData(self.ENGAGE)
+            time.sleep(1/15)
 
         # # Wait till ready command is received
         # while(self.ser.byteOut != self.READY):
@@ -88,7 +90,9 @@ class QuickConnect:
 
     def release(self):
         # Send the command to engage
-        self.ser.writeSerialData(self.RELEASE)
+        for _ in range(5):
+            self.ser.writeSerialData(self.RELEASE)
+            time.sleep(1/15)
 
 class CAP:
     def __init__(self, s):
