@@ -52,7 +52,10 @@ class Vision:
                 vN  = cam.vz * -100.0   # Cm/s
                 vE  = cam.vx *  100.0   # Cm/s
                 vD  = cam.vy *  100.0   # Cm/s
-
+                aN  = cam.az * -100.0   # Cm/s^2
+                aE  = cam.ax *  100.0   # Cm/s^2
+                aD  = cam.ay *  100.0   # Cm/s^2
+                
                 # Average the results between cameras
                 North = (VP1.N + VP2.N) / 2.0
                 East  = (VP1.E + VP2.E) / 2.0
@@ -60,7 +63,7 @@ class Vision:
                 Yaw   = (VP1.Y + VP2.Y) / 2.0
                 
                 # Add data to the queue
-                Q.put([North, East, Down, vN, vE, vD, Yaw, psiRate])
+                Q.put([North, East, Down, vN, vE, vD, aN, aE, aD, Yaw, psiRate])
                 time.sleep(1/30)
 
                 # Increment the counter 
