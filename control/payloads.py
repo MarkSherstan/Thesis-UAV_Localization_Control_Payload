@@ -4,7 +4,7 @@ import struct
 import serial
 
 class SerialComs:
-    def __init__(self, serialPort, serialBaud):
+    def __init__(self, serialPort='/dev/ttyUSB*', serialBaud=9600):
         # Class / object / constructor setup
         self.port = serialPort
         self.baud = serialBaud
@@ -20,7 +20,7 @@ class SerialComs:
         except:
             print('Failed to connect with ' + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
 
-    def readSerialStart(self):
+    def serialThreadStart(self):
         # Create a thread
         if self.thread == None:
             self.thread = Thread(target=self.backgroundThread)
@@ -133,8 +133,8 @@ def main():
     baudRate = 9600
 
     # Set up the class and start the serial port
-    s = COMS(portName, baudRate)
-    s.readSerialStart()
+    s = SerialComs(portName, baudRate)
+    s.serialThreadStart()
 
     # Classes
     q = QuickConnect(s)
