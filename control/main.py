@@ -1,6 +1,6 @@
+from filter import MovingAverage, KalmanFilter2x
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
-from filter import KalmanFilter2x
 from controller import Controller
 from setpoints import SetPoints
 from pymavlink import mavutil
@@ -19,8 +19,16 @@ def getVision(Q):
     temp = Q.get()
     posTemp = [temp[0], temp[1], temp[2]]
     velTemp = [temp[3], temp[4], temp[5]]
-    psiTemp = [temp[6], temp[7]]
-    return posTemp, velTemp, psiTemp
+    accTemp = [temp[6], temp[7], temp[8]]
+    psiTemp = [temp[9], temp[10]]
+    return posTemp, velTemp, accTemp, psiTemp
+
+def body2Ned(vals, psi):
+    psi = -math.radians(psi)
+    nTemp = vals[0]*math.cos(psi) - vals[1]*math.sin(psi)
+    eTemp = vals[0]*math.sin(psi) + vals[1]*math.cos(psi)
+
+    return [nTemp, eTemp, vals[2]]
 
 def getVehicleAttitude(UAV):
     # Actual vehicle attitude
@@ -59,8 +67,15 @@ def main():
     eKF = KalmanFilter2x(3.0, 5.0, 10.0)
     dKF = KalmanFilter2x(3.0, 5.0, 10.0)
     yKF = KalmanFilter2x(3.0, 5.0, 10.0)
+    tempKalmanTime = None
     kalmanTimer = time.time()
 
+    # Moving average for velocity and acceleration
+    windowSize = 3
+    nVelAvg = MovingAverage(windowSize); nAccAvg = MovingAverage(windowSize)
+    eVelAvg = MovingAverage(windowSize); eAccAvg = MovingAverage(windowSize)
+    dVelAvg = MovingAverage(windowSize); dAccAvg = MovingAverage(windowSize)
+    
     # Logging variables
     freqList = []
     data = []
@@ -70,16 +85,27 @@ def main():
         # Current mode
         print(vehicle.mode.name)
 
-        # Keep vision queue empty
-        pos, vel, psi = getVision(Q)
+        # Get vision and IMU data
+        pos, vel, acc, psi = getVision(Q)
         
-        # Start Kalman filter to limit start up error
-        _ = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T)
-        _ = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T)
-        _ = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T)
-        _ = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
+        # Estimate yaw
+        tempKalmanTime = time.time()
+        yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
+        
+        # Update from body frame to NED
+        vel = body2Ned(vel, yawV)
+        acc = body2Ned(acc, yawV)
+           
+        # Fuse vision and IMU sensor data   
+        northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
+        eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
+        downV = dKF.update(tempKalmanTime - kalmanTimer, np.array([pos[2], vel[2]]).T)
         kalmanTimer = time.time()
-
+        
+        # Create moving average for velocity and acceleration
+        velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
+        accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
+        
     # Select set point method
     SP.selectMethod(Q, trajectory=True)
     modeState = 0
@@ -91,16 +117,27 @@ def main():
 
     try:
         while(True):
-            # Get vision data
-            pos, vel, psi = getVision(Q)
+            # Get vision and IMU data
+            pos, vel, acc, psi = getVision(Q)
             
-            # Fuse vision and IMU sensor data       
-            northV = nKF.update(time.time() - kalmanTimer, np.array([pos[0], vel[0]]).T)
-            eastV  = eKF.update(time.time() - kalmanTimer, np.array([pos[1], vel[1]]).T)
-            downV  = dKF.update(time.time() - kalmanTimer, np.array([pos[2], vel[2]]).T)
-            yawV   = yKF.update(time.time() - kalmanTimer, np.array([psi[0], psi[1]]).T)
+            # Estimate yaw
+            tempKalmanTime = time.time()
+            yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
+            
+            # Update from body frame to NED
+            vel = body2Ned(vel, yawV)
+            acc = body2Ned(acc, yawV)
+            
+            # Fuse vision and IMU sensor data   
+            northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
+            eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
+            downV = dKF.update(tempKalmanTime - kalmanTimer, np.array([pos[2], vel[2]]).T)
             kalmanTimer = time.time()
-
+            
+            # Create moving average for velocity and acceleration
+            velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
+            accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
+            
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
