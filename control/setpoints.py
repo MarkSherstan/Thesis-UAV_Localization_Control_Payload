@@ -20,9 +20,9 @@ class SetPoints:
         self.reset()
         
         # Calculate the trajectories
-        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=3)
-        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=3)
-        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=5)
+        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=5)
+        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=5)
+        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=7)
         print('Trajectory ready')
 
     def getDesired(self):
@@ -61,8 +61,8 @@ class SetPoints:
                     [0, 0, 0, 2, 0, 0],
                     [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
 
-        # b = np.array([pos0, endPos, vel0, 0, acc0, 0])
-        b = np.array([pos0, endPos, vel0, 0, 0, 0])
+        b = np.array([pos0, endPos, vel0, 0, acc0, 0])
+        # b = np.array([pos0, endPos, vel0, 0, 0, 0])
 
         x = np.linalg.solve(A, b)
 

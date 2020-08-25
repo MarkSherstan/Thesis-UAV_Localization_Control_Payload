@@ -63,8 +63,8 @@ def main():
     qc.release()
     
     # Moving average for velocity and acceleration (trajectory generation)
-    winSizeVel = 10
-    winSizeAcc = 15
+    winSizeVel = 5
+    winSizeAcc = 10
     nVelAvg = MovingAverage(winSizeVel); nAccAvg = MovingAverage(winSizeAcc)
     eVelAvg = MovingAverage(winSizeVel); eAccAvg = MovingAverage(winSizeAcc)
     dVelAvg = MovingAverage(winSizeVel); dAccAvg = MovingAverage(winSizeAcc)
