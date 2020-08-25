@@ -33,7 +33,7 @@ class Controller:
         self.kd_YAW = 0.4
 
         # Gain scheduling 
-        self.gainHeight = 0.0
+        self.gainHeight = 25.0
         self.gainFactor = 2.0
         
         # Landing check 
