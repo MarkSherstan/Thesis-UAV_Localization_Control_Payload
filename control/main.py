@@ -63,10 +63,11 @@ def main():
     qc.release()
     
     # Moving average for velocity and acceleration (trajectory generation)
-    windowSize = 15
-    nVelAvg = MovingAverage(windowSize); nAccAvg = MovingAverage(windowSize)
-    eVelAvg = MovingAverage(windowSize); eAccAvg = MovingAverage(windowSize)
-    dVelAvg = MovingAverage(windowSize); dAccAvg = MovingAverage(windowSize)
+    winSizeVel = 7
+    winSizeAcc = 15
+    nVelAvg = MovingAverage(winSizeVel); nAccAvg = MovingAverage(winSizeAcc)
+    eVelAvg = MovingAverage(winSizeVel); eAccAvg = MovingAverage(winSizeAcc)
+    dVelAvg = MovingAverage(winSizeVel); dAccAvg = MovingAverage(winSizeAcc)
     
     # Kalman filter
     nKF = KalmanFilter2x(3.0, 5.0, 10.0)
