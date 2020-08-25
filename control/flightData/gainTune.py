@@ -16,7 +16,7 @@ fileName = args.input
 # Prepare CSV
 ########################
 try:
-    df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+    df = pd.read_csv(fileName, header = 0, names = ['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
                                           'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
                                           'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
                                           'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
@@ -49,7 +49,7 @@ fig = plt.figure()
 ########################
 # North - Pos 
 ########################
-plt.subplot(3, 2, 1)
+plt.subplot(2, 3, 1)
 ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualN',  color='#700CBC', style='-',  ax=ax1)
@@ -67,7 +67,7 @@ for ii in range(0,len(idx),2):
 ########################
 # North - Control 
 ########################
-plt.subplot(3, 2, 2)
+plt.subplot(2, 3, 4)
 ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='N-P',   color='#700CBC', style='-',  ax=ax2)
@@ -83,6 +83,12 @@ ax2.legend(['P', 'I', 'D', 'PID'])
 for ii in range(0,len(idx),2):
     plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
  
+######
+plt.subplot(2, 3, 3)
+plt.subplot(2, 3, 2)
+plt.subplot(2, 3, 5)
+plt.subplot(2, 3, 6)
+
 ########################
 # Show the plots
 ########################
