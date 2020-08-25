@@ -56,7 +56,8 @@ df.plot(kind='line', x='Time', y='actualN',  color='tab:purple', style='-',  ax=
 df.plot(kind='line', x='Time', y='desiredN', color='tab:purple', style='--', ax=ax1)
 df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', alpha=0.25, style='-', ax=ax1)
 
-ax1.set_title('North', fontsize=14, fontweight='bold')
+tempTitle = 'Kp: ' + str(df['N-kp'][0]) + ' Ki: ' + str(df['N-ki'][0]) + ' Kd: ' + str(df['N-kd'][0])
+ax1.set_title('North\n' + tempTitle, fontsize=14, fontweight='bold')
 ax1.set_ylabel('Position [cm]', fontweight='bold')
 ax1.set_xlabel('')
 ax1.legend(['Actual', 'Desired', 'Error'])
@@ -95,7 +96,8 @@ df.plot(kind='line', x='Time', y='actualE',  color='tab:orange', style='-',  ax=
 df.plot(kind='line', x='Time', y='desiredE', color='tab:orange', style='--', ax=ax1)
 df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', alpha=0.25, style='-', ax=ax1)
 
-ax1.set_title('East', fontsize=14, fontweight='bold')
+tempTitle = 'Kp: ' + str(df['E-kp'][0]) + ' Ki: ' + str(df['E-ki'][0]) + ' Kd: ' + str(df['E-kd'][0])
+ax1.set_title('East\n' + tempTitle, fontsize=14, fontweight='bold')
 ax1.set_xlabel('')
 ax1.legend(['Actual', 'Desired', 'Error'])
 
@@ -132,7 +134,8 @@ df.plot(kind='line', x='Time', y='actualD',  color='tab:green', style='-',  ax=a
 df.plot(kind='line', x='Time', y='desiredD', color='tab:green', style='--', ax=ax1)
 df.plot(kind='line', x='Time', y='errorD',   color='tab:green', alpha=0.25, style='-', ax=ax1)
 
-ax1.set_title('Down', fontsize=14, fontweight='bold')
+tempTitle = 'Kp: ' + str(df['D-kp'][0]) + ' Ki: ' + str(df['D-ki'][0]) + ' Kd: ' + str(df['D-kd'][0])
+ax1.set_title('Down\n' + tempTitle, fontsize=14, fontweight='bold')
 ax1.set_xlabel('')
 ax1.legend(['Actual', 'Desired', 'Error'])
 
