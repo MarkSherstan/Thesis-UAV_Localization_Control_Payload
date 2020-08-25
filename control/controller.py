@@ -202,5 +202,9 @@ class Controller:
         else:
             landState = False
 
+        # Hard set gain schedule
+        if (actual[2] < self.gainHeight) and (errorDown < 0):
+            thrust = 0.4
+        
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust, landState
