@@ -24,13 +24,6 @@ def getVision(Q):
     psiTemp = [temp[9], temp[10]]
     return posTemp, velTemp, accTemp, psiTemp
 
-def body2Ned(vals, psi):
-    psi = -math.radians(psi)
-    nTemp = vals[0]*math.cos(psi) - vals[1]*math.sin(psi)
-    eTemp = vals[0]*math.sin(psi) + vals[1]*math.cos(psi)
-
-    return [nTemp, eTemp, vals[2]]
-
 def getVehicleAttitude(UAV):
     # Actual vehicle attitude
     roll  = math.degrees(UAV.attitude.roll)
@@ -70,7 +63,7 @@ def main():
     qc.release()
     
     # Moving average for velocity and acceleration (trajectory generation)
-    windowSize = 3
+    windowSize = 15
     nVelAvg = MovingAverage(windowSize); nAccAvg = MovingAverage(windowSize)
     eVelAvg = MovingAverage(windowSize); eAccAvg = MovingAverage(windowSize)
     dVelAvg = MovingAverage(windowSize); dAccAvg = MovingAverage(windowSize)
@@ -98,11 +91,7 @@ def main():
         # Estimate yaw
         tempKalmanTime = time.time()
         yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
-        
-        # Update from body frame to NED
-        vel = body2Ned(vel, yawV)
-        acc = body2Ned(acc, yawV)
-           
+                   
         # Fuse vision and IMU sensor data   
         northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
         eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
@@ -130,11 +119,7 @@ def main():
             # Estimate yaw
             tempKalmanTime = time.time()
             yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
-            
-            # Update from body frame to NED
-            vel = body2Ned(vel, yawV)
-            acc = body2Ned(acc, yawV)
-            
+
             # Fuse vision and IMU sensor data   
             northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
             eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
@@ -163,9 +148,9 @@ def main():
             freqList.append(freqLocal)
 
             if printFlag is True:
-                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
-                print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-                # print('N: {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], pos[1], vel[1], pos[2], vel[2], psi[0], psi[1]))
+                # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
+                # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+                print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
 
             loopTimer = time.time()
 
