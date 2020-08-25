@@ -161,6 +161,7 @@ class Controller:
         #     tempKp = self.kp_DOWN * self.gainFactor
         # else:
         #     tempKp = self.kp_DOWN
+        tempKp = self.kp_DOWN
             
         # Calculate thrust control
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
