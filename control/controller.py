@@ -18,7 +18,7 @@ class Controller:
         self.kd_NORTH = 0.06 #0.07
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.07 #0.075
+        self.kp_EAST = 0.06 #0.075
         self.ki_EAST = 0.002       # Max 1 deg with 500 bounds
         self.kd_EAST = 0.05  #0.065
 
@@ -33,7 +33,7 @@ class Controller:
         self.kd_YAW = 0.4
 
         # Gain scheduling 
-        self.gainHeight = 15.0
+        self.gainHeight = 0.0
         self.gainFactor = 2.0
         
         # Landing check 
