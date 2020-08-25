@@ -143,6 +143,8 @@ def main():
             # If landed, engange the quick connect
             if (landState == True):
                 qc.engage()
+                # SP.updateSetPoints(-10, 40, 100)
+                # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
             
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))

@@ -14,7 +14,17 @@ class SetPoints:
         self.eastDesiredList  = []
         self.downDesiredList  = []
         self.index = 0
+    
+    def updateSetPoints(self, northDesired, eastDesired, downDesired, yawDesired=0):
+        # Reset
+        self.reset()
         
+        # Desired Pose
+        self.northDesired = northDesired 
+        self.eastDesired  = eastDesired
+        self.downDesired  = downDesired
+        self.yawDesired   = yawDesired
+    
     def createTrajectory(self, posIC, velIC, accIC):
         # Reset
         self.reset()
