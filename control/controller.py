@@ -64,6 +64,7 @@ class Controller:
         self.timer = None
 
     def startController(self):
+        self.resetController()
         self.timer = time.time()
 
     def resetController(self):
