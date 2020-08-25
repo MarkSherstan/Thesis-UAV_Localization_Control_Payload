@@ -54,7 +54,7 @@ ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualN',  color='tab:purple', style='-',  ax=ax1)
 df.plot(kind='line', x='Time', y='desiredN', color='tab:purple', style='--', ax=ax1)
-df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', style='.-', ax=ax1)
+df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', alpha=0.25, style='-', ax=ax1)
 
 ax1.set_title('North', fontsize=14, fontweight='bold')
 ax1.set_ylabel('Position [cm]', fontweight='bold')
@@ -71,11 +71,12 @@ ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='N-P',   color='k', style='-',  ax=ax2)
 df.plot(kind='line', x='Time', y='N-I',   color='k', style='--', ax=ax2)
-df.plot(kind='line', x='Time', y='N-D',   color='k', style='.-', ax=ax2)
-df.plot(kind='line', x='Time', y='N-PID', color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='N-D',   color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='N-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
 ax2.set_xlabel('Time [s]', fontweight='bold')
 ax2.set_ylabel('Angle [deg]', fontweight='bold')
+ax2.set_ylim([-5,5])
 
 ax2.legend(['P', 'I', 'D', 'PID'])
 
@@ -87,12 +88,12 @@ for ii in range(0,len(idx),2):
 
 
 # East - Pos 
-plt.subplot(2, 3, 3)
+plt.subplot(2, 3, 2)
 ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualE',  color='tab:orange', style='-',  ax=ax1)
 df.plot(kind='line', x='Time', y='desiredE', color='tab:orange', style='--', ax=ax1)
-df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', style='.-', ax=ax1)
+df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', alpha=0.25, style='-', ax=ax1)
 
 ax1.set_title('East', fontsize=14, fontweight='bold')
 ax1.set_xlabel('')
@@ -108,10 +109,11 @@ ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='E-P',   color='k', style='-',  ax=ax2)
 df.plot(kind='line', x='Time', y='E-I',   color='k', style='--', ax=ax2)
-df.plot(kind='line', x='Time', y='E-D',   color='k', style='.-', ax=ax2)
-df.plot(kind='line', x='Time', y='E-PID', color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='E-D',   color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='E-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
 ax2.set_xlabel('Time [s]', fontweight='bold')
+ax2.set_ylim([-5,5])
 
 ax2.legend(['P', 'I', 'D', 'PID'])
 
@@ -123,12 +125,12 @@ for ii in range(0,len(idx),2):
 
 
 # Down - Pos 
-plt.subplot(2, 3, 2)
+plt.subplot(2, 3, 3)
 ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualD',  color='tab:green', style='-',  ax=ax1)
 df.plot(kind='line', x='Time', y='desiredD', color='tab:green', style='--', ax=ax1)
-df.plot(kind='line', x='Time', y='errorD',   color='tab:green', style='.-', ax=ax1)
+df.plot(kind='line', x='Time', y='errorD',   color='tab:green', alpha=0.25, style='-', ax=ax1)
 
 ax1.set_title('Down', fontsize=14, fontweight='bold')
 ax1.set_xlabel('')
@@ -143,8 +145,8 @@ ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='D-P',   color='k', style='-',  ax=ax2)
 df.plot(kind='line', x='Time', y='D-I',   color='k', style='--', ax=ax2)
-df.plot(kind='line', x='Time', y='D-D',   color='k', style='.-', ax=ax2)
-df.plot(kind='line', x='Time', y='D-PID', color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='D-D',   color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='D-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
 ax2.set_xlabel('Time [s]', fontweight='bold')
 
