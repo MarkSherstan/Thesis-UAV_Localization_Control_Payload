@@ -71,7 +71,7 @@ class SetPoints:
                     [0, 0, 0, 2, 0, 0],
                     [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
 
-        b = np.array([pos0, endPos, vel0, 0, acc0, 0])
+        b = np.array([pos0, endPos, vel0, 0, 0, 0])
         # b = np.array([pos0, endPos, vel0, 0, 0, 0])
 
         x = np.linalg.solve(A, b)
