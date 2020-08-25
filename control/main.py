@@ -145,6 +145,7 @@ def main():
                 qc.engage()
                 # SP.updateSetPoints(-10, 40, 100)
                 # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+                # C.resetController()
             
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
