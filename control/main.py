@@ -183,6 +183,7 @@ def main():
         # Print final remarks and close payload connection
         print('Closing')
         s.close()
+        C.logData()
         
     finally:        
         # Post main loop rate

@@ -72,6 +72,7 @@ class Controller:
     def startController(self):
         self.resetController()
         self.timer = time.time()
+        self.startTime = time.time()
 
     def resetController(self):
         # Reset integral terms
@@ -221,7 +222,7 @@ class Controller:
                               errorEast , desired[1], actual[1],
                               errorDown , desired[2], actual[2],
                               errorYaw  , desired[3], actual[3],
-                              rollAngle, pitchAngle, yawRate, thrust, dt])
+                              rollAngle, pitchAngle, yawRate, thrust, dt, time.time()-self.startTime, self.UAV.mode.name])
 
         # Save data and reset temp 
         self.data.append(self.tempData)
@@ -240,7 +241,7 @@ class Controller:
                                               'errorE', 'desiredE', 'actualE',
                                               'errorD', 'desiredD', 'actualD',
                                               'errorY', 'desiredY', 'actualY',
-                                              'roll', 'pitch', 'yaw-rate', 'thrust', 'dt'])
+                                              'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
 
         # Save data to CSV
         now = datetime.datetime.now()
