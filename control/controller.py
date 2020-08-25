@@ -30,7 +30,7 @@ class Controller:
         # PID Gains: YAW (yaw rate)
         self.kp_YAW = 0.6
         self.ki_YAW = 0
-        self.kd_YAW = 0.2
+        self.kd_YAW = 0.4
 
         # Gain scheduling 
         self.gainHeight = 35.0
