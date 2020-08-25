@@ -1,3 +1,5 @@
+import pandas as pd
+import datetime
 import time
 import math
 
@@ -63,6 +65,10 @@ class Controller:
         # Timing
         self.timer = None
 
+        # Data logging
+        self.tempData = []
+        self.data = []
+        
     def startController(self):
         self.resetController()
         self.timer = time.time()
@@ -128,6 +134,9 @@ class Controller:
         D = (error - errorPrev) / dt
         PID = (kp * P) + (ki * I) + (kd * D)
 
+        # Logging
+        self.tempData.extend([kp, ki, kd, I, P*kp, I*ki, D*kd, (PID)])
+        
         # Debugging
         if debug is True:
             print('{:<8.0f} {:<8.0f} {:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, 1/dt, I, P*kp, I*ki, D*kd, (PID)))
@@ -147,10 +156,10 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        if actual[2] < self.gainHeight:
-            tempKp = self.kp_DOWN * self.gainFactor
-        else:
-            tempKp = self.kp_DOWN
+        # if actual[2] < self.gainHeight:
+        #     tempKp = self.kp_DOWN * self.gainFactor
+        # else:
+        #     tempKp = self.kp_DOWN
             
         # Calculate thrust control
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
@@ -207,5 +216,34 @@ class Controller:
         if (actual[2] < self.gainHeight) and (errorDown < 0):
             thrust = 0.4
         
+        # Log temp data
+        self.tempData.extend([errorNorth, desired[0], actual[0],
+                              errorEast , desired[1], actual[1],
+                              errorDown , desired[2], actual[2],
+                              errorYaw  , desired[3], actual[3],
+                              rollAngle, pitchAngle, yawRate, thrust, dt])
+
+        # Save data and reset temp 
+        self.data.append(self.tempData)
+        self.tempData = []
+        
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust, landState
+
+    def logData(self):
+        # Write data to a data frame
+        df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                              'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+                                              'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+                                              'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+                                              'errorN', 'desiredN', 'actualN',
+                                              'errorE', 'desiredE', 'actualE',
+                                              'errorD', 'desiredD', 'actualD',
+                                              'errorY', 'desiredY', 'actualY',
+                                              'roll', 'pitch', 'yaw-rate', 'thrust', 'dt'])
+
+        # Save data to CSV
+        now = datetime.datetime.now()
+        fileName = 'flightData/' + now.strftime('Gains-%Y-%m-%d__%H-%M-%S') + '.csv'
+        df.to_csv(fileName, index=None, header=True)
+        print('File saved to:' + fileName)
