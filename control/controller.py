@@ -21,8 +21,8 @@ class Controller:
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.05 #0.075
-        self.ki_EAST = 0.003       # Max 1.5 deg with 500 bounds
-        self.kd_EAST = 0.05  #0.065
+        self.ki_EAST = 0.004       # Max 2 deg with 500 bounds
+        self.kd_EAST = 0.04  #0.065
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -30,9 +30,9 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.6
+        self.kp_YAW = 0.5
         self.ki_YAW = 0
-        self.kd_YAW = 0.4
+        self.kd_YAW = 0
 
         # Gain scheduling 
         self.gainHeight = 25.0
