@@ -58,12 +58,12 @@ class SetPoints:
         self.index += 1
         return [northSP, eastSP, downSP, self.yawDesired]
 
-    def createStep(self, posIC):
+    def createStep(self, posIC, sampleRate=1/30):
         # Reset
         self.reset()
     
         # 2 second steady state
-        n = 2.0 / sampleRate
+        n = int(2.0 / sampleRate)
         
         # Update the lists
         self.northDesiredList = [posIC[0]]
