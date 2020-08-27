@@ -49,7 +49,7 @@ fig = plt.figure()
 ################################################################################################
 
 # North - Pos 
-plt.subplot(2, 3, 1)
+plt.subplot(2, 4, 1)
 ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualN',  color='tab:purple', style='-',  ax=ax1)
@@ -57,7 +57,7 @@ df.plot(kind='line', x='Time', y='desiredN', color='tab:purple', style='--', ax=
 df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', alpha=0.25, style='-', ax=ax1)
 
 tempTitle = 'Kp: ' + str(df['N-kp'][0]) + ' Ki: ' + str(df['N-ki'][0]) + ' Kd: ' + str(df['N-kd'][0])
-ax1.set_title('North\n' + tempTitle, fontsize=14, fontweight='bold')
+ax1.set_title('North\n' + tempTitle, fontsize=10, fontweight='bold')
 ax1.set_ylabel('Position [cm]', fontweight='bold')
 ax1.set_xlabel('')
 ax1.legend(['Actual', 'Desired', 'Error'])
@@ -65,9 +65,8 @@ ax1.legend(['Actual', 'Desired', 'Error'])
 for ii in range(0,len(idx),2):
     plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
 
-
 # North - Control 
-plt.subplot(2, 3, 4)
+plt.subplot(2, 4, 5)
 ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='N-P',   color='k', style='-',  ax=ax2)
@@ -89,7 +88,7 @@ for ii in range(0,len(idx),2):
 
 
 # East - Pos 
-plt.subplot(2, 3, 2)
+plt.subplot(2, 4, 2)
 ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualE',  color='tab:orange', style='-',  ax=ax1)
@@ -97,16 +96,15 @@ df.plot(kind='line', x='Time', y='desiredE', color='tab:orange', style='--', ax=
 df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', alpha=0.25, style='-', ax=ax1)
 
 tempTitle = 'Kp: ' + str(df['E-kp'][0]) + ' Ki: ' + str(df['E-ki'][0]) + ' Kd: ' + str(df['E-kd'][0])
-ax1.set_title('East\n' + tempTitle, fontsize=14, fontweight='bold')
+ax1.set_title('East\n' + tempTitle, fontsize=10, fontweight='bold')
 ax1.set_xlabel('')
 ax1.legend(['Actual', 'Desired', 'Error'])
 
 for ii in range(0,len(idx),2):
     plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
 
-
 # East - Control 
-plt.subplot(2, 3, 5)
+plt.subplot(2, 4, 6)
 ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='E-P',   color='k', style='-',  ax=ax2)
@@ -127,7 +125,7 @@ for ii in range(0,len(idx),2):
 
 
 # Down - Pos 
-plt.subplot(2, 3, 3)
+plt.subplot(2, 4, 3)
 ax1 = plt.gca()
 
 df.plot(kind='line', x='Time', y='actualD',  color='tab:green', style='-',  ax=ax1)
@@ -135,15 +133,15 @@ df.plot(kind='line', x='Time', y='desiredD', color='tab:green', style='--', ax=a
 df.plot(kind='line', x='Time', y='errorD',   color='tab:green', alpha=0.25, style='-', ax=ax1)
 
 tempTitle = 'Kp: ' + str(df['D-kp'][0]) + ' Ki: ' + str(df['D-ki'][0]) + ' Kd: ' + str(df['D-kd'][0])
-ax1.set_title('Down\n' + tempTitle, fontsize=14, fontweight='bold')
+ax1.set_title('Down\n' + tempTitle, fontsize=10, fontweight='bold')
 ax1.set_xlabel('')
 ax1.legend(['Actual', 'Desired', 'Error'])
 
 for ii in range(0,len(idx),2):
     plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
 
-# Control 
-plt.subplot(2, 3, 6)
+# Down - Control 
+plt.subplot(2, 4, 7)
 ax2 = plt.gca()
 
 df.plot(kind='line', x='Time', y='D-P',   color='k', style='-',  ax=ax2)
@@ -153,6 +151,42 @@ df.plot(kind='line', x='Time', y='D-PID', color='k', alpha=0.5, style='-', ax=ax
 
 ax2.set_xlabel('Time [s]', fontweight='bold')
 
+ax2.legend(['P', 'I', 'D', 'PID'])
+
+for ii in range(0,len(idx),2):
+    plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+
+################################################################################################
+
+
+# Yaw - Ang 
+plt.subplot(2, 4, 4)
+ax1 = plt.gca()
+
+df.plot(kind='line', x='Time', y='actualY',  color='tab:blue', style='-',  ax=ax1)
+df.plot(kind='line', x='Time', y='desiredY', color='tab:blue', style='--', ax=ax1)
+df.plot(kind='line', x='Time', y='errorY',   color='tab:blue', alpha=0.25, style='-', ax=ax1)
+
+tempTitle = 'Kp: ' + str(df['Y-kp'][0]) + ' Ki: ' + str(df['Y-ki'][0]) + ' Kd: ' + str(df['Y-kd'][0])
+ax1.set_title('Yaw\n' + tempTitle, fontsize=10, fontweight='bold')
+ax1.set_xlabel('')
+ax1.legend(['Actual', 'Desired', 'Error'])
+
+for ii in range(0,len(idx),2):
+    plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+# Yaw - Control 
+plt.subplot(2, 4, 8)
+ax2 = plt.gca()
+
+df.plot(kind='line', x='Time', y='Y-P',   color='k', style='-',  ax=ax2)
+df.plot(kind='line', x='Time', y='Y-I',   color='k', style='--', ax=ax2)
+df.plot(kind='line', x='Time', y='Y-D',   color='k', style=':',  ax=ax2)
+df.plot(kind='line', x='Time', y='Y-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+ax2.set_xlabel('Time [s]', fontweight='bold')
+ax2.set_ylim([-10,10])
 ax2.legend(['P', 'I', 'D', 'PID'])
 
 for ii in range(0,len(idx),2):
