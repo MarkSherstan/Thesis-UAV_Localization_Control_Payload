@@ -22,7 +22,7 @@ class Controller:
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.05 #0.075
         self.ki_EAST = 0.003       # Max 1.5 deg with 500 bounds
-        self.kd_EAST = 0.1  #0.065
+        self.kd_EAST = 0.05  #0.065
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
