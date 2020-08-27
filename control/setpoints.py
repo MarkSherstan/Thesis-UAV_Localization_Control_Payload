@@ -57,7 +57,27 @@ class SetPoints:
         # Increment counter and return values
         self.index += 1
         return [northSP, eastSP, downSP, self.yawDesired]
+
+    def createStep(self, posIC):
+        # Reset
+        self.reset()
     
+        # 2 second steady state
+        n = 2.0 / sampleRate
+        
+        # Update the lists
+        self.northDesiredList = [posIC[0]]
+        self.eastDesiredList  = [posIC[1]] * n
+        self.downDesiredList  = [posIC[2]]
+        
+        # Update set points
+        self.northDesired = posIC[0] 
+        self.eastDesired  = posIC[1] + 50
+        self.downDesired  = posIC[2] 
+        
+        # Show step is ready
+        print('Step response ready')
+
     def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
         tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)

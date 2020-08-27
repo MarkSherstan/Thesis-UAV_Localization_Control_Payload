@@ -104,7 +104,8 @@ def main():
         accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
         
     # Create a trajectory to follow
-    SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+    # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+    SP.createStep([northV, eastV, downV])
     modeState = 0
 
     # Loop timer(s)
@@ -176,7 +177,8 @@ def main():
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
                 C.resetController()
-                SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+                # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+                SP.createStep([northV, eastV, downV])
                 
     except KeyboardInterrupt:
         # Print final remarks and close payload connection
