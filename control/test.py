@@ -16,7 +16,7 @@ loopTimer = time.time()
 loop.startTimer()
 
 # Loop for some time
-while (time.time() < startTime+5):
+while (time.time() < startTime+10):
     # Stabilize rate
     loop.sync()
 
