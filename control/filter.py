@@ -1,5 +1,6 @@
 from simdkalman.primitives import update, predict_observation, predict
 import numpy as np
+import time
 
 class MovingAverage:
     def __init__(self, windowSize):
@@ -62,3 +63,23 @@ class KalmanFilter2x:
         self.m, self.P = predict(m, P, stateTransition, processNoise)
 
         return dataOut[0][0]
+
+class TimeSync:
+    def __init__(self, samplingRate):
+        self.previousTime = None
+        self.samplingRate = samplingRate 
+
+    def startTimer(self):
+        self.previousTime = time.time()
+
+    def sync(self):
+        # Calculate time difference
+        timeDiff = time.time() - self.previousTime
+
+        # Delay if loop is too fast
+        if (timeDiff <= self.samplingRate):
+            time.sleep(self.samplingRate - timeDiff)
+
+        # Save time for next itteration
+        self.previousTime = time.time()
+        
