@@ -105,3 +105,28 @@ class SetPoints:
 
         # Return the resulting position
         return pos
+
+    def sineWaveGenerator(self, T=5, sampleRate=1/30, plotFlag=False):
+        # Time array
+        x = np.linspace(0, T, round(T/sampleRate), endpoint=True)
+
+        # Function parameters
+        A = 4
+        f = 30
+        fs = 30
+
+        # Output
+        y = A*np.sin(2*np.pi*f * (x/fs)) 
+
+        # Visualizing
+        if plotFlag is True:
+            # Import packages
+            import matplotlib.pyplot as plt
+
+            # Display the results
+            plt.plot(x,y)
+            plt.show()
+        
+        # Return the result 
+        return y
+            
