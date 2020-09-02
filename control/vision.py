@@ -254,3 +254,53 @@ class VisionPose:
         # Print performance
         print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
         print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
+
+class GetVision:
+    def __init__(self, Q):
+        # Vision queue
+        self.Q = Q
+        
+        # Threading parameters
+        self.isReceiving = False
+        self.isRun = True
+        self.thread = None
+
+        # Data
+        self.posTemp = None
+        self.velTemp = None
+        self.accTemp = None
+        self.psiTemp = None
+        
+    def startThread(self):        
+        # Create a thread
+        if self.thread == None:
+            self.thread = Thread(target=self.run)
+            self.thread.start()
+            print('Vision queue thread started')
+
+            # Block till we start receiving values
+            while self.isReceiving != True:
+                time.sleep(0.1)
+    
+    def run(self):
+        # Run until thread is closed
+        while(self.isRun):
+            # Vision Data
+            temp = self.Q.get()
+            self.posTemp = [temp[0], temp[1], temp[2]]
+            self.velTemp = [temp[3], temp[4], temp[5]]
+            self.accTemp = [temp[6], temp[7], temp[8]]
+            self.psiTemp = [temp[9], temp[10]]
+
+            # Update thread state
+            self.isReceiving = True
+        
+    def getVision(self):
+        return self.posTemp, self.velTemp, self.accTemp, self.psiTemp
+    
+    def close():
+        # Close the thread and join
+        self.isRun = False
+        self.thread.join()
+        print('Vision queue thread closed')
+        
