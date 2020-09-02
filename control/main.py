@@ -2,10 +2,10 @@ from filter import MovingAverage, KalmanFilter2x, TimeSync
 from payloads import SerialComs, QuickConnect
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
+from vision import Vision, GetVision
 from controller import Controller
 from setpoints import SetPoints
 from pymavlink import mavutil
-from vision import Vision
 import pandas as pd
 import numpy as np
 import statistics
@@ -14,15 +14,6 @@ import math
 import time
 
 printFlag = False
-
-def getVision(Q):
-    # Vision Data
-    temp = Q.get()
-    posTemp = [temp[0], temp[1], temp[2]]
-    velTemp = [temp[3], temp[4], temp[5]]
-    accTemp = [temp[6], temp[7], temp[8]]
-    psiTemp = [temp[9], temp[10]]
-    return posTemp, velTemp, accTemp, psiTemp
 
 def getVehicleAttitude(UAV):
     # Actual vehicle attitude
@@ -46,11 +37,12 @@ def main():
     vehicle.send_mavlink(msg)
     time.sleep(0.5)
 
-    # Connect to vision, create the queue, and start the core
+    # Connect to vision, create the queue, start the core, and start the thread
     V = Vision()
     Q = Queue()
     P = Process(target=V.run, args=(Q, ))
     P.start()
+    GV = GetVision(Q)
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
@@ -79,6 +71,7 @@ def main():
 
     # Loop rate stabilization
     sync = TimeSync(1/30)
+    sync.startTimer()
     
     # Logging variables
     freqList = []
@@ -86,11 +79,14 @@ def main():
 
     # Wait till we switch modes to prevent integral windup and keep everything happy
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
+        # Stabilize rate
+        sync.stabilize()
+        
         # Current mode
         print(vehicle.mode.name)
 
         # Get vision and IMU data
-        pos, vel, acc, psi = getVision(Q)
+        pos, vel, acc, psi = GV.getVision()
         
         # Estimate yaw
         tempKalmanTime = time.time()
@@ -123,7 +119,7 @@ def main():
             sync.stabilize()
     
             # Get vision and IMU data
-            pos, vel, acc, psi = getVision(Q)
+            pos, vel, acc, psi = GV.getVision()
             
             # Estimate yaw
             tempKalmanTime = time.time()
