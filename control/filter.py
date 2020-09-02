@@ -72,7 +72,7 @@ class TimeSync:
     def startTimer(self):
         self.previousTime = time.time()
 
-    def sync(self):
+    def stabilize(self):
         # Calculate time difference
         timeDiff = time.time() - self.previousTime
 

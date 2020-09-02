@@ -1,4 +1,4 @@
-from filter import MovingAverage, KalmanFilter2x
+from filter import MovingAverage, KalmanFilter2x, TimeSync
 from payloads import SerialComs, QuickConnect
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
@@ -77,6 +77,9 @@ def main():
     tempKalmanTime = None
     kalmanTimer = time.time()
 
+    # Loop rate stabilization
+    sync = TimeSync(1/30)
+    
     # Logging variables
     freqList = []
     data = []
@@ -108,13 +111,17 @@ def main():
     SP.createStep([northV, eastV, downV])
     modeState = 0
 
-    # Loop timer(s)
+    # Timers
     startTime = time.time()
     loopTimer = time.time()
+    sync.startTimer()
     C.startController()
 
     try:
         while(True):
+            # Stabilize rate
+            sync.stabilize()
+    
             # Get vision and IMU data
             pos, vel, acc, psi = getVision(Q)
             
