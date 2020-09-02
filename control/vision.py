@@ -276,7 +276,7 @@ class GetVision:
         if self.thread == None:
             self.thread = Thread(target=self.run)
             self.thread.start()
-            print('Vision queue thread started')
+            print('Vision queue thread start')
 
             # Block till we start receiving values
             while self.isReceiving != True:
@@ -296,7 +296,8 @@ class GetVision:
             self.isReceiving = True
         
     def getVision(self):
-        return self.posTemp, self.velTemp, self.accTemp, self.psiTemp
+        # Return results
+        return self.posTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), self.psiTemp.copy()
     
     def close():
         # Close the thread and join
