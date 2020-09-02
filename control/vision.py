@@ -62,8 +62,14 @@ class Vision:
                 Down  = (VP1.D + VP2.D) / 2.0
                 Yaw   = (VP1.Y + VP2.Y) / 2.0
                 
+                # Find difference bettween cams
+                nDiff = (VP1.N - VP2.N)
+                eDiff = (VP1.E - VP2.E)
+                dDiff = (VP1.D - VP2.D)
+                yDiff = (VP1.Y - VP2.Y)
+                
                 # Add data to the queue
-                Q.put([North, East, Down, vN, vE, vD, aN, aE, aD, Yaw, psiRate])
+                Q.put([North, East, Down, vN, vE, vD, aN, aE, aD, Yaw, psiRate, nDiff, eDiff, dDiff, yDiff])
                 time.sleep(1/30)
 
                 # Increment the counter 
@@ -270,6 +276,7 @@ class GetVision:
         self.velTemp = None
         self.accTemp = None
         self.psiTemp = None
+        self.difTemp = None
         
     def startThread(self):        
         # Create a thread
@@ -291,13 +298,14 @@ class GetVision:
             self.velTemp = [temp[3], temp[4], temp[5]]
             self.accTemp = [temp[6], temp[7], temp[8]]
             self.psiTemp = [temp[9], temp[10]]
+            self.difTemp = [temp[11], temp[12], temp[13], temp[14]]
 
             # Update thread state
             self.isReceiving = True
         
     def getVision(self):
         # Return results
-        return self.posTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), self.psiTemp.copy()
+        return self.posTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), self.psiTemp.copy(), self.difTemp.copy()
     
     def close():
         # Close the thread and join

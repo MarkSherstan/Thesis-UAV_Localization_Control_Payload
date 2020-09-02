@@ -86,7 +86,7 @@ def main():
         print(vehicle.mode.name)
 
         # Get vision and IMU data
-        pos, vel, acc, psi = GV.getVision()
+        pos, vel, acc, psi, _ = GV.getVision()
         
         # Estimate yaw
         tempKalmanTime = time.time()
@@ -119,7 +119,7 @@ def main():
             sync.stabilize()
     
             # Get vision and IMU data
-            pos, vel, acc, psi = GV.getVision()
+            pos, vel, acc, psi, dif = GV.getVision()
             
             # Estimate yaw
             tempKalmanTime = time.time()
@@ -171,7 +171,8 @@ def main():
                         pos[0], pos[1], pos[2], 
                         vel[0], vel[1], vel[2],
                         acc[0], acc[1], acc[2],
-                        psi[0], psi[1], landState, Q.qsize()])
+                        psi[0], psi[1], landState, Q.qsize(),
+                        dif[0], dif[1], dif[2], dif[3]])
             
             # Reset controller and generate new trajectory whenever there is a mode switch 
             if (vehicle.mode.name == 'STABILIZE'):
@@ -184,9 +185,10 @@ def main():
                 SP.createStep([northV, eastV, downV])
                 
     except KeyboardInterrupt:
-        # Print final remarks and close payload connection
+        # Print final remarks and close connections and threads
         print('Closing')
         s.close()
+        GV.close()
         C.logData()
         
     finally:        
@@ -202,7 +204,8 @@ def main():
                             'northVraw', 'eastVraw', 'downVraw', 
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
                             'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
-                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size'])
+                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size',
+                            'N-diff', 'E-diff', 'D-diff', 'Y-diff'])
 
         # Save data to CSV
         now = datetime.datetime.now()
