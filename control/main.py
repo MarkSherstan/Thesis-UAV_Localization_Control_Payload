@@ -104,7 +104,8 @@ def main():
         
     # Create a trajectory to follow
     # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
-    SP.createStep([northV, eastV, downV])
+    SP.createWave(testState='Y')
+    # SP.createStep([northV, eastV, downV])
     modeState = 0
 
     # Timers
@@ -139,6 +140,8 @@ def main():
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actual, desired)
+
+            rollControl = desired[1]; pitchControl = desired[0]; yawControl = desired[3]; thrustControl = desired[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # Get actual vehicle attitude
@@ -187,9 +190,9 @@ def main():
     except KeyboardInterrupt:
         # Print final remarks and close connections and threads
         print('Closing')
+        C.logData()
         s.close()
         GV.close()
-        C.logData()
         
     finally:        
         # Post main loop rate

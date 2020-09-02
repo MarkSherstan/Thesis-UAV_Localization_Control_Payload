@@ -113,9 +113,10 @@ class SetPoints:
         # Return the resulting position
         return pos
 
-    def waveGen(self, testState):
+    def createWave(self, testState):
         # Reset
         self.reset()
+        self.updateSetPoints(0,0,0.5,0)
 
         # Actual controller inputs not desired positions
         if (testState == 'Y'):
@@ -132,14 +133,14 @@ class SetPoints:
             self.yawDesired  = 0
         elif (testState == 'T'):
             # scillate thrust
-            self.northDesiredList = 0
-            self.eastDesiredList = 0
-            self.downDesired = 0.5 + self.sineWaveGenerator(0.05)
+            self.northDesired = 0
+            self.eastDesired = 0
+            self.downDesiredList = self.sineWaveGenerator(A=0.05, b=0.5)
             self.yawDesired  = 0
         else:
             print('Error in selected state')     
 
-    def sineWaveGenerator(self, A, T=5, sampleRate=1/30, plotFlag=False):
+    def sineWaveGenerator(self, A, b=0, T=5, sampleRate=1/30, plotFlag=False):
         # Time array
         x = np.linspace(0, T, round(T/sampleRate), endpoint=True)
 
@@ -148,7 +149,7 @@ class SetPoints:
         fs = 30
 
         # Output
-        y = A*np.sin(2*np.pi*f * (x/fs)) 
+        y = A*np.sin(2*np.pi*f * (x/fs)) + b
 
         # Visualizing
         if plotFlag is True:

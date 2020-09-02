@@ -2,6 +2,7 @@ from threading import Thread
 import cv2.aruco as aruco
 from T265 import T265
 import numpy as np
+import queue
 import math
 import time
 import cv2
@@ -296,12 +297,15 @@ class GetVision:
         # Run until thread is closed
         while(self.isRun):
             # Vision Data
-            temp = self.Q.get()
-            self.posTemp = [temp[0], temp[1], temp[2]]
-            self.velTemp = [temp[3], temp[4], temp[5]]
-            self.accTemp = [temp[6], temp[7], temp[8]]
-            self.psiTemp = [temp[9], temp[10]]
-            self.difTemp = [temp[11], temp[12], temp[13], temp[14]]
+            try:
+                temp = self.Q.get(timeout=2)
+                self.posTemp = [temp[0], temp[1], temp[2]]
+                self.velTemp = [temp[3], temp[4], temp[5]]
+                self.accTemp = [temp[6], temp[7], temp[8]]
+                self.psiTemp = [temp[9], temp[10]]
+                self.difTemp = [temp[11], temp[12], temp[13], temp[14]]
+            except queue.Empty:
+                time.sleep(1/30)
 
             # Update thread state
             self.isReceiving = True
@@ -310,7 +314,7 @@ class GetVision:
         # Return results
         return self.posTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), self.psiTemp.copy(), self.difTemp.copy()
     
-    def close():
+    def close(self):
         # Close the thread and join
         self.isRun = False
         self.thread.join()
