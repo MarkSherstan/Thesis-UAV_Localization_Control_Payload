@@ -277,6 +277,9 @@ class GetVision:
         self.accTemp = None
         self.psiTemp = None
         self.difTemp = None
+
+        # Start thread automatically
+        self.startThread()
         
     def startThread(self):        
         # Create a thread
