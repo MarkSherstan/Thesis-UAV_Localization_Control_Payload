@@ -13,6 +13,7 @@ class SetPoints:
         self.northDesiredList = []
         self.eastDesiredList  = []
         self.downDesiredList  = []
+        self.yawDesiredList   = []
         self.index = 0
     
     def updateSetPoints(self, northDesired, eastDesired, downDesired, yawDesired=0):
@@ -53,10 +54,16 @@ class SetPoints:
             downSP = self.downDesired
         else:
             downSP = self.downDesiredList[self.index]
-            
+
+        # Yaw  
+        if (self.index >= len(self.yawDesiredList)):
+            yawSP = self.yawDesired
+        else:
+            yawSP = self.yawDesiredList[self.index]
+
         # Increment counter and return values
         self.index += 1
-        return [northSP, eastSP, downSP, self.yawDesired]
+        return [northSP, eastSP, downSP, yawSP]
 
     def createStep(self, posIC, sampleRate=1/30):
         # Reset
@@ -106,12 +113,37 @@ class SetPoints:
         # Return the resulting position
         return pos
 
-    def sineWaveGenerator(self, T=5, sampleRate=1/30, plotFlag=False):
+    def waveGen(self, testState):
+        # Reset
+        self.reset()
+
+        # Actual controller inputs not desired positions
+        if (testState == 'Y'):
+            # Oscillate just yaw
+            self.northDesired = 0 
+            self.eastDesired  = 0
+            self.downDesired  = 0.5
+            self.yawDesiredList = self.sineWaveGenerator(10)
+        elif (testState == 'RP'):
+            # Oscillate roll and pitch
+            self.northDesiredList = self.sineWaveGenerator(4)
+            self.eastDesiredList = self.sineWaveGenerator(4)
+            self.downDesired = 0.5
+            self.yawDesired  = 0
+        elif (testState == 'T'):
+            # scillate thrust
+            self.northDesiredList = 0
+            self.eastDesiredList = 0
+            self.downDesired = 0.5 + self.sineWaveGenerator(0.05)
+            self.yawDesired  = 0
+        else:
+            print('Error in selected state')     
+
+    def sineWaveGenerator(self, A, T=5, sampleRate=1/30, plotFlag=False):
         # Time array
         x = np.linspace(0, T, round(T/sampleRate), endpoint=True)
 
         # Function parameters
-        A = 4
         f = 30
         fs = 30
 
