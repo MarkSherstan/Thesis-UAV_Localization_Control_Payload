@@ -10,6 +10,7 @@ import pandas as pd
 import numpy as np
 import statistics
 import datetime
+import yappi
 import math
 import time
 
@@ -218,4 +219,17 @@ def main():
         print('File saved to:' + fileName)
 
 if __name__ == "__main__":
+    # Get yappi to do its thing
+    yappi.set_clock_type("wall") # cpu
+    yappi.start(builtins=True)
     main()
+    yappi.stop()
+ 
+    # Retrieve thread stats by their Yappi thread id 
+    threads = yappi.get_thread_stats()
+    for thread in threads:
+        print("Function stats for (%s) (%d)" % (thread.name, thread.id))
+        temp = yappi.get_func_stats(ctx_id=thread.id)
+        temp.print_all()
+        temp.save(thread.name, type='pstat') # qcachegrind
+        print('\n\n')
