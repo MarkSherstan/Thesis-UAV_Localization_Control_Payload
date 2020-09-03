@@ -227,9 +227,11 @@ if __name__ == "__main__":
  
     # Retrieve thread stats by their Yappi thread id 
     threads = yappi.get_thread_stats()
+    ii = 0
     for thread in threads:
         print("Function stats for (%s) (%d)" % (thread.name, thread.id))
         temp = yappi.get_func_stats(ctx_id=thread.id)
         temp.print_all()
-        temp.save(thread.name, type='pstat') # qcachegrind
+        temp.save('profiling/' + thread.name + str(ii), type='pstat') # qcachegrind
+        ii += 1
         print('\n\n')
