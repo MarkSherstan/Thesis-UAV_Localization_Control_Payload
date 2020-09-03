@@ -104,8 +104,8 @@ def main():
         
     # Create a trajectory to follow
     # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
-    SP.createWave(testState='Y')
     # SP.createStep([northV, eastV, downV])
+    SP.createWave(testState='Y')
     modeState = 0
 
     # Timers
@@ -185,7 +185,8 @@ def main():
                 modeState = 0
                 C.resetController()
                 # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
-                SP.createStep([northV, eastV, downV])
+                # SP.createStep([northV, eastV, downV])
+                SP.createWave(testState='Y')
                 
     except KeyboardInterrupt:
         # Print final remarks and close connections and threads
