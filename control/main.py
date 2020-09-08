@@ -80,7 +80,7 @@ def main():
     # Wait till we switch modes to prevent integral windup and keep everything happy
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         # Stabilize rate
-        sync.stabilize()
+        _ = sync.stabilize()
 
         # Current mode
         print(vehicle.mode.name)
@@ -117,7 +117,7 @@ def main():
     try:
         while(True):
             # Stabilize rate
-            sync.stabilize()
+            tSyncDiff = sync.stabilize()
 
             # Get vision and IMU data
             pos, vel, acc, psi, dif = GV.getVision()
@@ -153,7 +153,7 @@ def main():
                 # C.resetController()
 
             # Calcualte and log sample rate
-            freqLocal = (1 / (time.time() - loopTimer))
+            freqLocal = (1.0 / (time.time() - loopTimer))
             loopTimer = time.time()
             freqList.append(freqLocal)
 
@@ -164,7 +164,8 @@ def main():
             #     print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
 
             # Log data
-            data.append([vehicle.mode.name, time.time()-startTime, freqLocal,
+            data.append([vehicle.mode.name, time.time()-startTime,
+                        freqLocal, 1.0/tSyncDiff, 1.0/kalmanDeltaT,
                         northV, eastV, downV, yawV,
                         desired[0], desired[1], desired[2],
                         roll, pitch, yaw,
@@ -198,7 +199,8 @@ def main():
         print('Average loop rate: ', round(statistics.mean(freqList),2), '+/-', round(statistics.stdev(freqList), 2))
 
         # Write data to a data frame
-        df = pd.DataFrame(data, columns=['Mode', 'Time', 'Freq',
+        df = pd.DataFrame(data, columns=['Mode', 'Time',
+                            'Freq', 'Sync-Freq', 'Kalman-Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
