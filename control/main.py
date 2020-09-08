@@ -122,14 +122,12 @@ def main():
             # Get vision and IMU data
             pos, vel, acc, psi, dif = GV.getVision()
 
-            # Estimate yaw
-            tempKalmanTime = time.time()
-            yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
-
             # Fuse vision and IMU sensor data
-            northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
-            eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
-            downV = dKF.update(tempKalmanTime - kalmanTimer, np.array([pos[2], vel[2]]).T)
+            kalmanDeltaT = time.time() - kalmanTimer
+            yawV   = yKF.update(kalmanDeltaT, np.array([psi[0], psi[1]]).T)
+            northV = nKF.update(kalmanDeltaT, np.array([pos[0], vel[0]]).T)
+            eastV  = eKF.update(kalmanDeltaT, np.array([pos[1], vel[1]]).T)
+            downV  = dKF.update(kalmanDeltaT, np.array([pos[2], vel[2]]).T)
             kalmanTimer = time.time()
 
             # Create moving average for velocity and acceleration
@@ -154,16 +152,16 @@ def main():
                 # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
                 # C.resetController()
 
-            # Print data
+            # Calcualte and log sample rate
             freqLocal = (1 / (time.time() - loopTimer))
+            loopTimer = time.time()
             freqList.append(freqLocal)
 
-            if printFlag is True:
-                print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
-                # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-                # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
-
-            loopTimer = time.time()
+            # Print data
+            # # if printFlag is True:
+            #     print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
+            #     print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            #     print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
 
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, freqLocal,
