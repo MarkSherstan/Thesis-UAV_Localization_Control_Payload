@@ -1,18 +1,19 @@
 #!/bin/zsh
-# To run (MacOS Catalina): zsh convert.sh 
+# To run:
+#   MacOS Catalina: zsh convert.sh 
+#   Linux 20.04 LTS: bash convert.sh
 
-echo Create figures
+# Do work on main thread
 gprof2dot -f pstats -n 3 -e 3 _MainThread0 | dot -Tpng -o MainThread.png 
-gprof2dot -f pstats -n 2 -e 2 Thread1 | dot -Tpng -o Thread1.png
-gprof2dot -f pstats -n 2 -e 2 Thread2 | dot -Tpng -o Thread2.png
-gprof2dot -f pstats -n 2 -e 2 Thread3 | dot -Tpng -o Thread3.png
-gprof2dot -f pstats -n 2 -e 2 Thread4 | dot -Tpng -o Thread4.png
-
-echo Export to call tree
 pyprof2calltree -i _MainThread0 -o MainThread.calltree
-pyprof2calltree -i Thread1 -o Thread1.calltree
-pyprof2calltree -i Thread2 -o Thread2.calltree
-pyprof2calltree -i Thread3 -o Thread3.calltree
-pyprof2calltree -i Thread4 -o Thread4.calltree
 
-# qcachegrind MainThread.calltree
+# Do work on the other threads
+for f in Thread*
+do
+    gprof2dot -f pstats -n 2 -e 2 "$f" | dot -Tpng -o "$f.png"
+    pyprof2calltree -i "$f" -o "$f.calltree"
+done
+
+# Analyze with GUI:
+#   MacOS Catalina: qcachegrind MainThread.calltree
+#   Linux 20.04 LTS: kcachegrind MainThread.calltree
