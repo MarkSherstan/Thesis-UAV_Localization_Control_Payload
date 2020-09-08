@@ -3,8 +3,8 @@ import time
 import struct
 import serial
 
-class COMS:
-    def __init__(self, serialPort, serialBaud):
+class SerialComs:
+    def __init__(self, serialPort='/dev/ttyUSB0', serialBaud=9600):
         # Class / object / constructor setup
         self.port = serialPort
         self.baud = serialBaud
@@ -20,7 +20,7 @@ class COMS:
         except:
             print('Failed to connect with ' + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
 
-    def readSerialStart(self):
+    def serialThreadStart(self):
         # Create a thread
         if self.thread == None:
             self.thread = Thread(target=self.backgroundThread)
@@ -51,7 +51,7 @@ class COMS:
         try:
             self.serialConnection.write(bytes([msg]))
         except:
-            print('fail')
+            pass
 
     def close(self):
         # Close the serial port connection
@@ -77,18 +77,22 @@ class QuickConnect:
 
     def engage(self):
         # Send the command to engage
-        self.ser.writeSerialData(self.ENGAGE)
+        for _ in range(5):
+            self.ser.writeSerialData(self.ENGAGE)
+            time.sleep(1/15)
 
-        # Wait till ready command is received
-        while(self.ser.byteOut != self.READY):
-            pass
+        # # Wait till ready command is received
+        # while(self.ser.byteOut != self.READY):
+        #     pass
 
-        # Acknowledge ready
-        self.ser.writeSerialData(self.READY)
+        # # Acknowledge ready
+        # self.ser.writeSerialData(self.READY)
 
     def release(self):
         # Send the command to engage
-        self.ser.writeSerialData(self.RELEASE)
+        for _ in range(5):
+            self.ser.writeSerialData(self.RELEASE)
+            time.sleep(1/15)
 
 class CAP:
     def __init__(self, s):
@@ -128,13 +132,9 @@ class CAP:
             time.sleep(0.01)
 
 def main():
-    # Connect to serial port
-    portName = '/dev/cu.wchusbserial1410'
-    baudRate = 9600
-
     # Set up the class and start the serial port
-    s = COMS(portName, baudRate)
-    s.readSerialStart()
+    s = SerialComs()
+    s.serialThreadStart()
 
     # Classes
     q = QuickConnect(s)

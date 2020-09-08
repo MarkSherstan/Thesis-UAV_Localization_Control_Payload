@@ -23,7 +23,9 @@ try:
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
                             'northVraw', 'eastVraw', 'downVraw', 
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
-                            'yawVraw', 'yawRate', 'Q-Size'])
+                            'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
+                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size'])
+                            
 except:
     print('Error with file.')
     exit()

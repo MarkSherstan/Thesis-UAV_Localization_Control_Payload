@@ -13,24 +13,29 @@ class SetPoints:
         self.northDesiredList = []
         self.eastDesiredList  = []
         self.downDesiredList  = []
+        self.yawDesiredList   = []
         self.index = 0
-        
-    def selectMethod(self, Q, trajectory):
+    
+    def updateSetPoints(self, northDesired, eastDesired, downDesired, yawDesired=0):
         # Reset
         self.reset()
         
-        if (trajectory == True):
-            # Find the initial position
-            north0, east0, down0 = self.initialPosition(Q)
-            
-            # Calculate the trajectories
-            self.northDesiredList = self.trajectoryGen(north0, self.northDesired, T=3)
-            self.eastDesiredList  = self.trajectoryGen(east0, self.eastDesired, T=3)
-            self.downDesiredList  = self.trajectoryGen(down0, self.downDesired, T=5)
-            print('Trajectory ready')
-        else:
-            print('Standard setpoints ready')
-                    
+        # Desired Pose
+        self.northDesired = northDesired 
+        self.eastDesired  = eastDesired
+        self.downDesired  = downDesired
+        self.yawDesired   = yawDesired
+    
+    def createTrajectory(self, posIC, velIC, accIC):
+        # Reset
+        self.reset()
+        
+        # Calculate the trajectories
+        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=5)
+        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=5)
+        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=7)
+        print('Trajectory ready')
+
     def getDesired(self):
         # North
         if (self.index >= len(self.northDesiredList)):
@@ -49,36 +54,43 @@ class SetPoints:
             downSP = self.downDesired
         else:
             downSP = self.downDesiredList[self.index]
-            
+
+        # Yaw  
+        if (self.index >= len(self.yawDesiredList)):
+            yawSP = self.yawDesired
+        else:
+            yawSP = self.yawDesiredList[self.index]
+
         # Increment counter and return values
         self.index += 1
-        return [northSP, eastSP, downSP, self.yawDesired]
+        return [northSP, eastSP, downSP, yawSP]
+
+    def createStep(self, posIC, sampleRate=1/30):
+        # Reset
+        self.reset()
     
-    def initialPosition(self, Q, pts=10):
-        # Initialize counter
-        north = 0
-        east  = 0
-        down  = 0
-
-        # Sum points 
-        for _ in range(pts):
-            temp = Q.get()
-            north += temp[0]
-            east  += temp[1]
-            down  += temp[2]
+        # 2 second steady state
+        n = int(2.0 / sampleRate)
         
-        # Calc the average and return 
-        north0 = north / pts
-        east0  = east / pts     
-        down0  = down / pts  
-        return north0, east0, down0
+        # Update the lists
+        self.northDesiredList = [posIC[0]]
+        self.eastDesiredList  = [posIC[1]] * n
+        self.downDesiredList  = [posIC[2]]
+        
+        # Update set points
+        self.northDesired = posIC[0] 
+        self.eastDesired  = posIC[1] + 50
+        self.downDesired  = posIC[2] 
+        
+        # Show step is ready
+        print('Step response ready')
 
-    def trajectoryGen(self, startPos, endPos, T, sampleRate=1/30):
+    def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
         tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
         pos = []
 
-        # Find coeffcients of 5th order polynomial using matrix operations. Zero vel and acc boundary conditions
+        # Find coeffcients of 5th order polynomial using matrix operations.
         A = np.array([[0, 0, 0, 0, 0, 1],
                     [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
                     [0, 0, 0, 0, 1, 0],
@@ -86,7 +98,8 @@ class SetPoints:
                     [0, 0, 0, 2, 0, 0],
                     [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
 
-        b = np.array([startPos, endPos, 0, 0, 0, 0])
+        b = np.array([pos0, endPos, vel0, 0, acc0, 0])
+        # b = np.array([pos0, endPos, vel0, 0, 0, 0])
 
         x = np.linalg.solve(A, b)
 
@@ -99,3 +112,54 @@ class SetPoints:
 
         # Return the resulting position
         return pos
+
+    def createWave(self, testState):
+        # Reset
+        self.reset()
+        self.updateSetPoints(0,0,0.5,0)
+
+        # Actual controller inputs not desired positions
+        if (testState == 'Y'):
+            # Oscillate just yaw
+            self.northDesired = 0 
+            self.eastDesired  = 0
+            self.downDesired  = 0.5
+            self.yawDesiredList = self.sineWaveGenerator(10)
+        elif (testState == 'RP'):
+            # Oscillate roll and pitch
+            self.northDesiredList = self.sineWaveGenerator(4)
+            self.eastDesiredList = self.sineWaveGenerator(4)
+            self.downDesired = 0.5
+            self.yawDesired  = 0
+        elif (testState == 'T'):
+            # scillate thrust
+            self.northDesired = 0
+            self.eastDesired = 0
+            self.downDesiredList = self.sineWaveGenerator(A=0.05, b=0.5)
+            self.yawDesired  = 0
+        else:
+            print('Error in selected state')     
+
+    def sineWaveGenerator(self, A, b=0, T=5, sampleRate=1/30, plotFlag=False):
+        # Time array
+        x = np.linspace(0, T, round(T/sampleRate), endpoint=True)
+
+        # Function parameters
+        f = 30
+        fs = 30
+
+        # Output
+        y = A*np.sin(2*np.pi*f * (x/fs)) + b
+
+        # Visualizing
+        if plotFlag is True:
+            # Import packages
+            import matplotlib.pyplot as plt
+
+            # Display the results
+            plt.plot(x,y)
+            plt.show()
+        
+        # Return the result 
+        return y
+            

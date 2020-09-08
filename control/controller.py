@@ -1,3 +1,5 @@
+import pandas as pd
+import datetime
 import time
 import math
 
@@ -13,14 +15,14 @@ class Controller:
         self.yawRateConstrain = [-10, 10]           # Deg / s
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.09
-        self.ki_NORTH = 0.001      # Max 0.5 deg with 500 bounds
-        self.kd_NORTH = 0.07
+        self.kp_NORTH = 0.08 #0.09
+        self.ki_NORTH = 0.002      # Max 1 deg with 500 bounds
+        self.kd_NORTH = 0.06 #0.07
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.075
-        self.ki_EAST = 0.001       # Max 0.5 deg with 500 bounds
-        self.kd_EAST = 0.065
+        self.kp_EAST = 0.05 #0.075
+        self.ki_EAST = 0.004       # Max 2 deg with 500 bounds
+        self.kd_EAST = 0.04  #0.065
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -28,9 +30,19 @@ class Controller:
         self.kd_DOWN = 0.0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.6
+        self.kp_YAW = 0.5
         self.ki_YAW = 0
-        self.kd_YAW = 0.2
+        self.kd_YAW = 0
+
+        # Gain scheduling 
+        self.gainHeight = 25.0
+        self.gainFactor = 2.0
+        
+        # Landing check 
+        self.landErrorNE = 3.0
+        self.landHeight  = 15.0
+        self.landCount   = 0 
+        self.landCountRequired = 45
 
         # Previous errors
         self.northPrevError = 0
@@ -53,14 +65,24 @@ class Controller:
         # Timing
         self.timer = None
 
+        # Data logging
+        self.tempData = []
+        self.data = []
+        
     def startController(self):
+        self.resetController()
         self.timer = time.time()
+        self.startTime = time.time()
 
-    def resetIntegral(self):
+    def resetController(self):
+        # Reset integral terms
         self.northI = 0
         self.eastI = 0
         self.downI = 0
         self.yawI = 0
+        
+        # Reset landing counter 
+        self.landCount = 0
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
@@ -113,6 +135,9 @@ class Controller:
         D = (error - errorPrev) / dt
         PID = (kp * P) + (ki * I) + (kd * D)
 
+        # Logging
+        self.tempData.extend([kp, ki, kd, I, P*kp, I*ki, D*kd, (PID)])
+        
         # Debugging
         if debug is True:
             print('{:<8.0f} {:<8.0f} {:<8.0f} {:<8.2f} {:<8.2f} {:<8.2f} {:<8.2f}'.format(error, 1/dt, I, P*kp, I*ki, D*kd, (PID)))
@@ -132,10 +157,11 @@ class Controller:
         self.timer = time.time()
 
         # Gain scheduling
-        if actual[2] < 35.0:
-            tempKp = self.kp_DOWN * 2.0
-        else:
-            tempKp = self.kp_DOWN
+        # if actual[2] < self.gainHeight:
+        #     tempKp = self.kp_DOWN * self.gainFactor
+        # else:
+        #     tempKp = self.kp_DOWN
+        tempKp = self.kp_DOWN
             
         # Calculate thrust control
         thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
@@ -169,12 +195,57 @@ class Controller:
         thrust     = thrust + 0.5
         yawRate    = -yawRate
 
-        # Mixer -> Works perfect in SITL (needs negative in real life)
+        # Mixer -> Psi: SITL (+), actual (-)
         psi = -math.radians(actual[3])
         pitchAngleTemp = pitchAngle*math.cos(psi) - rollAngle*math.sin(psi)
         rollAngleTemp = pitchAngle*math.sin(psi) + rollAngle*math.cos(psi)
         pitchAngle = pitchAngleTemp
         rollAngle = rollAngleTemp
 
+        # Check if UAV has landed
+        if ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
+                (actual[2] < self.landHeight) and (self.landCount >= self.landCountRequired) and 
+                (errorDown < 0)):
+            landState = True
+        elif ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
+                (actual[2] < self.landHeight) and (errorDown < 0)):
+            self.landCount += 1
+            landState = False
+        else:
+            landState = False
+
+        # Hard set gain schedule
+        if (actual[2] < self.gainHeight) and (errorDown < 0):
+            thrust = 0.4
+        
+        # Log temp data
+        self.tempData.extend([errorNorth, desired[0], actual[0],
+                              errorEast , desired[1], actual[1],
+                              errorDown , desired[2], actual[2],
+                              errorYaw  , desired[3], actual[3],
+                              rollAngle, pitchAngle, yawRate, thrust, dt, time.time()-self.startTime, self.UAV.mode.name])
+
+        # Save data and reset temp 
+        self.data.append(self.tempData)
+        self.tempData = []
+        
         # Return the values
-        return rollAngle, pitchAngle, yawRate, thrust
+        return rollAngle, pitchAngle, yawRate, thrust, landState
+
+    def logData(self):
+        # Write data to a data frame
+        df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                              'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+                                              'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+                                              'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+                                              'errorN', 'desiredN', 'actualN',
+                                              'errorE', 'desiredE', 'actualE',
+                                              'errorD', 'desiredD', 'actualD',
+                                              'errorY', 'desiredY', 'actualY',
+                                              'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
+
+        # Save data to CSV
+        now = datetime.datetime.now()
+        fileName = 'flightData/' + now.strftime('Gains-%Y-%m-%d__%H-%M-%S') + '.csv'
+        df.to_csv(fileName, index=None, header=True)
+        print('File saved to:' + fileName)
