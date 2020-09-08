@@ -48,19 +48,19 @@ def main():
     C = Controller(vehicle)
     SP = SetPoints(-10, 40, 0)
 
-    # Connect to quick connect 
+    # Connect to quick connect
     s = SerialComs()
     s.serialThreadStart()
     qc = QuickConnect(s)
     qc.release()
-    
+
     # Moving average for velocity and acceleration (trajectory generation)
     winSizeVel = 5
     winSizeAcc = 10
     nVelAvg = MovingAverage(winSizeVel); nAccAvg = MovingAverage(winSizeAcc)
     eVelAvg = MovingAverage(winSizeVel); eAccAvg = MovingAverage(winSizeAcc)
     dVelAvg = MovingAverage(winSizeVel); dAccAvg = MovingAverage(winSizeAcc)
-    
+
     # Kalman filter
     nKF = KalmanFilter2x(3.0, 5.0, 10.0)
     eKF = KalmanFilter2x(3.0, 5.0, 10.0)
@@ -72,7 +72,7 @@ def main():
     # Loop rate stabilization
     sync = TimeSync(1/30)
     sync.startTimer()
-    
+
     # Logging variables
     freqList = []
     data = []
@@ -81,27 +81,27 @@ def main():
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         # Stabilize rate
         sync.stabilize()
-        
+
         # Current mode
         print(vehicle.mode.name)
 
         # Get vision and IMU data
         pos, vel, acc, psi, _ = GV.getVision()
-        
+
         # Estimate yaw
         tempKalmanTime = time.time()
         yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
-                   
-        # Fuse vision and IMU sensor data   
+
+        # Fuse vision and IMU sensor data
         northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
         eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
         downV = dKF.update(tempKalmanTime - kalmanTimer, np.array([pos[2], vel[2]]).T)
         kalmanTimer = time.time()
-        
+
         # Create moving average for velocity and acceleration
         velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
         accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
-        
+
     # Create a trajectory to follow
     # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
     # SP.createStep([northV, eastV, downV])
@@ -118,24 +118,24 @@ def main():
         while(True):
             # Stabilize rate
             sync.stabilize()
-    
+
             # Get vision and IMU data
             pos, vel, acc, psi, dif = GV.getVision()
-            
+
             # Estimate yaw
             tempKalmanTime = time.time()
             yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
 
-            # Fuse vision and IMU sensor data   
+            # Fuse vision and IMU sensor data
             northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
             eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
             downV = dKF.update(tempKalmanTime - kalmanTimer, np.array([pos[2], vel[2]]).T)
             kalmanTimer = time.time()
-            
+
             # Create moving average for velocity and acceleration
             velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
             accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
-            
+
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
@@ -143,7 +143,7 @@ def main():
 
             rollControl = desired[1]; pitchControl = desired[0]; yawControl = desired[3]; thrustControl = desired[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-            
+
             # Get actual vehicle attitude
             roll, pitch, yaw = getVehicleAttitude(vehicle)
 
@@ -153,7 +153,7 @@ def main():
                 # SP.updateSetPoints(-10, 40, 100)
                 # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
                 # C.resetController()
-            
+
             # Print data
             freqLocal = (1 / (time.time() - loopTimer))
             freqList.append(freqLocal)
@@ -162,40 +162,40 @@ def main():
                 print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
                 # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
                 # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
-                
+
             loopTimer = time.time()
 
             # Log data
-            data.append([vehicle.mode.name, time.time()-startTime, freqLocal, 
-                        northV, eastV, downV, yawV, 
-                        desired[0], desired[1], desired[2], 
-                        roll, pitch, yaw, 
+            data.append([vehicle.mode.name, time.time()-startTime, freqLocal,
+                        northV, eastV, downV, yawV,
+                        desired[0], desired[1], desired[2],
+                        roll, pitch, yaw,
                         rollControl, pitchControl, yawControl, thrustControl,
-                        pos[0], pos[1], pos[2], 
+                        pos[0], pos[1], pos[2],
                         vel[0], vel[1], vel[2],
                         acc[0], acc[1], acc[2],
                         psi[0], psi[1], landState, Q.qsize(),
                         dif[0], dif[1], dif[2], dif[3]])
-            
-            # Reset controller and generate new trajectory whenever there is a mode switch 
+
+            # Reset controller and generate new trajectory whenever there is a mode switch
             if (vehicle.mode.name == 'STABILIZE'):
                 modeState = 1
-            
+
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
                 C.resetController()
                 # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
                 # SP.createStep([northV, eastV, downV])
                 SP.createWave(testState='Y')
-                
+
     except KeyboardInterrupt:
         # Print final remarks and close connections and threads
         print('Closing')
         C.logData()
         s.close()
         GV.close()
-        
-    finally:        
+
+    finally:
         # Post main loop rate
         print('Average loop rate: ', round(statistics.mean(freqList),2), '+/-', round(statistics.stdev(freqList), 2))
 
@@ -205,7 +205,7 @@ def main():
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw', 
+                            'northVraw', 'eastVraw', 'downVraw',
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
                             'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
                             'yawVraw', 'yawRate', 'Landing-State', 'Q-Size',
