@@ -74,14 +74,17 @@ class TimeSync:
 
     def stabilize(self):
         # Calculate time difference
-        timeDiff = time.time() - self.previousTime
+        tempTime = time.time()
+        timeDiff = tempTime - self.previousTime
+        
+        time2delay = self.samplingRate - timeDiff
 
         # Delay if loop is too fast
-        if (timeDiff <= self.samplingRate):
-            time.sleep(self.samplingRate - timeDiff)
+        if (time2delay > 0):
+            time.sleep(time2delay)
 
         # Save time for next itteration
         self.previousTime = time.time()
-
+        
         # Return time diff for logging
-        return timeDiff
+        return (time2delay - (time.time()-tempTime))
