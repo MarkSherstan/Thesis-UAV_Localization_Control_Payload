@@ -16,15 +16,17 @@ fileName = args.input
 # Prepare CSV
 ########################
 try:
-    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 'Freq',
+    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time',
+                            'Freq', 'Sync-Freq', 'Kalman-Freq', 'Control-Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw', 
+                            'northVraw', 'eastVraw', 'downVraw',
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
                             'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
-                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size'])
+                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size',
+                            'N-diff', 'E-diff', 'D-diff', 'Y-diff'])
                             
 except:
     print('Error with file.')
@@ -128,3 +130,26 @@ for ii in range(0,len(idx),2):
 ########################
 plt.show()
 fig.savefig(str(fileName).replace('.csv','')+'.png', dpi=fig.dpi)
+
+
+
+# Frequency Plots
+
+fig = plt.figure()
+ax0 = plt.gca()
+
+df.plot(kind='line', y='Freq',          color='#FB8604', alpha=0.5, style='-',  ax=ax0)
+df.plot(kind='line', y='Sync-Freq',     color='#700CBC', alpha=0.5, style='-',  ax=ax0)
+df.plot(kind='line', y='Kalman-Freq',   color='#FB8604', alpha=0.5, style='-',  ax=ax0)
+df.plot(kind='line', y='Control-Freq',  color='#700CBC', alpha=0.5, style='-',  ax=ax0)
+
+ax0.set_title('Frequency Plot', fontsize=14, fontweight='bold')
+ax0.set_xlabel('Index', fontweight='bold')
+ax0.set_ylabel('Frequency [Hz]', fontweight='bold')
+
+print('Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Freq'].mean(), df['Freq'].std()))
+print('Sync-Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Sync-Freq'].mean(), df['Sync-Freq'].std()))
+print('Kalman-Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Kalman-Freq'].mean(), df['Kalman-Freq'].std()))
+print('Control-Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Control-Freq'].mean(), df['Control-Freq'].std()))
+
+plt.show()
