@@ -137,7 +137,7 @@ def main():
             # Calculate control and execute
             actual = [northV, eastV, downV, yawV]
             desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actual, desired)
+            rollControl, pitchControl, yawControl, thrustControl, controlDeltaT, landState = C.positionControl(actual, desired)
 
             rollControl = desired[1]; pitchControl = desired[0]; yawControl = desired[3]; thrustControl = desired[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
@@ -165,7 +165,7 @@ def main():
 
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime,
-                        freqLocal, 1.0/tSyncDiff, 1.0/kalmanDeltaT,
+                        freqLocal, 1.0/tSyncDiff, 1.0/kalmanDeltaT, 1.0/controlDeltaT,
                         northV, eastV, downV, yawV,
                         desired[0], desired[1], desired[2],
                         roll, pitch, yaw,
@@ -200,7 +200,7 @@ def main():
 
         # Write data to a data frame
         df = pd.DataFrame(data, columns=['Mode', 'Time',
-                            'Freq', 'Sync-Freq', 'Kalman-Freq',
+                            'Freq', 'Sync-Freq', 'Kalman-Freq', 'Control-Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',

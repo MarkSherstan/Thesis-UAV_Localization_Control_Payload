@@ -34,9 +34,8 @@ class Controller:
         self.ki_YAW = 0
         self.kd_YAW = 0
 
-        # Gain scheduling 
+        # Cutoff height
         self.gainHeight = 25.0
-        self.gainFactor = 2.0
         
         # Landing check 
         self.landErrorNE = 3.0
@@ -155,22 +154,13 @@ class Controller:
         # Get time delta
         dt = time.time() - self.timer
         self.timer = time.time()
-
-        # Gain scheduling
-        # if actual[2] < self.gainHeight:
-        #     tempKp = self.kp_DOWN * self.gainFactor
-        # else:
-        #     tempKp = self.kp_DOWN
-        tempKp = self.kp_DOWN
             
-        # Calculate thrust control
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
-                
         # Run the remainder of the control
         rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
         pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
         yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
-        
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
+                
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
         self.eastI  = self.constrain(self.eastI, self.eastIcontstrain[0], self.eastIcontstrain[1]) 
@@ -230,7 +220,7 @@ class Controller:
         self.tempData = []
         
         # Return the values
-        return rollAngle, pitchAngle, yawRate, thrust, landState
+        return rollAngle, pitchAngle, yawRate, thrust, dt, landState
 
     def logData(self):
         # Write data to a data frame
