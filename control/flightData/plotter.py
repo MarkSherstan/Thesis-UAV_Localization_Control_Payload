@@ -134,22 +134,28 @@ fig.savefig(str(fileName).replace('.csv','')+'.png', dpi=fig.dpi)
 
 
 # Frequency Plots
+# df = df.iloc[10:]
+# df['Freq']  = 1.0 / df['Freq'] 
+# df['Sync-Freq'] = 1.0 / df['Sync-Freq']
+# df['Kalman-Freq'] = 1.0 / df['Kalman-Freq']
+# df['Control-Freq'] = 1.0 / df['Control-Freq']
 
 fig = plt.figure()
 ax0 = plt.gca()
 
-df.plot(kind='line', y='Freq',          color='#FB8604', alpha=0.5, style='-',  ax=ax0)
-df.plot(kind='line', y='Sync-Freq',     color='#700CBC', alpha=0.5, style='-',  ax=ax0)
-df.plot(kind='line', y='Kalman-Freq',   color='#FB8604', alpha=0.5, style='-',  ax=ax0)
-df.plot(kind='line', y='Control-Freq',  color='#700CBC', alpha=0.5, style='-',  ax=ax0)
+df.plot(kind='line', ax=ax0, color='tab:gray',  alpha=0.8, y='Sync-Freq')
+df.plot(kind='line', ax=ax0, color='tab:cyan',  alpha=0.8, y='Kalman-Freq')
+df.plot(kind='line', ax=ax0, color='tab:green', alpha=0.8, y='Control-Freq')
+df.plot(kind='line', ax=ax0, color='tab:pink',  alpha=0.8, y='Freq')
 
 ax0.set_title('Frequency Plot', fontsize=14, fontweight='bold')
 ax0.set_xlabel('Index', fontweight='bold')
 ax0.set_ylabel('Frequency [Hz]', fontweight='bold')
+# ax0.set_ylim([0,50])
 
-print('Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Freq'].mean(), df['Freq'].std()))
-print('Sync-Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Sync-Freq'].mean(), df['Sync-Freq'].std()))
-print('Kalman-Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Kalman-Freq'].mean(), df['Kalman-Freq'].std()))
-print('Control-Freq: {:<8.2f} +/- {:<4.2f} '.format(df['Control-Freq'].mean(), df['Control-Freq'].std()))
+print('Freq:         {:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
+print('Sync-Freq:    {:<4.3f} +/- {:<0.3f} '.format(df['Sync-Freq'].mean(), df['Sync-Freq'].std()))
+print('Kalman-Freq:  {:<4.3f} +/- {:<0.3f} '.format(df['Kalman-Freq'].mean(), df['Kalman-Freq'].std()))
+print('Control-Freq: {:<4.3f} +/- {:<0.3f} '.format(df['Control-Freq'].mean(), df['Control-Freq'].std()))
 
 plt.show()
