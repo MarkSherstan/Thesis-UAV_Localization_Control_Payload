@@ -1,3 +1,5 @@
+import sys
+sys.path.append('../..')
 from main import main
 import yappi
 
@@ -12,8 +14,8 @@ threads = yappi.get_thread_stats()
 ii = 0
 for thread in threads:
     temp = yappi.get_func_stats(ctx_id=thread.id)
-    temp.save('profiling/' + thread.name + str(ii), type='pstat') # qcachegrind
+    temp.save(thread.name + str(ii), type='pstat')
     ii += 1
 
 # Display message
-print('Profiling data saved')
+print('Main profiling data saved')
