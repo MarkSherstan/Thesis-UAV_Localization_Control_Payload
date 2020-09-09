@@ -1,5 +1,5 @@
 import sys
-sys.path.append('../..')
+sys.path.append('./')
 from main import main
 import yappi
 
@@ -14,7 +14,7 @@ threads = yappi.get_thread_stats()
 ii = 0
 for thread in threads:
     temp = yappi.get_func_stats(ctx_id=thread.id)
-    temp.save(thread.name + str(ii), type='pstat')
+    temp.save('profiling/main/' + thread.name + str(ii), type='pstat')
     ii += 1
 
 # Display message
