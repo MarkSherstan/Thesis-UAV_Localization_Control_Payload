@@ -1,7 +1,7 @@
 # Add custom packages one directory up 
 import sys
 sys.path.append('../')
-from filter import MovingAverage, KalmanFilter1x, KalmanFilter2x
+from filter import MovingAverage, KalmanFilter1x, KalmanFilter2x, KalmanFilterNxN
 
 # Import standard packages
 import matplotlib.pyplot as plt
@@ -34,7 +34,7 @@ except:
 # Select data set
 ##########################
 lowRange = 0
-highRange = 500
+highRange = 10
 
 timeData = np.array(df['Time'])
 
@@ -76,6 +76,8 @@ eKF2 = KalmanFilter2x(3.0, 5.0, 10.0)
 dKF2 = KalmanFilter2x(3.0, 5.0, 10.0)
 yKF2 = KalmanFilter2x(3.0, 5.0, 10.0)
 
+KF = KalmanFilterNxN(3.0, 5.0, 10.0)
+
 nAvg = MovingAverage(5)
 eAvg = MovingAverage(5)
 dAvg = MovingAverage(5)
@@ -96,6 +98,8 @@ elistAvg = []
 dlistAvg = []
 ylistAvg = []
 
+KFlist = []
+
 for ii in range(1, timeData.shape[0]):
     dt = timeData[ii] - timeData[ii-1]
     
@@ -114,7 +118,24 @@ for ii in range(1, timeData.shape[0]):
     dlistAvg.append(dAvg.update(downPosData[ii]))
     ylistAvg.append(yAvg.update(yawData[ii]))
     
-    
+    KFlist.append(KF.update(dt, np.array([northPosData[ii], northVelData[ii], 
+                                   eastPosData[ii], eastVelData[ii],
+                                   downPosData[ii], downVelData[ii],
+                                   yawData[ii], gyroData[ii]]).T))
+
+# Perform comparison checks
+N = []; E = []; D = []; Y = []
+for ii in range(len(KFlist)):
+    N.append(KFlist[ii][0])
+    E.append(KFlist[ii][1])
+    D.append(KFlist[ii][2])
+    Y.append(KFlist[ii][3])
+
+print('N', sum(np.array(N) - np.array(nlistKF2)))
+print('E', sum(np.array(E) - np.array(elistKF2)))
+print('D', sum(np.array(D) - np.array(dlistKF2)))
+print('Y', sum(np.array(Y) - np.array(ylistKF2)))
+
 ##########################
 # Plot the data -> Rotation
 ##########################
