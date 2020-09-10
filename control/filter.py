@@ -72,22 +72,35 @@ class KalmanFilterNxN:
         self.sigmaXdotdot = sigmaXdotdot  # Acceleration
 
         # Configure the filter
-        self.observationModel = np.diag([1, 1, 1, 1])                                                           # H
-        self.observationNoise = np.diag([self.sigmaX**2, self.sigmaXdot**2, self.sigmaX**2, self.sigmaXdot**2]) # R
+        self.observationModel = np.diag([1, 1, 1, 1, 1, 1, 1, 1])               # H
+        self.observationNoise = np.diag([self.sigmaX**2, self.sigmaXdot**2,     # R
+                                         self.sigmaX**2, self.sigmaXdot**2,
+                                         self.sigmaX**2, self.sigmaXdot**2,
+                                         self.sigmaX**2, self.sigmaXdot**2]) 
 
         # Initial state
-        self.m = np.array([0, 1, 0, 1])
-        self.P = np.eye(4)
+        self.m = np.array([0, 1, 0, 1, 0, 1, 0, 1])
+        self.P = np.eye(8)
 
     def update(self, dt, dataIn):
-        stateTransition  = np.array([[1, dt, 0, 0], [0, 1, 0, 0], [0, 0, 1, dt], [0, 0, 0, 1]])      # A
-        processNoise = np.diag([0.25*(dt**4), dt**2, 0.25*(dt**4), dt**2]) * self.sigmaXdotdot**2    # Q
+        stateTransition  = np.array([[1, dt,  0,   0,  0,  0,  0,  0],          # A
+                                     [0,  1,  0,   0,  0,  0,  0,  0], 
+                                     [0,  0,  1,  dt,  0,  0,  0,  0], 
+                                     [0,  0,  0,   1,  0,  0,  0,  0],
+                                     [0,  0,  0,   0,  1, dt,  0,  0],
+                                     [0,  0,  0,   0,  0,  1,  0,  0],
+                                     [0,  0,  0,   0,  0,  0,  1, dt],
+                                     [0,  0,  0,   0,  0,  0,  0,  1]])      
+        processNoise = np.diag([0.25*(dt**4), dt**2,                            # Q
+                                0.25*(dt**4), dt**2,
+                                0.25*(dt**4), dt**2,
+                                0.25*(dt**4), dt**2]) * self.sigmaXdotdot**2    
         
         m, P = update(self.m, self.P, self.observationModel, self.observationNoise, np.array(dataIn))
         dataOut, _ = predict_observation(m, P, self.observationModel, self.observationNoise)
         self.m, self.P = predict(m, P, stateTransition, processNoise)
 
-        return dataOut
+        return [dataOut[0][0], dataOut[2][0], dataOut[4][0], dataOut[6][0]]
     
 class TimeSync:
     def __init__(self, samplingRate):
