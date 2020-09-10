@@ -1,4 +1,4 @@
-from filter import MovingAverage, KalmanFilter2x, TimeSync
+from filter import MovingAverage, KalmanFilter2x, TimeSync, KalmanFilterNxN
 from payloads import SerialComs, QuickConnect
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
@@ -49,10 +49,10 @@ def main():
     SP = SetPoints(-10, 40, 0)
 
     # Connect to quick connect
-    s = SerialComs()
-    s.serialThreadStart()
-    qc = QuickConnect(s)
-    qc.release()
+    # s = SerialComs()
+    # s.serialThreadStart()
+    # qc = QuickConnect(s)
+    # qc.release()
 
     # Moving average for velocity and acceleration (trajectory generation)
     winSizeVel = 5
@@ -66,6 +66,9 @@ def main():
     eKF = KalmanFilter2x(3.0, 5.0, 10.0)
     dKF = KalmanFilter2x(3.0, 5.0, 10.0)
     yKF = KalmanFilter2x(3.0, 5.0, 10.0)
+    
+    KF  = KalmanFilterNxN(3.0, 5.0, 10.0)
+    
     tempKalmanTime = None
     kalmanTimer = time.time()
 
@@ -83,20 +86,26 @@ def main():
         _ = sync.stabilize()
 
         # Current mode
-        print(vehicle.mode.name)
+        # print(vehicle.mode.name)
 
         # Get vision and IMU data
         pos, vel, acc, psi, _ = GV.getVision()
 
-        # Estimate yaw
-        tempKalmanTime = time.time()
-        yawV = yKF.update(tempKalmanTime - kalmanTimer, np.array([psi[0], psi[1]]).T)
-
         # Fuse vision and IMU sensor data
-        northV = nKF.update(tempKalmanTime - kalmanTimer, np.array([pos[0], vel[0]]).T)
-        eastV = eKF.update(tempKalmanTime - kalmanTimer, np.array([pos[1], vel[1]]).T)
-        downV = dKF.update(tempKalmanTime - kalmanTimer, np.array([pos[2], vel[2]]).T)
+        kalmanDeltaT = time.time() - kalmanTimer
+        northV = nKF.update(kalmanDeltaT, np.array([pos[0], vel[0]]).T)
+        eastV  = eKF.update(kalmanDeltaT, np.array([pos[1], vel[1]]).T)
+        downV  = dKF.update(kalmanDeltaT, np.array([pos[2], vel[2]]).T)
+        yawV   = yKF.update(kalmanDeltaT, np.array([psi[0], psi[1]]).T)        
+        
+        N, E, D, Y = KF.update(kalmanDeltaT, np.array([pos[0], vel[0], 
+                                                       pos[1], pos[1],
+                                                       pos[2], pos[2],
+                                                       psi[0], psi[1]]).T))
         kalmanTimer = time.time()
+
+        # Compare algorithms 
+        print(northV-N, eastV-E, downV-D, yawV-Y)
 
         # Create moving average for velocity and acceleration
         velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
@@ -146,11 +155,11 @@ def main():
             roll, pitch, yaw = getVehicleAttitude(vehicle)
 
             # If landed, engange the quick connect
-            if (landState == True):
-                qc.engage()
-                # SP.updateSetPoints(-10, 40, 100)
-                # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
-                # C.resetController()
+            # if (landState == True):
+            #     qc.engage()
+            #     # SP.updateSetPoints(-10, 40, 100)
+            #     # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+            #     # C.resetController()
 
             # Calcualte and log sample rate
             freqLocal = (1.0 / (time.time() - loopTimer))
@@ -191,7 +200,7 @@ def main():
         # Print final remarks and close connections and threads
         print('Closing')
         C.logData()
-        s.close()
+        # s.close()
         GV.close()
 
     finally:
