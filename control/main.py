@@ -99,13 +99,13 @@ def main():
         yawV   = yKF.update(kalmanDeltaT, np.array([psi[0], psi[1]]).T)        
         
         N, E, D, Y = KF.update(kalmanDeltaT, np.array([pos[0], vel[0], 
-                                                       pos[1], pos[1],
-                                                       pos[2], pos[2],
-                                                       psi[0], psi[1]]).T))
+                                                       pos[1], vel[1],
+                                                       pos[2], vel[2],
+                                                       psi[0], psi[1]]).T)
         kalmanTimer = time.time()
 
         # Compare algorithms 
-        print(northV-N, eastV-E, downV-D, yawV-Y)
+        print('N: {:<8.8f} E: {:<8.8f} D: {:<8.8f} Y: {:<8.8f}'.format(northV-N, eastV-E, downV-D, yawV-Y))
 
         # Create moving average for velocity and acceleration
         velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
