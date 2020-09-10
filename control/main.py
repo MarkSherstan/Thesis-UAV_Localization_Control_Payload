@@ -1,4 +1,4 @@
-from filter import MovingAverage, KalmanFilter2x, TimeSync, KalmanFilterNxN
+from filter import MovingAverage, KalmanFilterNxN, TimeSync
 from payloads import SerialComs, QuickConnect
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
@@ -62,13 +62,7 @@ def main():
     dVelAvg = MovingAverage(winSizeVel); dAccAvg = MovingAverage(winSizeAcc)
 
     # Kalman filter
-    nKF = KalmanFilter2x(3.0, 5.0, 10.0)
-    eKF = KalmanFilter2x(3.0, 5.0, 10.0)
-    dKF = KalmanFilter2x(3.0, 5.0, 10.0)
-    yKF = KalmanFilter2x(3.0, 5.0, 10.0)
-    
-    KF  = KalmanFilterNxN(3.0, 5.0, 10.0)
-    
+    KF = KalmanFilterNxN(3.0, 5.0, 10.0)
     tempKalmanTime = None
     kalmanTimer = time.time()
 
@@ -86,26 +80,17 @@ def main():
         _ = sync.stabilize()
 
         # Current mode
-        # print(vehicle.mode.name)
+        print(vehicle.mode.name)
 
         # Get vision and IMU data
         pos, vel, acc, psi, _ = GV.getVision()
 
         # Fuse vision and IMU sensor data
-        kalmanDeltaT = time.time() - kalmanTimer
-        northV = nKF.update(kalmanDeltaT, np.array([pos[0], vel[0]]).T)
-        eastV  = eKF.update(kalmanDeltaT, np.array([pos[1], vel[1]]).T)
-        downV  = dKF.update(kalmanDeltaT, np.array([pos[2], vel[2]]).T)
-        yawV   = yKF.update(kalmanDeltaT, np.array([psi[0], psi[1]]).T)        
-        
-        N, E, D, Y = KF.update(kalmanDeltaT, np.array([pos[0], vel[0], 
-                                                       pos[1], vel[1],
-                                                       pos[2], vel[2],
-                                                       psi[0], psi[1]]).T)
+        northV, eastV, downV, yawV = KF.update(time.time()-kalmanTimer, np.array([pos[0], vel[0], 
+                                                                                  pos[1], vel[1],
+                                                                                  pos[2], vel[2],
+                                                                                  psi[0], psi[1]]).T)
         kalmanTimer = time.time()
-
-        # Compare algorithms 
-        print('N: {:<8.8f} E: {:<8.8f} D: {:<8.8f} Y: {:<8.8f}'.format(northV-N, eastV-E, downV-D, yawV-Y))
 
         # Create moving average for velocity and acceleration
         velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
@@ -132,11 +117,10 @@ def main():
             pos, vel, acc, psi, dif = GV.getVision()
 
             # Fuse vision and IMU sensor data
-            kalmanDeltaT = time.time() - kalmanTimer
-            yawV   = yKF.update(kalmanDeltaT, np.array([psi[0], psi[1]]).T)
-            northV = nKF.update(kalmanDeltaT, np.array([pos[0], vel[0]]).T)
-            eastV  = eKF.update(kalmanDeltaT, np.array([pos[1], vel[1]]).T)
-            downV  = dKF.update(kalmanDeltaT, np.array([pos[2], vel[2]]).T)
+            northV, eastV, downV, yawV = KF.update(time.time()-kalmanTimer, np.array([pos[0], vel[0], 
+                                                                                    pos[1], vel[1],
+                                                                                    pos[2], vel[2],
+                                                                                    psi[0], psi[1]]).T)
             kalmanTimer = time.time()
 
             # Create moving average for velocity and acceleration
@@ -174,7 +158,7 @@ def main():
 
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime,
-                        freqLocal, 1.0/tSyncDiff, 1.0/kalmanDeltaT, 1.0/controlDeltaT,
+                        freqLocal, 1.0/tSyncDiff, -1.0, 1.0/controlDeltaT,
                         northV, eastV, downV, yawV,
                         desired[0], desired[1], desired[2],
                         roll, pitch, yaw,
