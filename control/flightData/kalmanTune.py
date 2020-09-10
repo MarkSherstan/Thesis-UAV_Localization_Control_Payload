@@ -14,15 +14,18 @@ import time
 # Import data
 ##########################
 try:        
-    fileName = '2020-08-20__10-47-57.csv'
-    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 'Freq',
+    fileName = '2020-09-09__17-25-10.csv'
+    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time',
+                            'Freq', 'Sync-Freq', 'Kalman-Freq', 'Control-Freq',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw', 
+                            'northVraw', 'eastVraw', 'downVraw',
                             'N-Velocity', 'E-Velocity', 'D-Velocity',
-                            'yawVraw', 'yawRate', 'Q-Size'])
+                            'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
+                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size',
+                            'N-diff', 'E-diff', 'D-diff', 'Y-diff'])
 except:
     print('Error with file.')
     exit()
@@ -30,8 +33,8 @@ except:
 ##########################
 # Select data set
 ##########################
-lowRange = 700
-highRange = 1700
+lowRange = 0
+highRange = 500
 
 timeData = np.array(df['Time'])
 
