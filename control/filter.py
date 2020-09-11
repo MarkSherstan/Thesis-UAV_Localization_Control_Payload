@@ -114,7 +114,6 @@ class TimeSync:
         # Calculate time difference
         tempTime = time.time()
         timeDiff = tempTime - self.previousTime
-        
         time2delay = self.samplingRate - timeDiff
 
         # Delay if loop is too fast
@@ -123,6 +122,3 @@ class TimeSync:
 
         # Save time for next itteration
         self.previousTime = time.time()
-        
-        # Return time diff for logging
-        return (time2delay - (time.time()-tempTime))
