@@ -2,7 +2,7 @@ from payloads import SerialComs, QuickConnect
 from filter import MovingAverage, TimeSync
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
-from vision import Vision, GetVision
+from vision import Vision, VisionData
 from controller import Controller
 from setpoints import SetPoints
 from pymavlink import mavutil
@@ -12,8 +12,6 @@ import statistics
 import datetime
 import math
 import time
-
-printFlag = False
 
 def getVehicleAttitude(UAV):
     # Actual vehicle attitude
@@ -37,12 +35,12 @@ def main():
     vehicle.send_mavlink(msg)
     time.sleep(0.5)
 
-    # Connect to vision, create the queue, start the core, and start the thread
+    # Connect to vision, create the queue, start the core, and start the retrieval thread
     V = Vision()
     Q = Queue()
     P = Process(target=V.run, args=(Q, ))
     P.start()
-    GV = GetVision(Q)
+    vData = VisionData(Q)
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
@@ -55,8 +53,7 @@ def main():
     # qc.release()
 
     # Moving average for velocity and acceleration (trajectory generation)
-    winSizeVel = 5
-    winSizeAcc = 10
+    winSizeVel = 5;                      winSizeAcc = 10
     nVelAvg = MovingAverage(winSizeVel); nAccAvg = MovingAverage(winSizeAcc)
     eVelAvg = MovingAverage(winSizeVel); eAccAvg = MovingAverage(winSizeAcc)
     dVelAvg = MovingAverage(winSizeVel); dAccAvg = MovingAverage(winSizeAcc)
@@ -78,18 +75,15 @@ def main():
         _ = sync.stabilize()
 
         # Get vision and IMU data
-        pos, _, vel, acc, _, _, _ = GV.getVision()
-        N = pos[0]
-        E = pos[1]
-        D = pos[2]
-
+        vData.update()
+        
         # Create moving average for velocity and acceleration
-        velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
-        accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
+        velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
+        accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
 
     # Create a trajectory to follow
-    # SP.createTrajectory([N, E, D], velAvg, accAvg)
-    # SP.createStep([N, E, D])
+    # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
+    # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
     SP.createWave(testState='Y')
     modeState = 0
 
@@ -107,14 +101,14 @@ def main():
             actualDelay = time.time() - sleepTimer
 
             # Get vision and IMU data
-            pos, raw, vel, acc, psi, dif, camDt = GV.getVision()
-
+            vData.update()
+        
             # Create moving average for velocity and acceleration
-            velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
-            accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
+            velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
+            accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
 
             # Calculate control and execute
-            actual = [pos[0], pos[1], pos[2], psi[0]]
+            actual = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl, controlDeltaT, landState = C.positionControl(actual, desired)
 
@@ -128,7 +122,7 @@ def main():
             # if (landState == True):
             #     qc.engage()
             #     # SP.updateSetPoints(-10, 40, 100)
-            #     # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
+            #     # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
             #     # C.resetController()
 
             # Calcualte and log sample rate
@@ -139,22 +133,22 @@ def main():
 
             # Print data
             # # if printFlag is True:
-            #     print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, northV, eastV, downV, yawV))
+            #     print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
             #     print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-            #     print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
+            #     print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
 
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, 
                         freqLocal, time2delay, actualDelay,
-                        pos[0], pos[1], pos[2], psi[0],
                         desired[0], desired[1], desired[2],
                         roll, pitch, yaw,
                         rollControl, pitchControl, yawControl, thrustControl,
-                        raw[0], raw[1], raw[2],
-                        vel[0], vel[1], vel[2],
-                        acc[0], acc[1], acc[2],
-                        psi[1], psi[2], landState, Q.qsize(),
-                        dif[0], dif[1], dif[2], dif[3]])
+                        vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang,
+                        vData.N.Vel, vData.E.Vel, vData.D.Vel, vData.Y.Vel,
+                        vData.N.Acc, vData.E.Acc, vData.D.Acc,
+                        vData.N.Raw, vData.E.Raw, vData.D.Raw, vData.Y.Raw,
+                        vData.N.Dif, vData.E.Dif, vData.D.Dif, vData.Y.Dif,
+                        landState, Q.qsize()])
 
             # Reset controller and generate new trajectory whenever there is a mode switch
             if (vehicle.mode.name == 'STABILIZE'):
@@ -163,8 +157,8 @@ def main():
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
                 C.resetController()
-                # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
-                # SP.createStep([northV, eastV, downV])
+                # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
+                # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
                 SP.createWave(testState='Y')
 
     except KeyboardInterrupt:
@@ -181,15 +175,15 @@ def main():
         # Write data to a data frame
         df = pd.DataFrame(data, columns=['Mode', 'Time', 
                             'Freq', 'time2delay', 'actualDelay',
-                            'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw',
-                            'N-Velocity', 'E-Velocity', 'D-Velocity',
-                            'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
-                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size',
-                            'N-diff', 'E-diff', 'D-diff', 'Y-diff'])
+                            'North-Pos', 'East-Pos', 'Down-Pos', 'Yaw-Ang',
+                            'North-Vel', 'East-Vel', 'Down-Vel', 'Yaw-Vel',
+                            'North-Acc', 'East-Acc', 'Down-Acc', 
+                            'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
+                            'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
+                            'Landing-State', 'Q-Size'])
 
         # Save data to CSV
         now = datetime.datetime.now()
