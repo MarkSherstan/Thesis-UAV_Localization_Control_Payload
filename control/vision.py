@@ -297,10 +297,12 @@ class GetVision:
 
         # Data
         self.posTemp = None
+        self.rawTemp = None
         self.velTemp = None
         self.accTemp = None
         self.psiTemp = None
         self.difTemp = None
+        self.camDt   = None
 
         # Start thread automatically
         self.startThread()
@@ -322,11 +324,13 @@ class GetVision:
             # Vision Data
             try:
                 temp = self.Q.get(timeout=2)
-                self.posTemp = [temp[0], temp[1], temp[2]]
-                self.velTemp = [temp[3], temp[4], temp[5]]
-                self.accTemp = [temp[6], temp[7], temp[8]]
-                self.psiTemp = [temp[9], temp[10]]
-                self.difTemp = [temp[11], temp[12], temp[13], temp[14]]
+                self.posTemp = [temp[0],  temp[1],  temp[2]]
+                self.rawTemp = [temp[3],  temp[4],  temp[5]]
+                self.velTemp = [temp[6],  temp[7],  temp[8]]
+                self.accTemp = [temp[9],  temp[10], temp[11]]
+                self.psiTemp = [temp[12], temp[13], temp[14]]
+                self.difTemp = [temp[15], temp[16], temp[17], temp[18]]
+                self.camDt   =  temp[19]
             except queue.Empty:
                 time.sleep(1/30)
 
@@ -335,7 +339,8 @@ class GetVision:
         
     def getVision(self):
         # Return results
-        return self.posTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), self.psiTemp.copy(), self.difTemp.copy()
+        return self.posTemp.copy(), self.rawTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), \
+                self.psiTemp.copy(), self.difTemp.copy(), self.camDt
     
     def close(self):
         # Close the thread and join
