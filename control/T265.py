@@ -20,6 +20,10 @@ class T265:
         self.ay      = None 
         self.az      = None 
 
+        # Time stamps
+        self.t1 = None
+        self.dt = None
+
         # Capture threading parameters
         self.isReceivingFrame = False
         self.isRunFrame = True
@@ -58,6 +62,7 @@ class T265:
         self.createMaps()
         
         # Start streaming data in another thread
+        self.t1 = time.time()
         self.startFrameThread()
 
     def startFrameThread(self):
@@ -89,6 +94,11 @@ class T265:
             # Error checking
             if not f1 or not f2 or not pose:
                 continue
+
+            # Calculate dt between frames
+            t2 = pose.timestamp
+            self.dt = t2 - self.t1
+            self.t1 = t2
 
             # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
