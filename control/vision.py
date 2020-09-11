@@ -85,7 +85,7 @@ class Vision:
                 N, E, D, Y = KF.update(dt, np.array([nRaw, vN, 
                                                      eRaw, vE,
                                                      dRaw, vD,
-                                                     yRaw, psiRate]).T)
+                                                     yRaw, yRate]).T)
 
                 # Add data to the queue                
                 Q.put([N, vN, aN, nRaw, nDif,

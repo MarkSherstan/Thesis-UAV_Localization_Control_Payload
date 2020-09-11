@@ -164,7 +164,6 @@ def main():
         print('Closing')
         C.logData()
         # s.close()
-        GV.close()
 
     finally:
         # Write data to a data frame
@@ -181,7 +180,7 @@ def main():
                             'Landing-State', 'Q-Size'])
         
         # Print sampling rate
-        Print('Sampling Frequency\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
+        print('Sampling Frequency: ' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
         
         # Save data to CSV
         now = datetime.datetime.now()
