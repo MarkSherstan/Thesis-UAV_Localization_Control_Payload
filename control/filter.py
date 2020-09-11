@@ -119,6 +119,8 @@ class TimeSync:
         # Delay if loop is too fast
         if (time2delay > 0):
             time.sleep(time2delay)
-
-        # Save time for next itteration
-        self.previousTime = time.time()
+            self.previousTime = time.time()
+            return time2delay
+        else:
+            # Return delay time
+            return 0

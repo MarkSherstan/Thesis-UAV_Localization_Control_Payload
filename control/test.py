@@ -4,12 +4,14 @@ import statistics
 import random
 import time
 
+# Logging variables
+freqList = []
+reqSleepList = []
+actSleepList = []
+
 # Class
 sync = TimeSync(1.0/30.0)
 sync.startTimer()
-
-# Logging variables
-freqList = []
 
 # Timers start
 startTime = time.time()
@@ -18,21 +20,54 @@ sync.startTimer()
 
 # Loop for some time
 while (time.time() < startTime+10):
-    # Stabilize rate
-    sync.stabilize()
+    start = time.time()
+    sleepy = sync.stabilize()
+    end = time.time()
 
+    reqSleepList.append(sleepy * 1000.0)
+    actSleepList.append((end - start) * 1000.0)
+   
     # Frequency rate
-    freqLocal = (1 / (time.time() - loopTimer))
+    temp = time.time()
+    freqLocal = (1.0 / (temp - loopTimer))
     freqList.append(freqLocal)
-    print(freqLocal)
-    loopTimer = time.time()
+    loopTimer = temp
 
     # Some delay
-    time.sleep(random.random()/40)
+    # time.sleep(random.random()/40)
 
-# Results
-print('Average loop rate: ', round(statistics.mean(freqList),2), '+/-', round(statistics.stdev(freqList), 2))
+# Create a figure
+fig = plt.figure()
 
-# Plot the results
-plt.plot(freqList)
+
+
+# Create subplot: Frequency
+plt.subplot(1, 2, 1)
+ax1 = plt.gca()
+
+# Plot data
+ax1.plot(freqList, '-k')
+
+# Format figure
+title = 'Sampling Frequency\n' + str(round(statistics.mean(freqList),2)) + '+/-' + str(round(statistics.stdev(freqList), 2))
+ax1.set_title(title, fontsize=14, fontweight='bold')
+ax1.set_xlabel('Index [ ]', fontweight='bold')
+ax1.set_ylabel('Frequency [Hz]', fontweight='bold')
+
+
+
+# Create subplot: Sleep request
+plt.subplot(1, 2, 2)
+ax0 = plt.gca()
+
+# Plot data
+ax0.plot(reqSleepList, actSleepList, 'r+')
+
+# Figure formatting
+ax0.set_title('Sleep Request', fontsize=14, fontweight='bold')
+ax0.set_xlabel('Requested Sleep Time [ms]', fontweight='bold')
+ax0.set_ylabel('Actual Sleep Time [ms]', fontweight='bold')
+
+# Show and save
+plt.grid()
 plt.show()
