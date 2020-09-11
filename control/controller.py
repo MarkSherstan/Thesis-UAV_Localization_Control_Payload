@@ -220,7 +220,7 @@ class Controller:
         self.tempData = []
         
         # Return the values
-        return rollAngle, pitchAngle, yawRate, thrust, dt, landState
+        return rollAngle, pitchAngle, yawRate, thrust, landState
 
     def logData(self):
         # Write data to a data frame

@@ -62,8 +62,7 @@ def main():
     sync = TimeSync(1/30)
     sync.startTimer()
 
-    # Logging variables
-    freqList = []
+    # Data logging
     data = []
 
     # Wait till we switch modes to prevent integral windup and keep everything happy
@@ -110,7 +109,7 @@ def main():
             # Calculate control and execute
             actual = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
             desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl, controlDeltaT, landState = C.positionControl(actual, desired)
+            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actual, desired)
 
             rollControl = desired[1]; pitchControl = desired[0]; yawControl = desired[3]; thrustControl = desired[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
@@ -125,11 +124,10 @@ def main():
             #     # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
             #     # C.resetController()
 
-            # Calcualte and log sample rate
+            # Calculate the sample rate
             tempTime = time.time()
             freqLocal = (1.0 / (tempTime - loopTimer))
             loopTimer = tempTime
-            freqList.append(freqLocal)
 
             # Print data
             # # if printFlag is True:
@@ -169,9 +167,6 @@ def main():
         GV.close()
 
     finally:
-        # Post main loop rate
-        print('Average loop rate: ', round(statistics.mean(freqList),2), '+/-', round(statistics.stdev(freqList), 2))
-
         # Write data to a data frame
         df = pd.DataFrame(data, columns=['Mode', 'Time', 
                             'Freq', 'time2delay', 'actualDelay',
@@ -184,7 +179,10 @@ def main():
                             'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
                             'Landing-State', 'Q-Size'])
-
+        
+        # Print sampling rate
+        Print('Sampling Frequency\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
+        
         # Save data to CSV
         now = datetime.datetime.now()
         fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S') + '.csv'
