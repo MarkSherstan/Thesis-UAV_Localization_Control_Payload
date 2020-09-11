@@ -104,7 +104,7 @@ def main():
             # Stabilize rate
             sleepTimer = time.time()
             time2delay = sync.stabilize()
-            actualDelay = time.time() - time2delay
+            actualDelay = time.time() - sleepTimer
 
             # Get vision and IMU data
             pos, raw, vel, acc, psi, dif, camDt = GV.getVision()

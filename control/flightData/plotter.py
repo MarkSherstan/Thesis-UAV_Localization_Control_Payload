@@ -16,8 +16,8 @@ fileName = args.input
 # Prepare CSV
 ########################
 try:
-    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time',
-                            'Freq', 'Sync-Freq', 'Kalman-Freq', 'Control-Freq',
+    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 
+                            'Freq', 'time2delay', 'actualDelay',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
@@ -133,29 +133,41 @@ fig.savefig(str(fileName).replace('.csv','')+'.png', dpi=fig.dpi)
 
 
 
-# Frequency Plots
-# df = df.iloc[10:]
-# df['Freq']  = 1.0 / df['Freq'] 
-# df['Sync-Freq'] = 1.0 / df['Sync-Freq']
-# df['Kalman-Freq'] = 1.0 / df['Kalman-Freq']
-# df['Control-Freq'] = 1.0 / df['Control-Freq']
 
-fig = plt.figure()
+# Create a figure
+fig = plt.figure(figsize=(12, 6), dpi=100)
+
+# Create subplot: Frequency
+plt.subplot(1, 2, 1)
+ax1 = plt.gca()
+
+# Plot data
+df.plot(kind='line', x='Time', y='Freq',  color='k',  style='-',  ax=ax1)
+
+# Format figure
+title = 'Sampling Frequency\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std())
+ax1.set_title(title, fontsize=14, fontweight='bold')
+ax1.set_xlabel('Time [s]', fontweight='bold')
+ax1.set_ylabel('Frequency [Hz]', fontweight='bold')
+ax1.get_legend().remove()
+
+
+# Create subplot: Sleep request
+plt.subplot(1, 2, 2)
 ax0 = plt.gca()
 
-df.plot(kind='line', ax=ax0, color='tab:gray',  alpha=0.8, y='Sync-Freq')
-df.plot(kind='line', ax=ax0, color='tab:cyan',  alpha=0.8, y='Kalman-Freq')
-df.plot(kind='line', ax=ax0, color='tab:green', alpha=0.8, y='Control-Freq')
-df.plot(kind='line', ax=ax0, color='tab:pink',  alpha=0.8, y='Freq')
+# Plot data
+df['time2delay'] = df['time2delay'] * 1000
+df['actualDelay'] = df['actualDelay'] * 1000
 
-ax0.set_title('Frequency Plot', fontsize=14, fontweight='bold')
-ax0.set_xlabel('Index', fontweight='bold')
-ax0.set_ylabel('Frequency [Hz]', fontweight='bold')
-# ax0.set_ylim([0,50])
+df.plot(kind='line', x='time2delay', y='actualDelay',  color='r',  style='+',  ax=ax0)
 
-print('Freq:         {:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
-print('Sync-Freq:    {:<4.3f} +/- {:<0.3f} '.format(df['Sync-Freq'].mean(), df['Sync-Freq'].std()))
-print('Kalman-Freq:  {:<4.3f} +/- {:<0.3f} '.format(df['Kalman-Freq'].mean(), df['Kalman-Freq'].std()))
-print('Control-Freq: {:<4.3f} +/- {:<0.3f} '.format(df['Control-Freq'].mean(), df['Control-Freq'].std()))
+# Figure formatting
+ax0.set_title('Sleep Request', fontsize=14, fontweight='bold')
+ax0.set_xlabel('Requested Sleep Time [ms]', fontweight='bold')
+ax0.set_ylabel('Actual Sleep Time [ms]', fontweight='bold')
+ax0.get_legend().remove()
 
+# Show
+plt.grid()
 plt.show()
