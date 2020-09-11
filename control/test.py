@@ -6,6 +6,7 @@ import time
 
 # Logging variables
 freqList = []
+timeList = []
 reqSleepList = []
 actSleepList = []
 
@@ -30,6 +31,7 @@ while (time.time() < startTime+10):
     # Frequency rate
     temp = time.time()
     freqLocal = (1.0 / (temp - loopTimer))
+    timeList.append(time.time()-startTime)
     freqList.append(freqLocal)
     loopTimer = temp
 
@@ -46,12 +48,12 @@ plt.subplot(1, 2, 1)
 ax1 = plt.gca()
 
 # Plot data
-ax1.plot(freqList, '-k')
+ax1.plot(timeList, freqList, '-k')
 
 # Format figure
 title = 'Sampling Frequency\n' + str(round(statistics.mean(freqList),2)) + '+/-' + str(round(statistics.stdev(freqList), 2))
 ax1.set_title(title, fontsize=14, fontweight='bold')
-ax1.set_xlabel('Index [ ]', fontweight='bold')
+ax1.set_xlabel('Time [s]', fontweight='bold')
 ax1.set_ylabel('Frequency [Hz]', fontweight='bold')
 
 
