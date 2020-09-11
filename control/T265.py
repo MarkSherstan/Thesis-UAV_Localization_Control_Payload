@@ -62,7 +62,6 @@ class T265:
         self.createMaps()
         
         # Start streaming data in another thread
-        self.t1 = time.time()
         self.startFrameThread()
 
     def startFrameThread(self):
@@ -96,9 +95,13 @@ class T265:
                 continue
 
             # Calculate dt between frames
-            t2 = pose.timestamp
-            self.dt = t2 - self.t1
-            self.t1 = t2
+            if self.dt is None:
+                self.dt = 1.0 / 30.0
+                self.t1 = pose.timestamp
+            else:
+                t2 = pose.timestamp
+                self.dt = (t2 - self.t1) / 1000.0
+                self.t1 = t2
 
             # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
