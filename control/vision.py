@@ -57,7 +57,7 @@ class Vision:
                 # Get data from T265
                 VP1.updateImg(cam.Img1)
                 VP2.updateImg(cam.Img2)
-                psiRate = cam.psiRate   # Deg/s
+                yRate = cam.psiRate     # Deg/s
                 vN  = cam.vz * -100.0   # Cm/s
                 vE  = cam.vx *  100.0   # Cm/s
                 vD  = cam.vy *  100.0   # Cm/s
@@ -87,14 +87,11 @@ class Vision:
                                                      dRaw, vD,
                                                      yRaw, psiRate]).T)
 
-                # Add data to the queue
-                Q.put([N,    E,    D, 
-                       nRaw, eRaw, dRaw,
-                       vN,   vE,   vD, 
-                       aN,   aE,   aD, 
-                       Y,    yRaw, psiRate, 
-                       nDif, eDif, dDif, yDif,
-                       dt])
+                # Add data to the queue                
+                Q.put([N, vN, aN, nRaw, nDif,
+                       E, vE, aE, eRaw, eDif,
+                       D, vD, aD, dRaw, dDif,
+                       Y, yRate,  yRaw, yDif])
 
                 # Increment the counter 
                 self.counter += 1
@@ -285,24 +282,17 @@ class VisionPose:
         print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
         print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
 
-class GetVision:
+class VisionQueueThread:
     def __init__(self, Q):
         # Vision queue
         self.Q = Q
         
+        # Data list
+        self.qList = []
+        
         # Threading parameters
         self.isReceiving = False
-        self.isRun = True
         self.thread = None
-
-        # Data
-        self.posTemp = None
-        self.rawTemp = None
-        self.velTemp = None
-        self.accTemp = None
-        self.psiTemp = None
-        self.difTemp = None
-        self.camDt   = None
 
         # Start thread automatically
         self.startThread()
@@ -310,7 +300,7 @@ class GetVision:
     def startThread(self):        
         # Create a thread
         if self.thread == None:
-            self.thread = Thread(target=self.run)
+            self.thread = Thread(target=self.run, daemon=True)
             self.thread.start()
             print('Vision queue thread start')
 
@@ -319,32 +309,87 @@ class GetVision:
                 time.sleep(0.1)
     
     def run(self):
-        # Run until thread is closed
-        while(self.isRun):
+        # Run until main thread is terminated
+        while(True):
             # Vision Data
             try:
-                temp = self.Q.get(timeout=2)
-                self.posTemp = [temp[0],  temp[1],  temp[2]]
-                self.rawTemp = [temp[3],  temp[4],  temp[5]]
-                self.velTemp = [temp[6],  temp[7],  temp[8]]
-                self.accTemp = [temp[9],  temp[10], temp[11]]
-                self.psiTemp = [temp[12], temp[13], temp[14]]
-                self.difTemp = [temp[15], temp[16], temp[17], temp[18]]
-                self.camDt   =  temp[19]
+                self.qList = self.Q.get(timeout=2)
             except queue.Empty:
                 time.sleep(1/30)
 
             # Update thread state
             self.isReceiving = True
         
-    def getVision(self):
+    def getList(self):
         # Return results
-        return self.posTemp.copy(), self.rawTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), \
-                self.psiTemp.copy(), self.difTemp.copy(), self.camDt
-    
-    def close(self):
-        # Close the thread and join
-        self.isRun = False
-        self.thread.join()
-        print('Vision queue thread closed')
+        return self.qList.copy()
+
+class VisionData:
+    def __init__(self, Q):
+        # Start the queue thread
+        self.VQT = VisionQueueThread(Q)
         
+        # Create C like structures
+        self.N = self.North()
+        self.E = self.East()
+        self.D = self.Down()
+        self.Y = self.Yaw()
+    
+    def update(self):
+        # Extract data from list into a useful variable
+        temp = self.VQT.getList()
+        
+        self.N.Pos = temp[0]
+        self.N.Vel = temp[1]
+        self.N.Acc = temp[2]
+        self.N.Raw = temp[3]
+        self.N.Dif = temp[4]
+
+        self.E.Pos = temp[5]
+        self.E.Vel = temp[6]
+        self.E.Acc = temp[7]
+        self.E.Raw = temp[8]
+        self.E.Dif = temp[9]
+        
+        self.D.Pos = temp[10]
+        self.D.Vel = temp[11]
+        self.D.Acc = temp[12]
+        self.D.Raw = temp[13]
+        self.D.Dif = temp[14]
+                
+        self.Y.Ang = temp[15]
+        self.Y.Vel = temp[16]
+        self.Y.Raw = temp[17]
+        self.Y.Dif = temp[18]
+                            
+    class North:
+        def __init__(self):
+            self.Pos = None 
+            self.Vel = None 
+            self.Acc = None
+            self.Raw = None
+            self.Dif = None 
+            
+    class East:
+        def __init__(self):
+            self.Pos = None 
+            self.Vel = None 
+            self.Acc = None
+            self.Raw = None
+            self.Dif = None          
+    
+    class Down:
+        def __init__(self):
+            self.Pos = None 
+            self.Vel = None 
+            self.Acc = None
+            self.Raw = None
+            self.Dif = None 
+    
+    class Yaw:
+        def __init__(self):
+            self.Ang = None
+            self.Vel = None
+            self.Raw = None
+            self.Dif = None
+            
