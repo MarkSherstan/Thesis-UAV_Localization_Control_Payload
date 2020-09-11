@@ -1,5 +1,5 @@
-from filter import MovingAverage, KalmanFilterNxN, TimeSync
 from payloads import SerialComs, QuickConnect
+from filter import MovingAverage, TimeSync
 from multiprocessing import Process, Queue
 from dronekit import connect, VehicleMode
 from vision import Vision, GetVision
@@ -61,11 +61,6 @@ def main():
     eVelAvg = MovingAverage(winSizeVel); eAccAvg = MovingAverage(winSizeAcc)
     dVelAvg = MovingAverage(winSizeVel); dAccAvg = MovingAverage(winSizeAcc)
 
-    # Kalman filter
-    KF = KalmanFilterNxN(3.0, 5.0, 10.0)
-    tempKalmanTime = None
-    kalmanTimer = time.time()
-
     # Loop rate stabilization
     sync = TimeSync(1/30)
     sync.startTimer()
@@ -76,29 +71,25 @@ def main():
 
     # Wait till we switch modes to prevent integral windup and keep everything happy
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        # Stabilize rate
-        _ = sync.stabilize()
-
         # Current mode
         print(vehicle.mode.name)
 
-        # Get vision and IMU data
-        pos, vel, acc, psi, _ = GV.getVision()
+        # Stabilize rate
+        _ = sync.stabilize()
 
-        # Fuse vision and IMU sensor data
-        northV, eastV, downV, yawV = KF.update(time.time()-kalmanTimer, np.array([pos[0], vel[0], 
-                                                                                  pos[1], vel[1],
-                                                                                  pos[2], vel[2],
-                                                                                  psi[0], psi[1]]).T)
-        kalmanTimer = time.time()
+        # Get vision and IMU data
+        pos, _, vel, acc, _, _, _ = GV.getVision()
+        N = pos[0]
+        E = pos[1]
+        D = pos[2]
 
         # Create moving average for velocity and acceleration
         velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
         accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
 
     # Create a trajectory to follow
-    # SP.createTrajectory([northV, eastV, downV], velAvg, accAvg)
-    # SP.createStep([northV, eastV, downV])
+    # SP.createTrajectory([N, E, D], velAvg, accAvg)
+    # SP.createStep([N, E, D])
     SP.createWave(testState='Y')
     modeState = 0
 
@@ -111,24 +102,19 @@ def main():
     try:
         while(True):
             # Stabilize rate
-            tSyncDiff = sync.stabilize()
+            sleepTimer = time.time()
+            time2delay = sync.stabilize()
+            actualDelay = time.time() - time2delay
 
             # Get vision and IMU data
-            pos, vel, acc, psi, dif = GV.getVision()
-
-            # Fuse vision and IMU sensor data
-            northV, eastV, downV, yawV = KF.update(time.time()-kalmanTimer, np.array([pos[0], vel[0], 
-                                                                                    pos[1], vel[1],
-                                                                                    pos[2], vel[2],
-                                                                                    psi[0], psi[1]]).T)
-            kalmanTimer = time.time()
+            pos, raw, vel, acc, psi, dif, camDt = GV.getVision()
 
             # Create moving average for velocity and acceleration
             velAvg = [nVelAvg.update(vel[0]), eVelAvg.update(vel[1]), dVelAvg.update(vel[2])]
             accAvg = [nAccAvg.update(acc[0]), eAccAvg.update(acc[1]), dAccAvg.update(acc[2])]
 
             # Calculate control and execute
-            actual = [northV, eastV, downV, yawV]
+            actual = [pos[0], pos[1], pos[2], psi[0]]
             desired = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl, controlDeltaT, landState = C.positionControl(actual, desired)
 
@@ -146,8 +132,9 @@ def main():
             #     # C.resetController()
 
             # Calcualte and log sample rate
-            freqLocal = (1.0 / (time.time() - loopTimer))
-            loopTimer = time.time()
+            tempTime = time.time()
+            freqLocal = (1.0 / (tempTime - loopTimer))
+            loopTimer = tempTime
             freqList.append(freqLocal)
 
             # Print data
@@ -157,16 +144,16 @@ def main():
             #     print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}  '.format(pos[0], vel[0], acc[0], pos[1], vel[1], acc[1], pos[2], vel[2], acc[2], psi[0], psi[1]))
 
             # Log data
-            data.append([vehicle.mode.name, time.time()-startTime,
-                        freqLocal, 1.0/tSyncDiff, -1.0, 1.0/controlDeltaT,
-                        northV, eastV, downV, yawV,
+            data.append([vehicle.mode.name, time.time()-startTime, 
+                        freqLocal, time2delay, actualDelay,
+                        pos[0], pos[1], pos[2], psi[0],
                         desired[0], desired[1], desired[2],
                         roll, pitch, yaw,
                         rollControl, pitchControl, yawControl, thrustControl,
-                        pos[0], pos[1], pos[2],
+                        raw[0], raw[1], raw[2],
                         vel[0], vel[1], vel[2],
                         acc[0], acc[1], acc[2],
-                        psi[0], psi[1], landState, Q.qsize(),
+                        psi[1], psi[2], landState, Q.qsize(),
                         dif[0], dif[1], dif[2], dif[3]])
 
             # Reset controller and generate new trajectory whenever there is a mode switch
@@ -192,8 +179,8 @@ def main():
         print('Average loop rate: ', round(statistics.mean(freqList),2), '+/-', round(statistics.stdev(freqList), 2))
 
         # Write data to a data frame
-        df = pd.DataFrame(data, columns=['Mode', 'Time',
-                            'Freq', 'Sync-Freq', 'Kalman-Freq', 'Control-Freq',
+        df = pd.DataFrame(data, columns=['Mode', 'Time', 
+                            'Freq', 'time2delay', 'actualDelay',
                             'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
