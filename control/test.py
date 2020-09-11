@@ -72,4 +72,5 @@ ax0.set_ylabel('Actual Sleep Time [ms]', fontweight='bold')
 
 # Show and save
 plt.grid()
-plt.show()
+# plt.show()
+fig.savefig('test.png', dpi=fig.dpi)
