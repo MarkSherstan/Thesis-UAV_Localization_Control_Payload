@@ -1,3 +1,4 @@
+from filter import KalmanFilterNxN, TimeSync
 from threading import Thread
 import cv2.aruco as aruco
 from T265 import T265
@@ -40,8 +41,15 @@ class Vision:
         VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
         VP2.startThread(cam.Img2)
         
-        # Start the main thread timer
+        # Kalman filter
+        KF = KalmanFilterNxN(3.0, 5.0, 10.0)
+
+        # Loop rate stabilization
+        sync = TimeSync(1/35)
+
+        # Start timers
         self.startTime = time.time()
+        sync.startTimer()
 
         # Process data until closed
         try: 
@@ -56,22 +64,37 @@ class Vision:
                 aN  = cam.az * -100.0   # Cm/s^2
                 aE  = cam.ax *  100.0   # Cm/s^2
                 aD  = cam.ay *  100.0   # Cm/s^2
-                
+                dt  = cam.dt            # s
+
+                # Stabilize rate and give time for image to be processed
+                _ = sync.stabilize()
+
                 # Average the results between cameras
-                North = (VP1.N + VP2.N) / 2.0
-                East  = (VP1.E + VP2.E) / 2.0
-                Down  = (VP1.D + VP2.D) / 2.0
-                Yaw   = (VP1.Y + VP2.Y) / 2.0
+                nRaw = (VP1.N + VP2.N) / 2.0
+                eRaw = (VP1.E + VP2.E) / 2.0
+                dRaw = (VP1.D + VP2.D) / 2.0
+                yRaw = (VP1.Y + VP2.Y) / 2.0
                 
-                # Find difference bettween cams
-                nDiff = (VP1.N - VP2.N)
-                eDiff = (VP1.E - VP2.E)
-                dDiff = (VP1.D - VP2.D)
-                yDiff = (VP1.Y - VP2.Y)
+                # Find difference bettween cameras
+                nDif = (VP1.N - VP2.N)
+                eDif = (VP1.E - VP2.E)
+                dDif = (VP1.D - VP2.D)
+                yDif = (VP1.Y - VP2.Y)
                 
+                # Estimate the kalman filter
+                N, E, D, Y = KF.update(dt, np.array([nRaw, vN, 
+                                                     eRaw, vE,
+                                                     dRaw, vD,
+                                                     yRaw, psiRate]).T)
+
                 # Add data to the queue
-                Q.put([North, East, Down, vN, vE, vD, aN, aE, aD, Yaw, psiRate, nDiff, eDiff, dDiff, yDiff])
-                time.sleep(1/30)
+                Q.put([N,    E,    D, 
+                       nRaw, eRaw, dRaw,
+                       vN,   vE,   vD, 
+                       aN,   aE,   aD, 
+                       Y,    yRaw, psiRate, 
+                       nDif, eDif, dDif, yDif,
+                       dt])
 
                 # Increment the counter 
                 self.counter += 1
