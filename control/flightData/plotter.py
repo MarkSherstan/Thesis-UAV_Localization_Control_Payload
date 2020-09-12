@@ -178,7 +178,8 @@ def KalmanTune(df):
     lowRange = 0
     highRange = 10
 
-    timeData = np.array(df['Time'])
+    timeData = np.array(df['Kalman-Time'])
+    deltaT   = np.array(df['Kalman-Dt'])
 
     yawData = np.array(df['Yaw-Raw'])
     gyroData = np.array(df['Yaw-Vel'])
@@ -192,7 +193,8 @@ def KalmanTune(df):
     downVelData = np.array(df['Down-Vel'])
 
     # timeData = timeData[lowRange:highRange]
-
+    # deltaT   = deltaT[lowRange:highRange]
+    
     # yawData = yawData[lowRange:highRange]
     # gyroData = gyroData[lowRange:highRange]
 
@@ -232,7 +234,7 @@ def KalmanTune(df):
     KFlist = []
 
     for ii in range(1, timeData.shape[0]):
-        dt = timeData[ii] - timeData[ii-1]
+        dt = deltaT[ii]
         
         nlistKF.append(nKF.update(dt, np.array([northPosData[ii]])))
         elistKF.append(eKF.update(dt, np.array([eastPosData[ii]])))
@@ -270,11 +272,11 @@ def KalmanTune(df):
     ##########################
     # Plot the data -> Rotation
     ##########################
-    plt.plot(timeData, yawData, 'k-', alpha=0.9, label='Raw Yaw Data')
-    plt.plot(timeData, gyroData, 'k--', alpha=0.5, label='Raw Gyro Data')
-    plt.plot(timeData[:-1], ylistKF, 'r-', label='Kalman Filter')
-    plt.plot(timeData[:-1], ylistKF2, 'g-', label='Kalman Filter w/ Gyro')
-    plt.plot(timeData[:-1], ylistAvg, 'b-', label='Moving Average')
+    plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Raw Yaw Data')
+    plt.plot(timeData, gyroData,      'k--', alpha=0.5, label='Raw Gyro Data')
+    plt.plot(timeData[:-1], ylistKF,  'r-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], Y,        'g-',  label='Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], ylistAvg, 'b-',  label='Moving Average')
 
     plt.xlabel('Time [s]')
     plt.ylabel('Yaw [deg] \nYaw Rate [deg/s]')
@@ -284,22 +286,22 @@ def KalmanTune(df):
     ##########################
     # Plot the data -> Position
     ##########################
-    plt.plot(timeData, northPosData, 'k-',   alpha=0.9, label='Raw N-Pos Data')
-    plt.plot(timeData, northVelData, 'r--',  alpha=0.3, label='Raw N-Vel Data')
-    plt.plot(timeData[:-1], nlistKF, 'r-',   label='Kalman Filter')
-    plt.plot(timeData[:-1], nlistKF2, 'r--', label='Kalman Filter w/ Vel')
+    plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='Raw N-Pos Data')
+    plt.plot(timeData, northVelData,  'r--', alpha=0.3, label='Raw N-Vel Data')
+    plt.plot(timeData[:-1], nlistKF,  'r-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], N,        'r--', label='Kalman Filter Pos and Vel')
     plt.plot(timeData[:-1], nlistAvg, 'r.-', label='Moving Average')
 
-    plt.plot(timeData, eastPosData, 'k-',    alpha=0.9, label='Raw E-Pos Data')
-    plt.plot(timeData, eastVelData, 'g--',   alpha=0.3, label='Raw E-Vel Data')
-    plt.plot(timeData[:-1], elistKF, 'g-',   label='Kalman Filter')
-    plt.plot(timeData[:-1], elistKF2, 'g--', label='Kalman Filter w/ Vel')
+    plt.plot(timeData, eastPosData,   'k-',  alpha=0.9, label='Raw E-Pos Data')
+    plt.plot(timeData, eastVelData,   'g--', alpha=0.3, label='Raw E-Vel Data')
+    plt.plot(timeData[:-1], elistKF,  'g-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], E,        'g--', label='Kalman Filter Pos and Vel')
     plt.plot(timeData[:-1], elistAvg, 'g.-', label='Moving Average')
 
-    plt.plot(timeData, downPosData, 'k-',    alpha=0.9, label='Raw D-Pos Data')
-    plt.plot(timeData, downVelData, 'b--',   alpha=0.3, label='Raw D-Vel Data')
-    plt.plot(timeData[:-1], dlistKF, 'b-',   label='Kalman Filter')
-    plt.plot(timeData[:-1], dlistKF2, 'b--', label='Kalman Filter w/ Vel')
+    plt.plot(timeData, downPosData,   'k-',  alpha=0.9, label='Raw D-Pos Data')
+    plt.plot(timeData, downVelData,   'b--', alpha=0.3, label='Raw D-Vel Data')
+    plt.plot(timeData[:-1], dlistKF,  'b-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], D,        'b--', label='Kalman Filter Pos and Vel')
     plt.plot(timeData[:-1], dlistAvg, 'b.-', label='Moving Average')
 
     plt.xlabel('Time [s]')
@@ -328,7 +330,7 @@ try:
                             'North-Acc', 'East-Acc', 'Down-Acc', 
                             'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
-                            'Landing-State', 'Q-Size'])
+                            'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
                             
 except:
     print('Error with file.')
