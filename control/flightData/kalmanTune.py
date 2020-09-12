@@ -14,41 +14,40 @@ import time
 # Import data
 ##########################
 try:        
-    fileName = 'TestData.csv'
-    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time',
-                            'Freq', 'Sync-Freq', 'Kalman-Freq', 'Control-Freq',
-                            'North-Vision',  'East-Vision',  'Down-Vision', 'Yaw-Vision',
+    fileName = '2020-09-11__17-43-45.csv'
+    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 
+                            'Freq', 'time2delay', 'actualDelay',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
                             'Roll-Control', 'Pitch-Control', 'Yaw-Control', 'Thrust-Control',
-                            'northVraw', 'eastVraw', 'downVraw',
-                            'N-Velocity', 'E-Velocity', 'D-Velocity',
-                            'N-Acceleration', 'E-Acceleration', 'D-Acceleration',
-                            'yawVraw', 'yawRate', 'Landing-State', 'Q-Size',
-                            'N-diff', 'E-diff', 'D-diff', 'Y-diff'])
+                            'North-Pos', 'East-Pos', 'Down-Pos', 'Yaw-Ang',
+                            'North-Vel', 'East-Vel', 'Down-Vel', 'Yaw-Vel',
+                            'North-Acc', 'East-Acc', 'Down-Acc', 
+                            'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
+                            'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
+                            'Landing-State', 'Q-Size'])
 except:
     print('Error with file.')
     exit()
 
-##########################
+
 # Select data set
-##########################
+####################################################
 lowRange = 0
 highRange = 10
 
 timeData = np.array(df['Time'])
 
-yawData = np.array(df['yawVraw'])
-gyroData = np.array(df['yawRate'])
+yawData = np.array(df['Yaw-Raw'])
+gyroData = np.array(df['Yaw-Vel'])
 
-northPosData = np.array(df['northVraw'])
-eastPosData = np.array(df['eastVraw'])
-downPosData = np.array(df['downVraw'])
+northPosData = np.array(df['North-Raw'])
+eastPosData  = np.array(df['East-Raw'])
+downPosData  = np.array(df['Down-Raw'])
 
-northVelData = np.array(df['N-Velocity'])
-eastVelData = np.array(df['E-Velocity'])
-downVelData = np.array(df['D-Velocity'])
-
+northVelData = np.array(df['North-Vel'])
+eastVelData = np.array(df['East-Vel'])
+downVelData = np.array(df['Down-Vel'])
 
 # timeData = timeData[lowRange:highRange]
 
@@ -63,9 +62,9 @@ downVelData = np.array(df['D-Velocity'])
 # eastVelData = eastVelData[lowRange:highRange]
 # downVelData = downVelData[lowRange:highRange]
 
-##########################
+####################################################
+
 # ONLINE: Simulation
-##########################
 nKF = KalmanFilter1x(1.0, 10.0)
 eKF = KalmanFilter1x(1.0, 10.0)
 dKF = KalmanFilter1x(1.0, 10.0)
@@ -83,66 +82,40 @@ eAvg = MovingAverage(5)
 dAvg = MovingAverage(5)
 yAvg = MovingAverage(5)
 
-nlistKF = []
-elistKF = []
-dlistKF = []
-ylistKF = []
-
-nlistKF2 = []
-elistKF2 = []
-dlistKF2 = []
-ylistKF2 = []
-
-nlistAvg = []
-elistAvg = []
-dlistAvg = []
-ylistAvg = []
+nlistKF = []; nlistKF2 = []; nlistAvg = []
+elistKF = []; elistKF2 = []; elistAvg = []
+dlistKF = []; dlistKF2 = []; dlistAvg = []
+ylistKF = []; ylistKF2 = []; ylistAvg = []
 
 KFlist = []
 timeList = []
 masterList = []
 tempTime = time.time()
 
-for jj in range(10):
-    for ii in range(1, timeData.shape[0]):
-        dt = timeData[ii] - timeData[ii-1]
-        
-        # nlistKF.append(nKF.update(dt, np.array([northPosData[ii]])))
-        # elistKF.append(eKF.update(dt, np.array([eastPosData[ii]])))
-        # dlistKF.append(dKF.update(dt, np.array([downPosData[ii]])))
-        # ylistKF.append(yKF.update(dt, np.array([yawData[ii]])))
 
-        # tempTime = time.time()
-        # nlistKF2.append(nKF2.update(dt, np.array([northPosData[ii], northVelData[ii]]).T))
-        # elistKF2.append(eKF2.update(dt, np.array([eastPosData[ii], eastVelData[ii]]).T))
-        # dlistKF2.append(dKF2.update(dt, np.array([downPosData[ii], downVelData[ii]]).T))
-        # ylistKF2.append(yKF2.update(dt, np.array([yawData[ii], gyroData[ii]]).T))
-        # timeList.append(time.time()-tempTime)
-
-        # nlistAvg.append(nAvg.update(northPosData[ii]))
-        # elistAvg.append(eAvg.update(eastPosData[ii]))
-        # dlistAvg.append(dAvg.update(downPosData[ii]))
-        # ylistAvg.append(yAvg.update(yawData[ii]))
-        
-        tempTime = time.time()
-        KFlist.append(KF.update(dt, np.array([northPosData[ii], northVelData[ii], 
-                                       eastPosData[ii], eastVelData[ii],
-                                       downPosData[ii], downVelData[ii],
-                                       yawData[ii], gyroData[ii]]).T))
-        timeList.append(time.time()-tempTime)
-        
-    print('Trial ', jj, ':', statistics.mean(timeList), '+/-', statistics.stdev(timeList))
-    masterList.append(timeList)
-    timeList = []
+for ii in range(1, timeData.shape[0]):
+    dt = timeData[ii] - timeData[ii-1]
     
-mast = sum(masterList, [])
-print('Final: ', statistics.mean(mast), '+/-', statistics.stdev(mast))
+    nlistKF.append(nKF.update(dt, np.array([northPosData[ii]])))
+    elistKF.append(eKF.update(dt, np.array([eastPosData[ii]])))
+    dlistKF.append(dKF.update(dt, np.array([downPosData[ii]])))
+    ylistKF.append(yKF.update(dt, np.array([yawData[ii]])))
 
-# plt.plot(timeList)
-# plt.show()
-exit()
+    nlistKF2.append(nKF2.update(dt, np.array([northPosData[ii], northVelData[ii]]).T))
+    elistKF2.append(eKF2.update(dt, np.array([eastPosData[ii], eastVelData[ii]]).T))
+    dlistKF2.append(dKF2.update(dt, np.array([downPosData[ii], downVelData[ii]]).T))
+    ylistKF2.append(yKF2.update(dt, np.array([yawData[ii], gyroData[ii]]).T))
 
+    nlistAvg.append(nAvg.update(northPosData[ii]))
+    elistAvg.append(eAvg.update(eastPosData[ii]))
+    dlistAvg.append(dAvg.update(downPosData[ii]))
+    ylistAvg.append(yAvg.update(yawData[ii]))
 
+    KFlist.append(KF.update(dt, np.array([northPosData[ii], northVelData[ii], 
+                                    eastPosData[ii], eastVelData[ii],
+                                    downPosData[ii], downVelData[ii],
+                                       yawData[ii], gyroData[ii]]).T))
+        
 # Perform comparison checks
 N = []; E = []; D = []; Y = []
 for ii in range(len(KFlist)):
