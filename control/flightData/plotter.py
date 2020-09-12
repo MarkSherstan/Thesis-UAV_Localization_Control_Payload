@@ -15,7 +15,7 @@ def General(df, fileName, saveFlag):
             idx.append(ii)
 
     # Master
-    fig = plt.figure()
+    fig = plt.figure(figsize=(11, 7), dpi=100)
 
     # Roll and Pitch
     plt.subplot(2, 2, 1)
@@ -28,7 +28,7 @@ def General(df, fileName, saveFlag):
     df.plot(kind='line', x='Time', y='Pitch-Control', color='#700CBC', style='-', ax=ax0)
 
     ax0.set_title('Roll & Pitch Control', fontsize=14, fontweight='bold')
-    ax0.set_xlabel('Time [s]', fontweight='bold')
+    ax0.set_xlabel('')
     ax0.set_ylabel('Angle [deg]', fontweight='bold')
 
     for ii in range(0,len(idx),2):
@@ -42,7 +42,7 @@ def General(df, fileName, saveFlag):
     df.plot(kind='line', x='Time', y='Yaw-Control', color='tab:blue', style='--', ax=ax1)
 
     ax1.set_title('Yaw Control', fontsize=14, fontweight='bold')
-    ax1.set_xlabel('Time [s]', fontweight='bold')
+    ax1.set_xlabel('')
     ax1.set_ylabel('Angle [Deg or Deg/s]', fontweight='bold')
 
     for ii in range(0,len(idx),2):
