@@ -146,7 +146,7 @@ def main():
                         vData.N.Acc, vData.E.Acc, vData.D.Acc,
                         vData.N.Raw, vData.E.Raw, vData.D.Raw, vData.Y.Raw,
                         vData.N.Dif, vData.E.Dif, vData.D.Dif, vData.Y.Dif,
-                        landState, Q.qsize()])
+                        landState, Q.qsize(), vData.T.time, vData.T.dt])
 
             # Reset controller and generate new trajectory whenever there is a mode switch
             if (vehicle.mode.name == 'STABILIZE'):
@@ -177,7 +177,7 @@ def main():
                             'North-Acc', 'East-Acc', 'Down-Acc', 
                             'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
-                            'Landing-State', 'Q-Size'])
+                            'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
         
         # Print sampling rate
         print('Sampling Frequency: ' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))

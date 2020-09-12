@@ -91,7 +91,9 @@ class Vision:
                 Q.put([N, vN, aN, nRaw, nDif,
                        E, vE, aE, eRaw, eDif,
                        D, vD, aD, dRaw, dDif,
-                       Y, yRate,  yRaw, yDif])
+                       Y, yRate,  yRaw, yDif,
+                       time.time()-self.startTime,
+                       dt])
 
                 # Increment the counter 
                 self.counter += 1
@@ -334,6 +336,7 @@ class VisionData:
         self.E = self.East()
         self.D = self.Down()
         self.Y = self.Yaw()
+        self.T = self.Time()
     
     def update(self):
         # Extract data from list into a useful variable
@@ -361,7 +364,10 @@ class VisionData:
         self.Y.Vel = temp[16]
         self.Y.Raw = temp[17]
         self.Y.Dif = temp[18]
-                            
+        
+        self.T.time = temp[19]
+        self.T.dt   = temp[20]
+        
     class North:
         def __init__(self):
             self.Pos = None 
@@ -393,3 +399,8 @@ class VisionData:
             self.Raw = None
             self.Dif = None
             
+    class Time:
+        def __init__(self):
+            self.time = None
+            self.dt   = None
+    
