@@ -123,6 +123,13 @@ class Controller:
         
         # Send the constructed message
         self.UAV.send_mavlink(msg)
+
+    def getVehicleAttitude(self):
+        # Actual vehicle attitude
+        roll  = math.degrees(self.UAV.attitude.roll)
+        pitch = math.degrees(self.UAV.attitude.pitch)
+        yaw   = math.degrees(self.UAV.attitude.yaw)
+        return roll, pitch, yaw
        
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)

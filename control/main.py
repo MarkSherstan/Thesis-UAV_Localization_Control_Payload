@@ -13,13 +13,6 @@ import datetime
 import math
 import time
 
-def getVehicleAttitude(UAV):
-    # Actual vehicle attitude
-    roll  = math.degrees(UAV.attitude.roll)
-    pitch = math.degrees(UAV.attitude.pitch)
-    yaw   = math.degrees(UAV.attitude.yaw)
-    return roll, pitch, yaw
-
 def main():
     # Connect to the Vehicle
     connection_string = '/dev/ttyTHS1'
@@ -115,7 +108,7 @@ def main():
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
 
             # Get actual vehicle attitude
-            roll, pitch, yaw = getVehicleAttitude(vehicle)
+            roll, pitch, yaw = C.getVehicleAttitude()
 
             # If landed, engange the quick connect
             # if (landState == True):
