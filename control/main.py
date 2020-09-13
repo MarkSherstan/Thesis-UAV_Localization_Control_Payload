@@ -160,11 +160,14 @@ def main():
                 SP.createWave(testState='Y')
 
     except KeyboardInterrupt:
-        # Print final remarks and close connections and threads
+        # Print final remarks and close connections/threads
         print('Closing')
-        C.logData()
         # s.close()
-
+        
+        # Record time stamp for data logs
+        now = datetime.datetime.now()
+        C.logData(now)
+        
     finally:
         # Write data to a data frame
         df = pd.DataFrame(data, columns=['Mode', 'Time', 
@@ -183,10 +186,9 @@ def main():
         print('Sampling Frequency: ' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
         
         # Save data to CSV
-        now = datetime.datetime.now()
-        fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('MAIN-%Y-%m-%d__%H-%M-%S') + '.csv'
         df.to_csv(fileName, index=None, header=True)
-        print('File saved to:' + fileName)
+        print('Main log saved to: ' + fileName)
 
 if __name__ == "__main__":
     main()

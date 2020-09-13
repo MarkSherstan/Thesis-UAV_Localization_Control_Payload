@@ -222,7 +222,7 @@ class Controller:
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust, landState
 
-    def logData(self):
+    def logData(self, now):
         # Write data to a data frame
         df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
                                               'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
@@ -235,7 +235,6 @@ class Controller:
                                               'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
 
         # Save data to CSV
-        now = datetime.datetime.now()
-        fileName = 'flightData/' + now.strftime('Gains-%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('CONTROL-%Y-%m-%d__%H-%M-%S') + '.csv'
         df.to_csv(fileName, index=None, header=True)
-        print('File saved to:' + fileName)
+        print('Control log saved to: ' + fileName)
