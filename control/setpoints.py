@@ -61,6 +61,7 @@ class SetPoints:
         elif self.state == 'Step':
             self.createStep(posIC)
         elif self.state == 'Wave':
+            self.downDesired = 0.5
             self.createWave(axis=self.args)
         else:
             print('State setpoint error')

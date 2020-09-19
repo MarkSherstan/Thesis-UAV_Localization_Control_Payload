@@ -7,7 +7,7 @@ def General(df, fileName, saveFlag):
     # Find autonomous sections
     df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
 
-    idx = [0]
+    idx = []
     for ii in range(df.shape[0]-1):
         if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
             pass
