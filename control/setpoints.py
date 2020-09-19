@@ -1,7 +1,19 @@
 import numpy as np
 
 class SetPoints:
-    def __init__(self, state, nDesired, eDesired, dDesired, yDesired, args=None):
+    def __init__(self, state, nDesired=0, eDesired=0, dDesired=0, yDesired=0, args=None):
+        '''
+        Example uses:
+        1. SP = SetPoints(state='Trajectory', nDesired=-10, eDesired=40, dDesired=0, yDesired=0)
+        2. SP = SetPoints(state='Step')
+        3. SP = SetPoints(state='Wave', args='Y')
+            * Complete args list = 'Y', 'RP', 'T'
+            * Must replace:
+                rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actualPos, desiredPos)
+               with
+                rollControl = desiredPos[1]; pitchControl = desiredPos[0]; yawControl = desiredPos[3]; thrustControl = desiredPos[2]; 
+        '''
+        
         # Save arguments for some functions
         self.args = args
         
@@ -21,7 +33,7 @@ class SetPoints:
         else:
             self.state = state
     
-    def updateDesired(self, nDesired, eDesired, dDesired, yDesired):
+    def reset(self, nDesired, eDesired, dDesired, yDesired):
         # Desired Pose
         self.northDesired = nDesired 
         self.eastDesired  = eDesired
@@ -80,7 +92,6 @@ class SetPoints:
         self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=5)
         self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=5)
         self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=7)
-        print('Trajectory ready')
 
     def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
@@ -109,7 +120,7 @@ class SetPoints:
         return pos
 
     def createStep(self, posIC, sampleRate=1/30):
-        # 2 second steady state
+        # Two second steady state
         n = int(2.0 / sampleRate)
         
         # Update the lists
@@ -121,12 +132,9 @@ class SetPoints:
         self.northDesired = posIC[0] 
         self.eastDesired  = posIC[1] + 50
         self.downDesired  = posIC[2] 
-        
-        # Show step is ready
-        print('Step response ready')
 
     def createWave(self, axis):
-        # Actual controller inputs not desired positions
+        # Actual controller inputs NOT desired positions!!!
         if (axis == 'Y'):
             # Oscillate just yaw
             self.northDesired = 0 
