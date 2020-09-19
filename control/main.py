@@ -37,8 +37,9 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(-10, 40, 0)
-
+    SP = SetPoints(state='Wave', args='Y')
+    modeState = 1
+    
     # Connect to serial port and quick connect
     s = SerialComs()
     qc = QuickConnect(s)
@@ -56,28 +57,28 @@ def main():
     # Data logging
     data = []
 
-    # Wait till mode switch to prevent integral windup and from logging to much data
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        # Current mode
-        print(vehicle.mode.name)
+    # # Wait till mode switch to prevent integral windup and from logging to much data
+    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
+    #     # Current mode
+    #     print(vehicle.mode.name)
 
-        # Stabilize rate
-        _ = sync.stabilize()
+    #     # Stabilize rate
+    #     _ = sync.stabilize()
 
-        # Get vision and IMU data
-        vData.update()
+    #     # Get vision and IMU data
+    #     vData.update()
         
-        # Create moving average for velocity and acceleration
-        velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
-        accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
+    #     # Create moving average for velocity and acceleration
+    #     velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
+    #     accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
 
     # Create a trajectory to follow
     # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
     # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
-    SP.createWave(testState='Y')
-    modeState = 0
+    # SP.createWave(testState='Y')
 
     # Timers
+    print('Start')
     startTime = time.time()
     loopTimer = time.time()
     sync.startTimer()
@@ -94,11 +95,11 @@ def main():
             vData.update()
         
             # Calculate control and execute
-            actual = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
-            desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actual, desired)
+            actualPos = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
+            desiredPos = SP.getDesired()
+            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actualPos, desiredPos)
 
-            rollControl = desired[1]; pitchControl = desired[0]; yawControl = desired[3]; thrustControl = desired[2]; # Only for testing
+            rollControl = desiredPos[1]; pitchControl = desiredPos[0]; yawControl = desiredPos[3]; thrustControl = desiredPos[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
 
             # Get actual vehicle attitude
@@ -107,8 +108,8 @@ def main():
             # If landed, engange the quick connect
             # if (landState == True):
             #     qc.engage()
-            #     SP.updateSetPoints(-10, 40, 100)
-            #     SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], 0, 0)
+            #     SP.reset(-10, 40, 100)
+            #     SP.update(actualPos, [0, 0, 0], [0, 0, 0])
             #     C.resetController()
 
             # Calculate the sample rate
@@ -124,7 +125,7 @@ def main():
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, 
                         freqLocal, time2delay, actualDelay,
-                        desired[0], desired[1], desired[2],
+                        desiredPos[0], desiredPos[1], desiredPos[2],
                         roll, pitch, yaw,
                         rollControl, pitchControl, yawControl, thrustControl,
                         vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang,
@@ -144,10 +145,11 @@ def main():
 
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
-                C.resetController()
+                C.resetController(actual)
+                SP.update(actualPos, velAvg, accAvg)
                 # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
                 # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
-                SP.createWave(testState='Y')
+                # SP.createWave(testState='Y')
 
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
