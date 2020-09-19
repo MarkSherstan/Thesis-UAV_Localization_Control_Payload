@@ -19,6 +19,9 @@ class SerialComs:
             print('Connected to ' + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
         except:
             print('Failed to connect with ' + str(serialPort) + ' at ' + str(serialBaud) + ' BAUD.')
+            
+        # Start thread automatically
+        self.serialThreadStart()
 
     def serialThreadStart(self):
         # Create a thread
@@ -74,6 +77,9 @@ class QuickConnect:
 
         # Serial port class
         self.ser = s
+        
+        # Always release on start up 
+        self.release()
 
     def engage(self):
         # Send the command to engage
