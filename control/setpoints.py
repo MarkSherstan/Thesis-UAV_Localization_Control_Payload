@@ -23,8 +23,15 @@ class SetPoints:
         self.downDesired  = dDesired
         self.yawDesired   = yDesired
 
+        # Desired pose list
+        self.northDesiredList = []
+        self.eastDesiredList  = []
+        self.downDesiredList  = []
+        self.yawDesiredList   = []
+        self.index = 0
+
         # Save the desired state
-        if ((state != 'Trajectory') or (state != 'Step') or (state != 'Wave')):
+        if (state not in ['Trajectory', 'Step', 'Wave']):
             print('Selected state does not exist. Use one of the following: \
                   \n\t Trajectory \
                   \n\t Step       \

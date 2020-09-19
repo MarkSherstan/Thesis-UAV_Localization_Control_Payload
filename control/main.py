@@ -41,8 +41,8 @@ def main():
     modeState = 1
     
     # Connect to serial port and quick connect
-    s = SerialComs()
-    qc = QuickConnect(s)
+    # s = SerialComs()
+    # qc = QuickConnect(s)
 
     # Moving average for velocity and acceleration (trajectory generation)
     winSizeVel = 5;                      winSizeAcc = 10
@@ -140,7 +140,7 @@ def main():
 
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
-                C.resetController(actual)
+                C.resetController()
                 SP.update(actualPos, velAvg, accAvg)
 
             # Print data
@@ -151,7 +151,7 @@ def main():
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
         print('Closing')
-        s.close()
+        # s.close()
         
         # Record time stamp for data logs
         now = datetime.datetime.now()
@@ -172,7 +172,7 @@ def main():
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
         
         # Print sampling rate
-        print('Sampling Frequency: ' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
+        print('Sampling Frequency: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Freq'].mean(), df['Freq'].std()))
         
         # Save data to CSV
         fileName = 'flightData/' + now.strftime('MAIN-%Y-%m-%d__%H-%M-%S') + '.csv'
