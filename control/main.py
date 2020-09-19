@@ -14,10 +14,10 @@ import math
 import time
 
 def main():
-    # Connect to the Vehicle
-    connection_string = '/dev/ttyTHS1'
-    print('Connecting to vehicle on: %s\n' % connection_string)
-    vehicle = connect(connection_string, wait_ready=['attitude'], baud=1500000)
+    # Connect to the vehicle
+    connectionString = '/dev/ttyTHS1'
+    print('Connecting to vehicle on: %s\n' % connectionString)
+    vehicle = connect(connectionString, wait_ready=['attitude'], baud=1500000)
 
     # Set attitude request message rate
     msg = vehicle.message_factory.request_data_stream_encode(
@@ -39,11 +39,9 @@ def main():
     C = Controller(vehicle)
     SP = SetPoints(-10, 40, 0)
 
-    # Connect to quick connect
-    # s = SerialComs()
-    # s.serialThreadStart()
-    # qc = QuickConnect(s)
-    # qc.release()
+    # Connect to serial port and quick connect
+    s = SerialComs()
+    qc = QuickConnect(s)
 
     # Moving average for velocity and acceleration (trajectory generation)
     winSizeVel = 5;                      winSizeAcc = 10
@@ -58,7 +56,7 @@ def main():
     # Data logging
     data = []
 
-    # Wait till we switch modes to prevent integral windup and keep everything happy
+    # Wait till mode switch to prevent integral windup and from logging to much data
     while(vehicle.mode.name != 'GUIDED_NOGPS'):
         # Current mode
         print(vehicle.mode.name)
@@ -95,10 +93,6 @@ def main():
             # Get vision and IMU data
             vData.update()
         
-            # Create moving average for velocity and acceleration
-            velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
-            accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
-
             # Calculate control and execute
             actual = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
             desired = SP.getDesired()
@@ -113,9 +107,9 @@ def main():
             # If landed, engange the quick connect
             # if (landState == True):
             #     qc.engage()
-            #     # SP.updateSetPoints(-10, 40, 100)
-            #     # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
-            #     # C.resetController()
+            #     SP.updateSetPoints(-10, 40, 100)
+            #     SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], 0, 0)
+            #     C.resetController()
 
             # Calculate the sample rate
             tempTime = time.time()
@@ -123,10 +117,9 @@ def main():
             loopTimer = tempTime
 
             # Print data
-            # # if printFlag is True:
-            #     print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
-            #     print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-            #     print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
+            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
+            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
 
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, 
@@ -140,6 +133,10 @@ def main():
                         vData.N.Raw, vData.E.Raw, vData.D.Raw, vData.Y.Raw,
                         vData.N.Dif, vData.E.Dif, vData.D.Dif, vData.Y.Dif,
                         landState, Q.qsize(), vData.T.time, vData.T.dt])
+
+            # Create moving average for vel and acc for the trajectory
+            velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
+            accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
 
             # Reset controller and generate new trajectory whenever there is a mode switch
             if (vehicle.mode.name == 'STABILIZE'):
@@ -155,7 +152,7 @@ def main():
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
         print('Closing')
-        # s.close()
+        s.close()
         
         # Record time stamp for data logs
         now = datetime.datetime.now()
