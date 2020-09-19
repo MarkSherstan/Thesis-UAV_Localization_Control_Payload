@@ -34,9 +34,8 @@ class Controller:
         self.ki_YAW = 0
         self.kd_YAW = 0
 
-        # Gain scheduling 
+        # Cutoff height
         self.gainHeight = 25.0
-        self.gainFactor = 2.0
         
         # Landing check 
         self.landErrorNE = 3.0
@@ -124,6 +123,13 @@ class Controller:
         
         # Send the constructed message
         self.UAV.send_mavlink(msg)
+
+    def getVehicleAttitude(self):
+        # Actual vehicle attitude
+        roll  = math.degrees(self.UAV.attitude.roll)
+        pitch = math.degrees(self.UAV.attitude.pitch)
+        yaw   = math.degrees(self.UAV.attitude.yaw)
+        return roll, pitch, yaw
        
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
@@ -155,22 +161,13 @@ class Controller:
         # Get time delta
         dt = time.time() - self.timer
         self.timer = time.time()
-
-        # Gain scheduling
-        # if actual[2] < self.gainHeight:
-        #     tempKp = self.kp_DOWN * self.gainFactor
-        # else:
-        #     tempKp = self.kp_DOWN
-        tempKp = self.kp_DOWN
             
-        # Calculate thrust control
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, tempKp, self.ki_DOWN, self.kd_DOWN)
-                
         # Run the remainder of the control
         rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
         pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
         yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
-        
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
+                
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
         self.eastI  = self.constrain(self.eastI, self.eastIcontstrain[0], self.eastIcontstrain[1]) 
@@ -232,7 +229,7 @@ class Controller:
         # Return the values
         return rollAngle, pitchAngle, yawRate, thrust, landState
 
-    def logData(self):
+    def logData(self, now):
         # Write data to a data frame
         df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
                                               'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
@@ -245,7 +242,6 @@ class Controller:
                                               'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
 
         # Save data to CSV
-        now = datetime.datetime.now()
-        fileName = 'flightData/' + now.strftime('Gains-%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('CONTROL-%Y-%m-%d__%H-%M-%S') + '.csv'
         df.to_csv(fileName, index=None, header=True)
-        print('File saved to:' + fileName)
+        print('Control log saved to: ' + fileName)

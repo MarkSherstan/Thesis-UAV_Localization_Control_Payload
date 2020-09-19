@@ -1,3 +1,4 @@
+from filter import KalmanFilterNxN, TimeSync
 from threading import Thread
 import cv2.aruco as aruco
 from T265 import T265
@@ -40,8 +41,15 @@ class Vision:
         VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
         VP2.startThread(cam.Img2)
         
-        # Start the main thread timer
+        # Kalman filter
+        KF = KalmanFilterNxN(3.0, 5.0, 10.0)
+
+        # Loop rate stabilization
+        sync = TimeSync(1/35)
+
+        # Start timers
         self.startTime = time.time()
+        sync.startTimer()
 
         # Process data until closed
         try: 
@@ -49,29 +57,43 @@ class Vision:
                 # Get data from T265
                 VP1.updateImg(cam.Img1)
                 VP2.updateImg(cam.Img2)
-                psiRate = cam.psiRate   # Deg/s
+                yRate = cam.psiRate     # Deg/s
                 vN  = cam.vz * -100.0   # Cm/s
                 vE  = cam.vx *  100.0   # Cm/s
                 vD  = cam.vy *  100.0   # Cm/s
                 aN  = cam.az * -100.0   # Cm/s^2
                 aE  = cam.ax *  100.0   # Cm/s^2
                 aD  = cam.ay *  100.0   # Cm/s^2
-                
+                dt  = cam.dt            # s
+
+                # Stabilize rate and give time for image to be processed
+                _ = sync.stabilize()
+
                 # Average the results between cameras
-                North = (VP1.N + VP2.N) / 2.0
-                East  = (VP1.E + VP2.E) / 2.0
-                Down  = (VP1.D + VP2.D) / 2.0
-                Yaw   = (VP1.Y + VP2.Y) / 2.0
+                nRaw = (VP1.N + VP2.N) / 2.0
+                eRaw = (VP1.E + VP2.E) / 2.0
+                dRaw = (VP1.D + VP2.D) / 2.0
+                yRaw = (VP1.Y + VP2.Y) / 2.0
                 
-                # Find difference bettween cams
-                nDiff = (VP1.N - VP2.N)
-                eDiff = (VP1.E - VP2.E)
-                dDiff = (VP1.D - VP2.D)
-                yDiff = (VP1.Y - VP2.Y)
+                # Find difference bettween cameras
+                nDif = (VP1.N - VP2.N)
+                eDif = (VP1.E - VP2.E)
+                dDif = (VP1.D - VP2.D)
+                yDif = (VP1.Y - VP2.Y)
                 
-                # Add data to the queue
-                Q.put([North, East, Down, vN, vE, vD, aN, aE, aD, Yaw, psiRate, nDiff, eDiff, dDiff, yDiff])
-                time.sleep(1/30)
+                # Estimate the kalman filter
+                N, E, D, Y = KF.update(dt, np.array([nRaw, vN, 
+                                                     eRaw, vE,
+                                                     dRaw, vD,
+                                                     yRaw, yRate]).T)
+
+                # Add data to the queue                
+                Q.put([N, vN, aN, nRaw, nDif,
+                       E, vE, aE, eRaw, eDif,
+                       D, vD, aD, dRaw, dDif,
+                       Y, yRate,  yRaw, yDif,
+                       time.time()-self.startTime,
+                       dt])
 
                 # Increment the counter 
                 self.counter += 1
@@ -262,22 +284,17 @@ class VisionPose:
         print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
         print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
 
-class GetVision:
+class VisionQueueThread:
     def __init__(self, Q):
         # Vision queue
         self.Q = Q
         
+        # Data list
+        self.qList = []
+        
         # Threading parameters
         self.isReceiving = False
-        self.isRun = True
         self.thread = None
-
-        # Data
-        self.posTemp = None
-        self.velTemp = None
-        self.accTemp = None
-        self.psiTemp = None
-        self.difTemp = None
 
         # Start thread automatically
         self.startThread()
@@ -285,7 +302,7 @@ class GetVision:
     def startThread(self):        
         # Create a thread
         if self.thread == None:
-            self.thread = Thread(target=self.run)
+            self.thread = Thread(target=self.run, daemon=True)
             self.thread.start()
             print('Vision queue thread start')
 
@@ -294,29 +311,96 @@ class GetVision:
                 time.sleep(0.1)
     
     def run(self):
-        # Run until thread is closed
-        while(self.isRun):
+        # Run until main thread is terminated
+        while(True):
             # Vision Data
             try:
-                temp = self.Q.get(timeout=2)
-                self.posTemp = [temp[0], temp[1], temp[2]]
-                self.velTemp = [temp[3], temp[4], temp[5]]
-                self.accTemp = [temp[6], temp[7], temp[8]]
-                self.psiTemp = [temp[9], temp[10]]
-                self.difTemp = [temp[11], temp[12], temp[13], temp[14]]
+                self.qList = self.Q.get(timeout=2)
             except queue.Empty:
                 time.sleep(1/30)
 
             # Update thread state
             self.isReceiving = True
         
-    def getVision(self):
+    def getList(self):
         # Return results
-        return self.posTemp.copy(), self.velTemp.copy(), self.accTemp.copy(), self.psiTemp.copy(), self.difTemp.copy()
-    
-    def close(self):
-        # Close the thread and join
-        self.isRun = False
-        self.thread.join()
-        print('Vision queue thread closed')
+        return self.qList.copy()
+
+class VisionData:
+    def __init__(self, Q):
+        # Start the queue thread
+        self.VQT = VisionQueueThread(Q)
         
+        # Create C like structures
+        self.N = self.North()
+        self.E = self.East()
+        self.D = self.Down()
+        self.Y = self.Yaw()
+        self.T = self.Time()
+    
+    def update(self):
+        # Extract data from list into a useful variable
+        temp = self.VQT.getList()
+        
+        self.N.Pos = temp[0]
+        self.N.Vel = temp[1]
+        self.N.Acc = temp[2]
+        self.N.Raw = temp[3]
+        self.N.Dif = temp[4]
+
+        self.E.Pos = temp[5]
+        self.E.Vel = temp[6]
+        self.E.Acc = temp[7]
+        self.E.Raw = temp[8]
+        self.E.Dif = temp[9]
+        
+        self.D.Pos = temp[10]
+        self.D.Vel = temp[11]
+        self.D.Acc = temp[12]
+        self.D.Raw = temp[13]
+        self.D.Dif = temp[14]
+                
+        self.Y.Ang = temp[15]
+        self.Y.Vel = temp[16]
+        self.Y.Raw = temp[17]
+        self.Y.Dif = temp[18]
+        
+        self.T.time = temp[19]
+        self.T.dt   = temp[20]
+        
+    class North:
+        def __init__(self):
+            self.Pos = None 
+            self.Vel = None 
+            self.Acc = None
+            self.Raw = None
+            self.Dif = None 
+            
+    class East:
+        def __init__(self):
+            self.Pos = None 
+            self.Vel = None 
+            self.Acc = None
+            self.Raw = None
+            self.Dif = None          
+    
+    class Down:
+        def __init__(self):
+            self.Pos = None 
+            self.Vel = None 
+            self.Acc = None
+            self.Raw = None
+            self.Dif = None 
+    
+    class Yaw:
+        def __init__(self):
+            self.Ang = None
+            self.Vel = None
+            self.Raw = None
+            self.Dif = None
+            
+    class Time:
+        def __init__(self):
+            self.time = None
+            self.dt   = None
+    

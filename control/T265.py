@@ -20,6 +20,10 @@ class T265:
         self.ay      = None 
         self.az      = None 
 
+        # Time stamps
+        self.t1 = None
+        self.dt = None
+
         # Capture threading parameters
         self.isReceivingFrame = False
         self.isRunFrame = True
@@ -89,6 +93,15 @@ class T265:
             # Error checking
             if not f1 or not f2 or not pose:
                 continue
+
+            # Calculate dt between frames
+            if self.dt is None:
+                self.dt = 1.0 / 30.0
+                self.t1 = pose.timestamp
+            else:
+                t2 = pose.timestamp
+                self.dt = (t2 - self.t1) / 1000.0
+                self.t1 = t2
 
             # Data type conversion and extraction
             self.rawImg1 = np.asanyarray(f1.get_data())
