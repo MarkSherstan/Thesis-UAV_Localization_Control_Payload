@@ -101,26 +101,21 @@ def main():
 
             rollControl = desiredPos[1]; pitchControl = desiredPos[0]; yawControl = desiredPos[3]; thrustControl = desiredPos[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-
-            # Get actual vehicle attitude
-            roll, pitch, yaw = C.getVehicleAttitude()
-
+            
             # If landed, engange the quick connect
             # if (landState == True):
             #     qc.engage()
             #     SP.reset(-10, 40, 100)
             #     SP.update(actualPos, [0, 0, 0], [0, 0, 0])
             #     C.resetController()
+            
+            # Get actual vehicle attitude
+            roll, pitch, yaw = C.getVehicleAttitude()
 
             # Calculate the sample rate
             tempTime = time.time()
             freqLocal = (1.0 / (tempTime - loopTimer))
             loopTimer = tempTime
-
-            # Print data
-            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
-            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-            # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
 
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, 
@@ -139,7 +134,7 @@ def main():
             velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
             accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
 
-            # Reset controller and generate new trajectory whenever there is a mode switch
+            # Reset controller and generate new setpoint list whenever there is a mode switch
             if (vehicle.mode.name == 'STABILIZE'):
                 modeState = 1
 
@@ -147,9 +142,11 @@ def main():
                 modeState = 0
                 C.resetController(actual)
                 SP.update(actualPos, velAvg, accAvg)
-                # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
-                # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
-                # SP.createWave(testState='Y')
+
+            # Print data
+            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
+            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
 
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
