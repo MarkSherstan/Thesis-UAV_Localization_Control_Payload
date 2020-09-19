@@ -57,26 +57,6 @@ def main():
     # Data logging
     data = []
 
-    # # Wait till mode switch to prevent integral windup and from logging to much data
-    # while(vehicle.mode.name != 'GUIDED_NOGPS'):
-    #     # Current mode
-    #     print(vehicle.mode.name)
-
-    #     # Stabilize rate
-    #     _ = sync.stabilize()
-
-    #     # Get vision and IMU data
-    #     vData.update()
-        
-    #     # Create moving average for velocity and acceleration
-    #     velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
-    #     accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
-
-    # Create a trajectory to follow
-    # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
-    # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
-    # SP.createWave(testState='Y')
-
     # Timers
     print('Start')
     startTime = time.time()

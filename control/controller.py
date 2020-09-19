@@ -82,6 +82,9 @@ class Controller:
         
         # Reset landing counter 
         self.landCount = 0
+        
+        # Reset timer 
+        self.timer = time.time()
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
