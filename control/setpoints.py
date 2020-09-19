@@ -1,41 +1,51 @@
 import numpy as np
 
 class SetPoints:
-    def __init__(self, northDesired, eastDesired, downDesired, yawDesired=0):
-        # Desired Pose
-        self.northDesired = northDesired 
-        self.eastDesired  = eastDesired
-        self.downDesired  = downDesired
-        self.yawDesired   = yawDesired
+    def __init__(self, state, nDesired, eDesired, dDesired, yDesired, args=None):
+        # Save arguments for some functions
+        self.args = args
+        
+        # Desired pose
+        self.northDesired = nDesired 
+        self.eastDesired  = eDesired
+        self.downDesired  = dDesired
+        self.yawDesired   = yDesired
+
+        # Save the desired state
+        if ((state != 'Trajectory') or (state != 'Step') or (state != 'Wave')):
+            print('Selected state does not exist. Use one of the following: \
+                  \n\t Trajectory \
+                  \n\t Step       \
+                  \n\t Wave')
+            exit()
+        else:
+            self.state = state
     
-    def reset(self):
-        # Trajectory list
+    def updateDesired(self, nDesired, eDesired, dDesired, yDesired):
+        # Desired Pose
+        self.northDesired = nDesired 
+        self.eastDesired  = eDesired
+        self.downDesired  = dDesired
+        self.yawDesired   = yDesired
+        
+    def update(self, posIC, velIC, accIC):
+        # Reset lists
         self.northDesiredList = []
         self.eastDesiredList  = []
         self.downDesiredList  = []
         self.yawDesiredList   = []
         self.index = 0
-    
-    def updateSetPoints(self, northDesired, eastDesired, downDesired, yawDesired=0):
-        # Reset
-        self.reset()
         
-        # Desired Pose
-        self.northDesired = northDesired 
-        self.eastDesired  = eastDesired
-        self.downDesired  = downDesired
-        self.yawDesired   = yawDesired
-    
-    def createTrajectory(self, posIC, velIC, accIC):
-        # Reset
-        self.reset()
-        
-        # Calculate the trajectories
-        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=5)
-        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=5)
-        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=7)
-        print('Trajectory ready')
-
+        # State selection
+        if self.state == 'Trajectory':
+            self.createTrajectory(posIC, velIC, accIC)
+        elif self.state == 'Step':
+            self.createStep(posIC)
+        elif self.state == 'Wave':
+            self.createWave(axis=self.args)
+        else:
+            print('State setpoint error')
+            
     def getDesired(self):
         # North
         if (self.index >= len(self.northDesiredList)):
@@ -64,11 +74,41 @@ class SetPoints:
         # Increment counter and return values
         self.index += 1
         return [northSP, eastSP, downSP, yawSP]
+    
+    def createTrajectory(self, posIC, velIC, accIC):
+        # Calculate the trajectories
+        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=5)
+        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=5)
+        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=7)
+        print('Trajectory ready')
+
+    def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
+        # Define time array and storage variables
+        tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
+        pos = []
+
+        # Find coeffcients of 5th order polynomial using matrix operations.
+        A = np.array([[0, 0, 0, 0, 0, 1],
+                    [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
+                    [0, 0, 0, 0, 1, 0],
+                    [5*np.power(T,4), 4*np.power(T,3), 3*np.power(T,2), 2*T, 1, 0],
+                    [0, 0, 0, 2, 0, 0],
+                    [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
+
+        b = np.array([pos0, endPos, vel0, 0, acc0, 0])
+        x = np.linalg.solve(A, b)
+
+        # Unpack coeffcients
+        A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5]
+
+        # Calculate the trajectory properties for each time step and store
+        for t in tt:
+            pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
+
+        # Return the resulting position
+        return pos
 
     def createStep(self, posIC, sampleRate=1/30):
-        # Reset
-        self.reset()
-    
         # 2 second steady state
         n = int(2.0 / sampleRate)
         
@@ -85,58 +125,26 @@ class SetPoints:
         # Show step is ready
         print('Step response ready')
 
-    def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
-        # Define time array and storage variables
-        tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
-        pos = []
-
-        # Find coeffcients of 5th order polynomial using matrix operations.
-        A = np.array([[0, 0, 0, 0, 0, 1],
-                    [np.power(T,5), np.power(T,4), np.power(T,3), np.power(T,2), T, 1],
-                    [0, 0, 0, 0, 1, 0],
-                    [5*np.power(T,4), 4*np.power(T,3), 3*np.power(T,2), 2*T, 1, 0],
-                    [0, 0, 0, 2, 0, 0],
-                    [20*np.power(T,3), 12*np.power(T,2), 6*T, 2, 0, 0]])
-
-        b = np.array([pos0, endPos, vel0, 0, acc0, 0])
-        # b = np.array([pos0, endPos, vel0, 0, 0, 0])
-
-        x = np.linalg.solve(A, b)
-
-        # Unpack coeffcients
-        A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5]
-
-        # Calculate the trajectory properties for each time step and store
-        for t in tt:
-            pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
-
-        # Return the resulting position
-        return pos
-
-    def createWave(self, testState):
-        # Reset
-        self.reset()
-        self.updateSetPoints(0,0,0.5,0)
-
+    def createWave(self, axis):
         # Actual controller inputs not desired positions
-        if (testState == 'Y'):
+        if (axis == 'Y'):
             # Oscillate just yaw
             self.northDesired = 0 
             self.eastDesired  = 0
             self.downDesired  = 0.5
             self.yawDesiredList = self.sineWaveGenerator(10)
-        elif (testState == 'RP'):
+        elif (axis == 'RP'):
             # Oscillate roll and pitch
             self.northDesiredList = self.sineWaveGenerator(4)
             self.eastDesiredList = self.sineWaveGenerator(4)
             self.downDesired = 0.5
             self.yawDesired  = 0
-        elif (testState == 'T'):
+        elif (axis == 'T'):
             # scillate thrust
             self.northDesired = 0
-            self.eastDesired = 0
+            self.eastDesired  = 0
             self.downDesiredList = self.sineWaveGenerator(A=0.05, b=0.5)
-            self.yawDesired  = 0
+            self.yawDesired   = 0
         else:
             print('Error in selected state')     
 
@@ -162,4 +170,3 @@ class SetPoints:
         
         # Return the result 
         return y
-            
