@@ -272,6 +272,8 @@ def KalmanTune(df):
     ##########################
     # Plot the data -> Rotation
     ##########################
+    fig = plt.figure(figsize=(11, 7), dpi=100)
+
     plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Raw Yaw Data')
     plt.plot(timeData, gyroData,      'k--', alpha=0.5, label='Raw Gyro Data')
     plt.plot(timeData[:-1], ylistKF,  'r-',  label='Kalman Filter Pos')
@@ -281,11 +283,12 @@ def KalmanTune(df):
     plt.xlabel('Time [s]')
     plt.ylabel('Yaw [deg] \nYaw Rate [deg/s]')
     plt.legend()
-    plt.show()
 
     ##########################
     # Plot the data -> Position
     ##########################
+    fig = plt.figure(figsize=(11, 7), dpi=100)
+
     plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='Raw N-Pos Data')
     plt.plot(timeData, northVelData,  'r--', alpha=0.3, label='Raw N-Vel Data')
     plt.plot(timeData[:-1], nlistKF,  'r-',  label='Kalman Filter Pos')
@@ -307,7 +310,6 @@ def KalmanTune(df):
     plt.xlabel('Time [s]')
     plt.ylabel('Position [cm] \nVelocity [cm/s]')
     plt.legend()
-    plt.show()
 
 ########################
 # Argparse
