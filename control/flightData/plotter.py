@@ -148,6 +148,13 @@ def DiffState(df, fileName, saveFlag):
     ax.set_xlabel('Time [s]', fontweight='bold')
     ax.set_ylabel('Difference [Cm]', fontweight='bold')
 
+    # Comparison 
+    print('Difference Stats: ')
+    print('   North: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['North-Dif'].mean(), df['North-Dif'].std()))
+    print('   East: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['East-Dif'].mean(), df['East-Dif'].std()))
+    print('   Down: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Down-Dif'].mean(), df['Down-Dif'].std()))
+    print('   Yaw: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Yaw-Dif'].mean(), df['Yaw-Dif'].std()))
+
 
     # Create subplot: Land and Queue
     plt.subplot(1, 2, 2)
@@ -339,10 +346,10 @@ except:
     exit()
 
 # Plotting options
-General(df.copy(), fileName, saveFlag=False)
-FreqSleep(df.copy(), fileName, saveFlag=False)
+# General(df.copy(), fileName, saveFlag=False)
+# FreqSleep(df.copy(), fileName, saveFlag=False)
 DiffState(df.copy(), fileName, saveFlag=False)
-KalmanTune(df.copy())
+# KalmanTune(df.copy())
 plt.show()
 
 
