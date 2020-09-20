@@ -146,7 +146,7 @@ class SetPoints:
             self.northDesired = 0 
             self.eastDesired  = 0
             self.downDesired  = 0.5
-            self.yawDesiredList = self.sineWaveGenerator(20)
+            self.yawDesiredList = self.sineWaveGenerator(30)
         elif (axis == 'RP'):
             # Oscillate roll and pitch
             self.northDesiredList = self.sineWaveGenerator(4)
@@ -184,3 +184,10 @@ class SetPoints:
         
         # Return the result 
         return y
+
+def main():
+    SP = SetPoints('Wave')
+    SP.sineWaveGenerator(A=20, plotFlag=True)
+    
+if __name__ == "__main__":
+    main()
