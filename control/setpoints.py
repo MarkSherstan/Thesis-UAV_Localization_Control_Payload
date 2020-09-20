@@ -104,7 +104,6 @@ class SetPoints:
     def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
         tt = np.linspace(0, T, round(T/sampleRate), endpoint=True)
-        pos = []
 
         # Find coeffcients of 5th order polynomial using matrix operations.
         A = np.array([[0, 0, 0, 0, 0, 1],
@@ -121,11 +120,10 @@ class SetPoints:
         A = x[0]; B = x[1]; C = x[2]; D = x[3]; E = x[4]; F = x[5]
 
         # Calculate the trajectory properties for each time step and store
-        for t in tt:
-            pos.append(A*np.power(t,5) + B*np.power(t,4) + C*np.power(t,3) + D*np.power(t,2) + E*t + F)
+        pos = A*np.power(tt,5) + B*np.power(tt,4) + C*np.power(tt,3) + D*np.power(tt,2) + E*tt + F
 
         # Return the resulting position
-        return pos
+        return pos.tolist()
 
     def createStep(self, posIC, sampleRate=1/30):
         # Two second steady state
