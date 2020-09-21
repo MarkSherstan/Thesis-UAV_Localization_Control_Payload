@@ -149,8 +149,8 @@ class SetPoints:
             self.yawDesiredList = self.sineWaveGenerator(30)
         elif (axis == 'RP'):
             # Oscillate roll and pitch
-            self.northDesiredList = self.sineWaveGenerator(4)
-            self.eastDesiredList = self.sineWaveGenerator(4)
+            self.northDesiredList = self.sineWaveGenerator(3)
+            self.eastDesiredList = self.sineWaveGenerator(3)
             self.downDesired = 0.5
             self.yawDesired  = 0
         elif (axis == 'T'):

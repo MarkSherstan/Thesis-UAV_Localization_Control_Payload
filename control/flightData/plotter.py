@@ -346,16 +346,16 @@ except:
     exit()
 
 # Cut time
-start = 25  #df['Time'].iloc[0]
-end   = 120 #df['Time'].iloc[-1]
-df = df[(df['Time'] >= start) & (df['Time'] <= end)]
+# start = 25  #df['Time'].iloc[0]
+# end   = 120 #df['Time'].iloc[-1]
+# df = df[(df['Time'] >= start) & (df['Time'] <= end)]
 
 
 # Plotting options
-# General(df.copy(), fileName, saveFlag=False)
-# FreqSleep(df.copy(), fileName, saveFlag=False)
+General(df.copy(), fileName, saveFlag=False)
+FreqSleep(df.copy(), fileName, saveFlag=False)
 DiffState(df.copy(), fileName, saveFlag=False)
-KalmanTune(df.copy())
+# KalmanTune(df.copy())
 plt.show()
 
 

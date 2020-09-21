@@ -37,7 +37,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(state='Wave', args='Y')
+    SP = SetPoints(state='Wave', args='RP')
     modeState = 1
     
     # Connect to serial port and quick connect
