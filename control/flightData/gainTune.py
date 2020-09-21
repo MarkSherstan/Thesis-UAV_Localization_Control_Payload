@@ -16,15 +16,15 @@ fileName = args.input
 # Prepare CSV
 ########################
 try:
-    df = pd.read_csv(fileName, header = 0, names = ['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
-                                          'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
-                                          'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
-                                          'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
-                                          'errorN', 'desiredN', 'actualN',
-                                          'errorE', 'desiredE', 'actualE',
-                                          'errorD', 'desiredD', 'actualD',
-                                          'errorY', 'desiredY', 'actualY',
-                                          'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
+    df = pd.read_csv(fileName, header = 0, names = ['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+                                              'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+                                              'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+                                              'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                              'errorN', 'desiredN', 'actualN',
+                                              'errorE', 'desiredE', 'actualE',
+                                              'errorD', 'desiredD', 'actualD',
+                                              'errorY', 'desiredY', 'actualY',
+                                              'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
 except:
     print('Error with file.')
     exit()
@@ -34,7 +34,7 @@ except:
 ########################
 df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
 
-idx = [0]
+idx = []
 for ii in range(df.shape[0]-1):
     if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
         pass

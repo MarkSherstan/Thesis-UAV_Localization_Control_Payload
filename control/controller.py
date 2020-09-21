@@ -234,10 +234,10 @@ class Controller:
 
     def logData(self, now):
         # Write data to a data frame
-        df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
-                                              'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+        df = pd.DataFrame(self.data, columns=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
                                               'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
                                               'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+                                              'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
                                               'errorN', 'desiredN', 'actualN',
                                               'errorE', 'desiredE', 'actualE',
                                               'errorD', 'desiredD', 'actualD',
