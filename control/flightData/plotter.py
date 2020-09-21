@@ -96,7 +96,7 @@ def FreqSleep(df, fileName, saveFlag):
     ax1 = plt.gca()
 
     # Plot data
-    df.plot(kind='line', x='Time', y='Freq',  color='k',  style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='Freq',  color='k',  style='.',  ax=ax1)
 
     # Format figure
     title = 'Sampling Frequency\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std())
