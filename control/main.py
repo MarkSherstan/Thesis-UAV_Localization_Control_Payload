@@ -37,7 +37,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(state='Wave', args='RP')
+    SP = SetPoints(state='Trajectory', nDesired=-10, eDesired=40, dDesired=10, yDesired=0)
     modeState = 1
     
     # Connect to serial port and quick connect
@@ -78,8 +78,6 @@ def main():
             actualPos = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
             desiredPos = SP.getDesired()
             rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actualPos, desiredPos)
-
-            rollControl = desiredPos[1]; pitchControl = desiredPos[0]; yawControl = desiredPos[3]; thrustControl = desiredPos[2]; # Only for testing
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # If landed, engange the quick connect
@@ -124,7 +122,7 @@ def main():
                 SP.update(actualPos, velAvg, accAvg)
 
             # Print data
-            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
+            # print('N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
             # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
             # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
 
