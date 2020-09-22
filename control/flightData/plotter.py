@@ -85,9 +85,9 @@ def General(df, fileName, saveFlag):
     
     # Save the figure    
     if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-GENERAL.png', dpi=fig.dpi)
+        fig.savefig(str(fileName).replace('.csv','')+'-MAIN.png', dpi=fig.dpi)
 
-def FreqSleep(df, fileName, saveFlag): 
+def FreqSleep(df): 
     # Create a figure
     fig = plt.figure(figsize=(12, 6), dpi=100)
 
@@ -125,11 +125,7 @@ def FreqSleep(df, fileName, saveFlag):
     # Add grid
     plt.grid()
 
-    # Save the figure 
-    if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP.png', dpi=fig.dpi)
-
-def DiffState(df, fileName, saveFlag):
+def DiffState(df):
     # Master
     fig = plt.figure(figsize=(12, 6), dpi=100)
 
@@ -170,11 +166,6 @@ def DiffState(df, fileName, saveFlag):
     ax.set_xlabel('Time [s]', fontweight='bold')
     ax.set_ylabel('State [ ]', fontweight='bold')
 
-    # Save the figure 
-    if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP.png', dpi=fig.dpi)
-
-
     # Scatter Plot: Raw Pos Data
     fig = plt.figure(figsize=(12, 6), dpi=100)
     ax = plt.gca()
@@ -191,9 +182,6 @@ def DiffState(df, fileName, saveFlag):
     
     ax.legend(['N', 'E', 'D', 'Y'])
     
-    if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP-II.png', dpi=fig.dpi)
-
 def KalmanTune(df):
     # Add custom packages one directory up 
     import sys
@@ -308,11 +296,11 @@ def KalmanTune(df):
     ##########################
     fig = plt.figure(figsize=(11, 7), dpi=100)
 
-    plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Raw Yaw Data')
-    plt.plot(timeData, gyroData,      color='tab:blue', linestyle='--', alpha=0.3, label='Raw Gyro Data')
-    plt.plot(timeData[:-1], ylistKF,  color='tab:blue', linestyle='-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], Y,        color='tab:blue', linestyle='--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], ylistAvg, color='tab:blue', linestyle='-.', label='Moving Average')
+    plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Y: Raw Ang Data')
+    plt.plot(timeData, gyroData,      color='tab:blue', linestyle='--', alpha=0.3, label='Y: Raw Vel Data')
+    plt.plot(timeData[:-1], ylistKF,  color='tab:blue', linestyle='-',  label='Y: Kalman Filter Pos')
+    plt.plot(timeData[:-1], Y,        color='tab:blue', linestyle='--', label='Y: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], ylistAvg, color='tab:blue', linestyle='-.', label='Y: Moving Average')
 
     plt.title('Yaw Kalman Filter', fontsize=14, fontweight='bold')
     plt.xlabel('Time [s]', fontweight='bold')
@@ -324,23 +312,23 @@ def KalmanTune(df):
     ##########################
     fig = plt.figure(figsize=(11, 7), dpi=100)
 
-    plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='Raw N-Pos Data')
-    plt.plot(timeData, northVelData,  color='tab:purple', linestyle='--', alpha=0.3, label='Raw N-Vel Data')
-    plt.plot(timeData[:-1], nlistKF,  color='tab:purple', linestyle='-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], N,        color='tab:purple', linestyle='--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], nlistAvg, color='tab:purple', linestyle='-.', label='Moving Average')
+    plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='N: Raw Pos Data')
+    plt.plot(timeData, northVelData,  color='tab:purple', linestyle='--', alpha=0.3, label='N: Raw Vel Data')
+    plt.plot(timeData[:-1], nlistKF,  color='tab:purple', linestyle='-',  label='N: Kalman Filter Pos')
+    plt.plot(timeData[:-1], N,        color='tab:purple', linestyle='--', label='N: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], nlistAvg, color='tab:purple', linestyle='-.', label='N: Moving Average')
 
-    plt.plot(timeData, eastPosData,   'k-',  alpha=0.9, label='Raw E-Pos Data')
-    plt.plot(timeData, eastVelData,   color='tab:orange', linestyle='--', alpha=0.3, label='Raw E-Vel Data')
-    plt.plot(timeData[:-1], elistKF,  color='tab:orange', linestyle='-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], E,        color='tab:orange', linestyle='--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], elistAvg, color='tab:orange', linestyle='-.', label='Moving Average')
+    plt.plot(timeData, eastPosData,   'k-',  alpha=0.9, label='E: Raw Pos Data')
+    plt.plot(timeData, eastVelData,   color='tab:orange', linestyle='--', alpha=0.3, label='E: Raw Vel Data')
+    plt.plot(timeData[:-1], elistKF,  color='tab:orange', linestyle='-',  label='E: Kalman Filter Pos')
+    plt.plot(timeData[:-1], E,        color='tab:orange', linestyle='--', label='E: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], elistAvg, color='tab:orange', linestyle='-.', label='E: Moving Average')
 
-    plt.plot(timeData, downPosData,   'k-',  alpha=0.9, label='Raw D-Pos Data')
-    plt.plot(timeData, downVelData,   color='tab:green', linestyle='--', alpha=0.3, label='Raw D-Vel Data')
-    plt.plot(timeData[:-1], dlistKF,  color='tab:green', linestyle='-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], D,        color='tab:green', linestyle='--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], dlistAvg, color='tab:green', linestyle='-.', label='Moving Average')
+    plt.plot(timeData, downPosData,   'k-',  alpha=0.9, label='D: Raw Pos Data')
+    plt.plot(timeData, downVelData,   color='tab:green', linestyle='--', alpha=0.3, label='D: Raw Vel Data')
+    plt.plot(timeData[:-1], dlistKF,  color='tab:green', linestyle='-',  label='D: Kalman Filter Pos')
+    plt.plot(timeData[:-1], D,        color='tab:green', linestyle='--', label='D: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], dlistAvg, color='tab:green', linestyle='-.', label='D: Moving Average')
 
     plt.title('NED Kalman Filter', fontsize=14, fontweight='bold')
     plt.xlabel('Time [s]', fontweight='bold')
@@ -525,7 +513,7 @@ def gainTune(df, fileName, saveFlag):
 
     # Save the figure    
     if saveFlag is True:
-        fig.savefig(str(fileName)+'-GAIN-TUNE.png', dpi=fig.dpi)
+        fig.savefig(str(fileName)+'-CONTROL.png', dpi=fig.dpi)
 
     ################################################################################################
 
@@ -591,9 +579,9 @@ except:
 # df = df[(df['Time'] >= start) & (df['Time'] <= end)]
 
 # Plotting options
-# General(df.copy(), fileName, saveFlag=False)
-# FreqSleep(df.copy(), fileName, saveFlag=False)
-# DiffState(df.copy(), fileName, saveFlag=False)
+General(df.copy(), fileName, saveFlag=True)
+FreqSleep(df.copy())
+DiffState(df.copy())
 # KalmanTune(df.copy())
-gainTune(df2.copy(), fileName, saveFlag=False)
+gainTune(df2.copy(), fileName, saveFlag=True)
 plt.show()
