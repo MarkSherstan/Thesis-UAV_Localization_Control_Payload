@@ -1,6 +1,10 @@
+from discountVision import Vision
 import numpy as np
 import glob
 import cv2
+
+# ArUco stuff
+V = Vision()
 
 # Lower and upper thresholding block size
 threshLow = 3
@@ -26,6 +30,10 @@ for ii in range(len(camA)):
     lowerB = cv2.adaptiveThreshold(tempB.copy(), 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, threshLow, 7)
     upperB = cv2.adaptiveThreshold(tempB.copy(), 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, threshHigh, 7)
 
+    # Update ArUco
+    tempA = V.VP1.getPose(tempA)
+    tempB = V.VP2.getPose(tempB)
+    
     # Group images
     raw    = np.concatenate((tempA, tempB),   axis=1)
     lower  = np.concatenate((lowerA, lowerB), axis=1)

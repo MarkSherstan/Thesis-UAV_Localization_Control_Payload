@@ -16,12 +16,12 @@ class Vision:
         self.counter   = 0
 
         # Camera calibration matrices 
-        self.mtx1 = np.array([[284.65527842,  0.0,            420.10118496],
+        self.mtx1 = np.array([[284.65527842,  0.0,      420.10118496],
                         [0.0,           285.43891088,   403.82029423],
                         [0.0,           0.0,            1.0         ]])
         self.dist1 = np.array([[-0.01159942, 0.00393409, 0.00059457, -0.0002535, -0.0006091]])
 
-        self.mtx2 = np.array([[287.8954394,  0.0,            418.40412543],
+        self.mtx2 = np.array([[287.8954394,  0.0,       418.40412543],
                         [0.0,           287.99235758,   410.12408383],
                         [0.0,           0.0,            1.0         ]])
         self.dist2 = np.array([[-0.00818909, 0.00187817, 0.00132013, -0.00018278, -0.00044735]])
@@ -30,89 +30,10 @@ class Vision:
         self.offset1 = [-2.3, -15.0, 0]
         self.offset2 = [4.1, -15.0, 0]
     
-    def run(self, Q):
-        # Start the connection to the T265
-        cam = T265()
-
         # Start the threads
-        VP1 = VisionPose(ID='1', mtx=self.mtx1, dist=self.dist1, offset=self.offset1)
-        VP1.startThread(cam.Img1)
-        
-        VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
-        VP2.startThread(cam.Img2)
-        
-        # Kalman filter
-        KF = KalmanFilterNxN(3.0, 5.0, 10.0)
-
-        # Loop rate stabilization
-        sync = TimeSync(1/35)
-
-        # Start timers
-        self.startTime = time.time()
-        sync.startTimer()
-
-        # Process data until closed
-        try: 
-            while(True):
-                # Get data from T265
-                VP1.updateImg(cam.Img1)
-                VP2.updateImg(cam.Img2)
-                yRate = cam.psiRate     # Deg/s
-                vN  = cam.vz * -100.0   # Cm/s
-                vE  = cam.vx *  100.0   # Cm/s
-                vD  = cam.vy *  100.0   # Cm/s
-                aN  = cam.az * -100.0   # Cm/s^2
-                aE  = cam.ax *  100.0   # Cm/s^2
-                aD  = cam.ay *  100.0   # Cm/s^2
-                dt  = cam.dt            # s
-
-                # Stabilize rate and give time for image to be processed
-                _ = sync.stabilize()
-
-                # Average the results between cameras
-                nRaw = (VP1.N + VP2.N) / 2.0
-                eRaw = (VP1.E + VP2.E) / 2.0
-                dRaw = (VP1.D + VP2.D) / 2.0
-                yRaw = (VP1.Y + VP2.Y) / 2.0
-                
-                # Find difference bettween cameras
-                nDif = (VP1.N - VP2.N)
-                eDif = (VP1.E - VP2.E)
-                dDif = (VP1.D - VP2.D)
-                yDif = (VP1.Y - VP2.Y)
-                
-                # Estimate the kalman filter
-                N, E, D, Y = KF.update(dt, np.array([nRaw, vN, 
-                                                     eRaw, vE,
-                                                     dRaw, vD,
-                                                     yRaw, yRate]).T)
-
-                # Add data to the queue                
-                Q.put([N, vN, aN, nRaw, nDif,
-                       E, vE, aE, eRaw, eDif,
-                       D, vD, aD, dRaw, dDif,
-                       Y, yRate,  yRaw, yDif,
-                       time.time()-self.startTime,
-                       dt])
-
-                # Increment the counter 
-                self.counter += 1
-
-        except KeyboardInterrupt:
-            # Prep to close
-            self.endTime = time.time()
-            print('Closing Vision!')
-        
-        finally: 
-            # Close all the threads (small delay for printing results)
-            time.sleep(0.5)
-            cam.close()
-            VP1.close()
-            VP2.close()
-            
-            # Performance of main thread
-            print('\nMaster vision thread rate: ', round(self.counter / (self.endTime - self.startTime),1))
-
+        self.VP1 = VisionPose(ID='1', mtx=self.mtx1, dist=self.dist1, offset=self.offset1)
+        self.VP2 = VisionPose(ID='2', mtx=self.mtx2, dist=self.dist2, offset=self.offset2)
+              
 class VisionPose:
     def __init__(self, ID, mtx, dist, offset, lengthMarker=14.15, spacing=21.6):        
         # ID
@@ -126,17 +47,6 @@ class VisionPose:
         # Initial conditions for pose calculation 
         self.rvec = None
         self.tvec = None
-        
-        # Threading parameters
-        self.isReceiving = False
-        self.isRun = True
-        self.threadX = None
-
-        # Performance
-        self.startTime = None
-        self.endTime = None
-        self.loopCounter = 0
-        self.poseCounter = 0
         
         # Aruco dictionary and parameter to be used for pose processing
         self.arucoDict = aruco.custom_dictionary(17, 3)
@@ -165,42 +75,13 @@ class VisionPose:
         self.E = 0
         self.D = 0
         self.Y = 0
-
-    def startThread(self, img):
-        # Initialize an image before start
-        self.gray = img
         
-        # Create a thread
-        if self.threadX == None:
-            self.threadX = Thread(target=self.run)
-            self.threadX.start()
-            print('Thread ' + self.ID + ' start.')
-
-            # Block till we start receiving values
-            while self.isReceiving != True:
-                time.sleep(0.1)
-
-            # Start the timer and reset counters
-            self.loopCounter = 0
-            self.poseCounter = 0
-            self.startTime = time.time()
-    
-    def run(self):
-        # Run until thread is closed
-        while(self.isRun):
-            self.getPose()
-            self.loopCounter += 1
-            self.isReceiving = True
+        # Other stuff
+        self.font = cv2.FONT_HERSHEY_SIMPLEX
         
-        # Record end time 
-        self.endTime = time.time()
-        
-    def updateImg(self, img):
-        self.gray = img
-        
-    def getPose(self):
+    def getPose(self, frame):        
         # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(image=self.gray, dictionary=self.arucoDict, 
+        corners, ids, _ = aruco.detectMarkers(image=frame, dictionary=self.arucoDict, 
                                               parameters=self.parm, cameraMatrix=self.mtx, 
                                               distCoeff=self.dist)
 
@@ -223,8 +104,20 @@ class VisionPose:
             self.D = t[2]
             self.Y = yaw
 
+            # Draw axis if applicable
+            cv2.aruco.drawDetectedMarkers(frame, corners, ids)
+            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 5)
+
+            # Write
+            cv2.putText(frame, 'N + ' + str(self.N), (0,10), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, 'E + ' + str(self.E), (0,30), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, 'D + ' + str(self.D), (0,50), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, 'Y + ' + str(self.Y), (0,70), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
+
             # Increment pose counter 
             self.poseCounter += 1
+        
+        return frame
         
     def isRotationMatrix(self, R):
         # Checks if matrix is valid
@@ -273,13 +166,3 @@ class VisionPose:
 
         # Return reults 
         return R, t
-
-    def close(self):
-        # Close the thread
-        self.isRun = False
-        self.threadX.join()
-        print('Thread ' + self.ID + ' closed.')
-        
-        # Print performance
-        print('  Loop rate (' + self.ID + '): ', round(self.loopCounter / (self.endTime - self.startTime),1))
-        print('  Pose rate (' + self.ID + '): ', round(self.poseCounter / (self.endTime - self.startTime),1))
