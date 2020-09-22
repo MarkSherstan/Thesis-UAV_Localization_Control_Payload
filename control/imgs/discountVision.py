@@ -1,11 +1,6 @@
-rom filter import KalmanFilterNxN, TimeSync
-from threading import Thread
 import cv2.aruco as aruco
-from T265 import T265
 import numpy as np
-import queue
 import math
-import time
 import cv2
 
 class Vision:
@@ -104,18 +99,18 @@ class VisionPose:
             self.D = t[2]
             self.Y = yaw
 
+            # Make the frame color
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+            
             # Draw axis if applicable
             cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 5)
+            cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 8)
 
             # Write
-            cv2.putText(frame, 'N + ' + str(self.N), (0,10), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.putText(frame, 'E + ' + str(self.E), (0,30), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.putText(frame, 'D + ' + str(self.D), (0,50), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-            cv2.putText(frame, 'Y + ' + str(self.Y), (0,70), self.font, 3, (0, 255, 0), 2, cv2.LINE_AA)
-
-            # Increment pose counter 
-            self.poseCounter += 1
+            cv2.putText(frame, 'N: ' + str(round(self.N,1)), (5,50),  self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, 'E: ' + str(round(self.E,1)), (5,100), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, 'D: ' + str(round(self.D,1)), (5,150), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+            cv2.putText(frame, 'Y: ' + str(round(self.Y,1)), (5,200), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
         
         return frame
         

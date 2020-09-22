@@ -35,6 +35,11 @@ for ii in range(len(camA)):
     tempB = V.VP2.getPose(tempB)
     
     # Group images
+    lowerA = cv2.cvtColor(lowerA, cv2.COLOR_GRAY2RGB)
+    lowerB = cv2.cvtColor(lowerB, cv2.COLOR_GRAY2RGB)
+    upperA = cv2.cvtColor(upperA, cv2.COLOR_GRAY2RGB)
+    upperB = cv2.cvtColor(upperB, cv2.COLOR_GRAY2RGB)
+    
     raw    = np.concatenate((tempA, tempB),   axis=1)
     lower  = np.concatenate((lowerA, lowerB), axis=1)
     upper  = np.concatenate((upperA, upperB), axis=1)
