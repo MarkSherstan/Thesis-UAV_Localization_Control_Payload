@@ -69,17 +69,17 @@ class Vision:
                 # Stabilize rate and give time for image to be processed
                 _ = sync.stabilize()
 
-                # Average the results between cameras
-                nRaw = (VP1.N + VP2.N) / 2.0
-                eRaw = (VP1.E + VP2.E) / 2.0
-                dRaw = (VP1.D + VP2.D) / 2.0
-                yRaw = (VP1.Y + VP2.Y) / 2.0
+                # Save data to local variables for logging purposes (mutex lock)
+                N1 = VP1.N;     N2 = VP2.N 
+                E1 = VP1.E;     E2 = VP2.E 
+                D1 = VP1.D;     D2 = VP2.D 
+                Y1 = VP1.Y;     Y2 = VP2.Y 
                 
-                # Find difference bettween cameras
-                nDif = (VP1.N - VP2.N)
-                eDif = (VP1.E - VP2.E)
-                dDif = (VP1.D - VP2.D)
-                yDif = (VP1.Y - VP2.Y)
+                # Average the results between cameras
+                nRaw = (N1 + N2) / 2.0
+                eRaw = (E1 + E2) / 2.0
+                dRaw = (D1 + D2) / 2.0
+                yRaw = (Y1 + Y2) / 2.0
                 
                 # Estimate the kalman filter
                 N, E, D, Y = KF.update(dt, np.array([nRaw, vN, 
@@ -88,10 +88,10 @@ class Vision:
                                                      yRaw, yRate]).T)
 
                 # Add data to the queue                
-                Q.put([N, vN, aN, nRaw, nDif,
-                       E, vE, aE, eRaw, eDif,
-                       D, vD, aD, dRaw, dDif,
-                       Y, yRate,  yRaw, yDif,
+                Q.put([N, vN, aN, N1, N2,
+                       E, vE, aE, E1, E2,
+                       D, vD, aD, D1, D2,
+                       Y, yRate,  Y1, Y2,
                        time.time()-self.startTime,
                        dt])
 
@@ -345,25 +345,33 @@ class VisionData:
         self.N.Pos = temp[0]
         self.N.Vel = temp[1]
         self.N.Acc = temp[2]
-        self.N.Raw = temp[3]
-        self.N.Dif = temp[4]
-
+        self.N.One = temp[3]
+        self.N.Two = temp[4]
+        self.N.Avg = (self.N.One + self.N.Two) / 2.0
+        self.N.Dif = (self.N.One - self.N.Two)
+        
         self.E.Pos = temp[5]
         self.E.Vel = temp[6]
         self.E.Acc = temp[7]
-        self.E.Raw = temp[8]
-        self.E.Dif = temp[9]
+        self.E.One = temp[8]
+        self.E.Two = temp[9]
+        self.E.Avg = (self.E.One + self.E.Two) / 2.0
+        self.E.Dif = (self.E.One - self.E.Two)
         
         self.D.Pos = temp[10]
         self.D.Vel = temp[11]
         self.D.Acc = temp[12]
-        self.D.Raw = temp[13]
-        self.D.Dif = temp[14]
+        self.D.One = temp[13]
+        self.D.Two = temp[14]
+        self.D.Avg = (self.D.One + self.D.Two) / 2.0
+        self.D.Dif = (self.D.One - self.D.Two)
                 
         self.Y.Ang = temp[15]
         self.Y.Vel = temp[16]
-        self.Y.Raw = temp[17]
-        self.Y.Dif = temp[18]
+        self.Y.One = temp[17]
+        self.Y.Two = temp[18]
+        self.Y.Avg = (self.Y.One + self.Y.Two) / 2.0
+        self.Y.Dif = (self.Y.One - self.Y.Two)
         
         self.T.time = temp[19]
         self.T.dt   = temp[20]
@@ -373,7 +381,9 @@ class VisionData:
             self.Pos = None 
             self.Vel = None 
             self.Acc = None
-            self.Raw = None
+            self.One = None
+            self.Two = None
+            self.Avg = None
             self.Dif = None 
             
     class East:
@@ -381,7 +391,9 @@ class VisionData:
             self.Pos = None 
             self.Vel = None 
             self.Acc = None
-            self.Raw = None
+            self.One = None
+            self.Two = None
+            self.Avg = None
             self.Dif = None          
     
     class Down:
@@ -389,14 +401,18 @@ class VisionData:
             self.Pos = None 
             self.Vel = None 
             self.Acc = None
-            self.Raw = None
+            self.One = None
+            self.Two = None
+            self.Avg = None
             self.Dif = None 
     
     class Yaw:
         def __init__(self):
             self.Ang = None
             self.Vel = None
-            self.Raw = None
+            self.One = None
+            self.Two = None
+            self.Avg = None
             self.Dif = None
             
     class Time:
