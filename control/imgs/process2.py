@@ -55,15 +55,21 @@ for adaptiveThreshWinSizeMin in range(3, 20):
                         # Increment counter
                         countA += foundA
                         countB += foundB
-
+                    
+                    # Thresh windows
+                    thresh1 = adaptiveThreshWinSizeMin
+                    thresh2 = adaptiveThreshWinSizeMin + adaptiveThreshWinSizeStep
+                                       
                     # Log the data
                     data.append([adaptiveThreshWinSizeMin, adaptiveThreshWinSizeMax,
-                                 adaptiveThreshWinSizeStep, foundA, foundB])
+                                 adaptiveThreshWinSizeStep, countA, countB, countA+countB, 
+                                 thresh1, thresh2, len(camA), len(camB)])
 
                     # Update user
                     print('{:<d} of 399 complete. Time elapsed: {:<0.2f}'.format(counter, time.time()-startTime))
                     counter += 1
 
 df = pd.DataFrame(data, columns=['adaptiveThreshWinSizeMin', 'adaptiveThreshWinSizeMax',
-                            'adaptiveThreshWinSizeStep', 'foundA', 'foundB'])
+                                 'adaptiveThreshWinSizeStep', 'foundA', 'foundB', 'Total Found', 
+                                 'Thresh1', 'Thresh2', 'Cam A Imgs', 'Cam B Imgs'])
 df.to_csv('Data.csv', index=None, header=True)
