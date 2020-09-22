@@ -174,6 +174,26 @@ def DiffState(df, fileName, saveFlag):
     if saveFlag is True:
         fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP.png', dpi=fig.dpi)
 
+
+    # Scatter Plot: Raw Pos Data
+    fig = plt.figure(figsize=(12, 6), dpi=100)
+    ax = plt.gca()
+    
+    # Plot data
+    df.plot(kind='scatter', x='North-One', y='North-Two', color='tab:purple')
+    df.plot(kind='scatter', x='East-One',  y='East-Two',  color='tab:orange')
+    df.plot(kind='scatter', x='Down-One',  y='Down-Two',  color='tab:green')
+    df.plot(kind='scatter', x='Yaw-One',   y='Yaw-Two',   color='tab:blue')
+    
+    ax.set_title('Difference Scatter', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Camera One [Cm | Degree]', fontweight='bold')
+    ax.set_ylabel('Camera Two [Cm | Degree',  fontweight='bold')
+    
+    ax.legend(['N', 'E', 'D', 'Y'])
+    
+    if saveFlag is True:
+        fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP-II.png', dpi=fig.dpi)
+
 def KalmanTune(df):
     # Add custom packages one directory up 
     import sys
@@ -188,12 +208,12 @@ def KalmanTune(df):
     timeData = np.array(df['Kalman-Time'])
     deltaT   = np.array(df['Kalman-Dt'])
 
-    yawData = np.array(df['Yaw-Raw'])
+    yawData = np.array(df['Yaw-Avg'])
     gyroData = np.array(df['Yaw-Vel'])
 
-    northPosData = np.array(df['North-Raw'])
-    eastPosData  = np.array(df['East-Raw'])
-    downPosData  = np.array(df['Down-Raw'])
+    northPosData = np.array(df['North-Avg'])
+    eastPosData  = np.array(df['East-Avg'])
+    downPosData  = np.array(df['Down-Avg'])
 
     northVelData = np.array(df['North-Vel'])
     eastVelData = np.array(df['East-Vel'])
