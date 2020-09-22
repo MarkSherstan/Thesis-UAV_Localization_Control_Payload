@@ -111,7 +111,10 @@ class VisionPose:
             cv2.putText(frame, 'E: ' + str(round(self.E,1)), (5,100), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.putText(frame, 'D: ' + str(round(self.D,1)), (5,150), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
             cv2.putText(frame, 'Y: ' + str(round(self.Y,1)), (5,200), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
-        
+        else:
+            # Update frame to RGB
+            frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+            
         return frame
         
     def isRotationMatrix(self, R):

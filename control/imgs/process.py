@@ -1,7 +1,18 @@
 from discountVision import Vision
 import numpy as np
+import shutil
 import glob
 import cv2
+import os
+
+# Change file names to 000.png file format (natural sorting)
+sourcedir = os.getcwd(); extensions = (".png")
+files = [(f, f[f.rfind("."):], f[:f.rfind(".")]) for f in os.listdir(sourcedir)if f.endswith(extensions)]
+maxlen = len(max([f[2] for f in files], key = len))
+
+for item in files:
+    zeros = maxlen-len(item[2])
+    shutil.move(sourcedir+"/"+item[0], sourcedir+"/"+str(zeros*"0")+item[0])
 
 # ArUco stuff
 V = Vision()
