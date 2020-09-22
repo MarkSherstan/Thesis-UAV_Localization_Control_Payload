@@ -21,11 +21,11 @@ def General(df, fileName, saveFlag):
     plt.subplot(2, 2, 1)
     ax0 = plt.gca()
 
-    df.plot(kind='line', x='Time', y='Roll-UAV',  color='#FB8604', alpha=0.5, style='-', ax=ax0)
-    df.plot(kind='line', x='Time', y='Pitch-UAV', color='#700CBC', alpha=0.5, style='-', ax=ax0)
+    df.plot(kind='line', x='Time', y='Roll-UAV',  color='tab:orange', alpha=0.5, style='--', ax=ax0)
+    df.plot(kind='line', x='Time', y='Pitch-UAV', color='tab:purple', alpha=0.5, style='--', ax=ax0)
 
-    df.plot(kind='line', x='Time', y='Roll-Control',  color='#FB8604', style='-', ax=ax0)
-    df.plot(kind='line', x='Time', y='Pitch-Control', color='#700CBC', style='-', ax=ax0)
+    df.plot(kind='line', x='Time', y='Roll-Control',  color='tab:orange', style='-', ax=ax0)
+    df.plot(kind='line', x='Time', y='Pitch-Control', color='tab:purple', style='-', ax=ax0)
 
     ax0.set_title('Roll & Pitch Control', fontsize=14, fontweight='bold')
     ax0.set_xlabel('')
@@ -52,13 +52,13 @@ def General(df, fileName, saveFlag):
     plt.subplot(2, 2, 3)
     ax3 = plt.gca()
 
-    df.plot(kind='line', x='Time', y='North-Pos', color='#700CBC', style='-',  ax=ax3)
-    df.plot(kind='line', x='Time', y='East-Pos',  color='#FB8604', style='-',  ax=ax3)
-    df.plot(kind='line', x='Time', y='Down-Pos',  color='#7FBD32', style='-',  ax=ax3)
+    df.plot(kind='line', x='Time', y='North-Pos', color='tab:purple', style='-',  ax=ax3)
+    df.plot(kind='line', x='Time', y='East-Pos',  color='tab:orange', style='-',  ax=ax3)
+    df.plot(kind='line', x='Time', y='Down-Pos',  color='tab:green', style='-',  ax=ax3)
 
-    df.plot(kind='line', x='Time', y='North-Desired', color='#700CBC', style='--',  ax=ax3)
-    df.plot(kind='line', x='Time', y='East-Desired',  color='#FB8604', style='--',  ax=ax3)
-    df.plot(kind='line', x='Time', y='Down-Desired',  color='#7FBD32',  style='--', ax=ax3)
+    df.plot(kind='line', x='Time', y='North-Desired', color='tab:purple', style='--',  ax=ax3)
+    df.plot(kind='line', x='Time', y='East-Desired',  color='tab:orange', style='--',  ax=ax3)
+    df.plot(kind='line', x='Time', y='Down-Desired',  color='tab:green',  style='--', ax=ax3)
 
     ax3.set_title('NED Position', fontsize=14, fontweight='bold')
     ax3.set_xlabel('Time [s]', fontweight='bold')
@@ -73,7 +73,7 @@ def General(df, fileName, saveFlag):
     plt.subplot(2, 2, 4)
     ax4 = plt.gca()
 
-    df.plot(kind='line', x='Time', y='Thrust-Control', color='#7FBD32', style='-', ax=ax4)
+    df.plot(kind='line', x='Time', y='Thrust-Control', color='tab:green', style='-', ax=ax4)
 
     ax4.set_title('Thrust Control', fontsize=14, fontweight='bold')
     ax4.set_xlabel('Time [s]', fontweight='bold')
@@ -149,7 +149,7 @@ def DiffState(df, fileName, saveFlag):
     ax.set_ylabel('Difference [Cm]', fontweight='bold')
 
     # Comparison 
-    print('Difference Stats: ')
+    print('NED Difference Stats: ')
     print('   North: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['North-Dif'].mean(), df['North-Dif'].std()))
     print('   East: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['East-Dif'].mean(), df['East-Dif'].std()))
     print('   Down: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Down-Dif'].mean(), df['Down-Dif'].std()))
@@ -180,14 +180,14 @@ def DiffState(df, fileName, saveFlag):
     ax = plt.gca()
     
     # Plot data
-    df.plot(kind='scatter', x='North-One', y='North-Two', color='tab:purple')
-    df.plot(kind='scatter', x='East-One',  y='East-Two',  color='tab:orange')
-    df.plot(kind='scatter', x='Down-One',  y='Down-Two',  color='tab:green')
-    df.plot(kind='scatter', x='Yaw-One',   y='Yaw-Two',   color='tab:blue')
+    df.plot(kind='scatter', x='North-One', y='North-Two', color='tab:purple', ax=ax)
+    df.plot(kind='scatter', x='East-One',  y='East-Two',  color='tab:orange', ax=ax)
+    df.plot(kind='scatter', x='Down-One',  y='Down-Two',  color='tab:green',  ax=ax)
+    df.plot(kind='scatter', x='Yaw-One',   y='Yaw-Two',   color='tab:blue',   ax=ax)
     
     ax.set_title('Difference Scatter', fontsize=14, fontweight='bold')
     ax.set_xlabel('Camera One [Cm | Degree]', fontweight='bold')
-    ax.set_ylabel('Camera Two [Cm | Degree',  fontweight='bold')
+    ax.set_ylabel('Camera Two [Cm | Degree]',  fontweight='bold')
     
     ax.legend(['N', 'E', 'D', 'Y'])
     
@@ -291,10 +291,17 @@ def KalmanTune(df):
         D.append(KFlist[ii][2])
         Y.append(KFlist[ii][3])
 
-    print('N', sum(np.array(N) - np.array(nlistKF2)))
-    print('E', sum(np.array(E) - np.array(elistKF2)))
-    print('D', sum(np.array(D) - np.array(dlistKF2)))
-    print('Y', sum(np.array(Y) - np.array(ylistKF2)))
+    nSumDif = sum(np.array(N) - np.array(nlistKF2))
+    eSumDif = sum(np.array(E) - np.array(elistKF2))
+    dSumDif = sum(np.array(D) - np.array(dlistKF2))
+    ySumDif = sum(np.array(Y) - np.array(ylistKF2))
+    sumDifTot = nSumDif + eSumDif + dSumDif + ySumDif
+    
+    if (sumDifTot != 0):
+        print('N', nSumDif)
+        print('E', eSumDif)
+        print('D', dSumDif)
+        print('Y', ySumDif)
 
     ##########################
     # Plot the data -> Rotation
@@ -302,13 +309,14 @@ def KalmanTune(df):
     fig = plt.figure(figsize=(11, 7), dpi=100)
 
     plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Raw Yaw Data')
-    plt.plot(timeData, gyroData,      'k--', alpha=0.5, label='Raw Gyro Data')
-    plt.plot(timeData[:-1], ylistKF,  'r-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], Y,        'g-',  label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], ylistAvg, 'b-',  label='Moving Average')
+    plt.plot(timeData, gyroData,      color='tab:blue', linestyle='--', alpha=0.3, label='Raw Gyro Data')
+    plt.plot(timeData[:-1], ylistKF,  color='tab:blue', linestyle='-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], Y,        color='tab:blue', linestyle='--', label='Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], ylistAvg, color='tab:blue', linestyle='-.', label='Moving Average')
 
-    plt.xlabel('Time [s]')
-    plt.ylabel('Yaw [deg] \nYaw Rate [deg/s]')
+    plt.title('Yaw Kalman Filter', fontsize=14, fontweight='bold')
+    plt.xlabel('Time [s]', fontweight='bold')
+    plt.ylabel('Yaw [deg]\nYaw Rate [deg/s]', fontweight='bold')
     plt.legend()
 
     ##########################
@@ -317,37 +325,41 @@ def KalmanTune(df):
     fig = plt.figure(figsize=(11, 7), dpi=100)
 
     plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='Raw N-Pos Data')
-    plt.plot(timeData, northVelData,  'r--', alpha=0.3, label='Raw N-Vel Data')
-    plt.plot(timeData[:-1], nlistKF,  'r-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], N,        'r--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], nlistAvg, 'r.-', label='Moving Average')
+    plt.plot(timeData, northVelData,  color='tab:purple', linestyle='--', alpha=0.3, label='Raw N-Vel Data')
+    plt.plot(timeData[:-1], nlistKF,  color='tab:purple', linestyle='-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], N,        color='tab:purple', linestyle='--', label='Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], nlistAvg, color='tab:purple', linestyle='-.', label='Moving Average')
 
     plt.plot(timeData, eastPosData,   'k-',  alpha=0.9, label='Raw E-Pos Data')
-    plt.plot(timeData, eastVelData,   'g--', alpha=0.3, label='Raw E-Vel Data')
-    plt.plot(timeData[:-1], elistKF,  'g-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], E,        'g--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], elistAvg, 'g.-', label='Moving Average')
+    plt.plot(timeData, eastVelData,   color='tab:orange', linestyle='--', alpha=0.3, label='Raw E-Vel Data')
+    plt.plot(timeData[:-1], elistKF,  color='tab:orange', linestyle='-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], E,        color='tab:orange', linestyle='--', label='Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], elistAvg, color='tab:orange', linestyle='-.', label='Moving Average')
 
     plt.plot(timeData, downPosData,   'k-',  alpha=0.9, label='Raw D-Pos Data')
-    plt.plot(timeData, downVelData,   'b--', alpha=0.3, label='Raw D-Vel Data')
-    plt.plot(timeData[:-1], dlistKF,  'b-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], D,        'b--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], dlistAvg, 'b.-', label='Moving Average')
+    plt.plot(timeData, downVelData,   color='tab:green', linestyle='--', alpha=0.3, label='Raw D-Vel Data')
+    plt.plot(timeData[:-1], dlistKF,  color='tab:green', linestyle='-',  label='Kalman Filter Pos')
+    plt.plot(timeData[:-1], D,        color='tab:green', linestyle='--', label='Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], dlistAvg, color='tab:green', linestyle='-.', label='Moving Average')
 
-    plt.xlabel('Time [s]')
-    plt.ylabel('Position [cm] \nVelocity [cm/s]')
+    plt.title('NED Kalman Filter', fontsize=14, fontweight='bold')
+    plt.xlabel('Time [s]', fontweight='bold')
+    plt.ylabel('Position [cm]\nVelocity [cm/s]', fontweight='bold')
     plt.legend()
 
     # Time Plot
-    fig = plt.figure(figsize=(10, 5), dpi=100)
+    fig = plt.figure(figsize=(8, 4), dpi=100)
     ax = plt.gca()
     
     # Plot data
-    df.plot(kind='line', x='Kalman-Time', y='Kalman-Dt', color='k')
+    df.plot(kind='line', x='Kalman-Time', y='Kalman-Dt', style='.', color='k', ax=ax)
 
-    ax.set_title('Kalman Time Stabilization', fontsize=14, fontweight='bold')
+    # Format
+    title = 'T265 Sampling Frequency\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Kalman-Dt'].mean(), df['Kalman-Dt'].std())
+    ax.set_title(title, fontsize=14, fontweight='bold')
     ax.set_xlabel('Time [s]', fontweight='bold')
     ax.set_ylabel('dt [s]',  fontweight='bold')
+    ax.get_legend().remove()
     
     
 ########################
@@ -378,15 +390,15 @@ try:
                             'North-Two', 'East-Two', 'Down-Two', 'Yaw-Two',
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
     
-    df2 = pd.read_csv(controlFile, header=0, names=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
-                                                    'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
-                                                    'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
-                                                    'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
-                                                    'errorN', 'desiredN', 'actualN',
-                                                    'errorE', 'desiredE', 'actualE',
-                                                    'errorD', 'desiredD', 'actualD',
-                                                    'errorY', 'desiredY', 'actualY',
-                                                    'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])                   
+    # df2 = pd.read_csv(controlFile, header=0, names=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+    #                                                 'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+    #                                                 'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+    #                                                 'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+    #                                                 'errorN', 'desiredN', 'actualN',
+    #                                                 'errorE', 'desiredE', 'actualE',
+    #                                                 'errorD', 'desiredD', 'actualD',
+    #                                                 'errorY', 'desiredY', 'actualY',
+    #                                                 'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])                   
 except:
     print('Error with file.')
     exit()
@@ -401,5 +413,5 @@ except:
 General(df.copy(), fileName, saveFlag=False)
 FreqSleep(df.copy(), fileName, saveFlag=False)
 DiffState(df.copy(), fileName, saveFlag=False)
-# KalmanTune(df.copy())
+KalmanTune(df.copy())
 plt.show()
