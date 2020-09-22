@@ -337,8 +337,10 @@ try:
                             'North-Pos', 'East-Pos', 'Down-Pos', 'Yaw-Ang',
                             'North-Vel', 'East-Vel', 'Down-Vel', 'Yaw-Vel',
                             'North-Acc', 'East-Acc', 'Down-Acc', 
-                            'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
+                            'North-Avg', 'East-Avg', 'Down-Avg', 'Yaw-Avg',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
+                            'North-One', 'East-One', 'Down-One', 'Yaw-One',
+                            'North-Two', 'East-Two', 'Down-Two', 'Yaw-Two',
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
                             
 except:

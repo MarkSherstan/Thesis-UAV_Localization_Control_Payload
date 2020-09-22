@@ -104,8 +104,10 @@ def main():
                         vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang,
                         vData.N.Vel, vData.E.Vel, vData.D.Vel, vData.Y.Vel,
                         vData.N.Acc, vData.E.Acc, vData.D.Acc,
-                        vData.N.Raw, vData.E.Raw, vData.D.Raw, vData.Y.Raw,
+                        vData.N.Avg, vData.E.Avg, vData.D.Avg, vData.Y.Avg,
                         vData.N.Dif, vData.E.Dif, vData.D.Dif, vData.Y.Dif,
+                        vData.N.One, vData.E.One, vData.D.One, vData.Y.One,
+                        vData.N.Two, vData.E.Two, vData.D.Two, vData.Y.Two,
                         landState, Q.qsize(), vData.T.time, vData.T.dt])
 
             # Create moving average for vel and acc for the trajectory
@@ -145,8 +147,10 @@ def main():
                             'North-Pos', 'East-Pos', 'Down-Pos', 'Yaw-Ang',
                             'North-Vel', 'East-Vel', 'Down-Vel', 'Yaw-Vel',
                             'North-Acc', 'East-Acc', 'Down-Acc', 
-                            'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
+                            'North-Avg', 'East-Avg', 'Down-Avg', 'Yaw-Avg',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
+                            'North-One', 'East-One', 'Down-One', 'Yaw-One',
+                            'North-Two', 'East-Two', 'Down-Two', 'Yaw-Two',
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
         
         # Print sampling rate
