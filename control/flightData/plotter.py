@@ -338,6 +338,18 @@ def KalmanTune(df):
     plt.ylabel('Position [cm] \nVelocity [cm/s]')
     plt.legend()
 
+    # Time Plot
+    fig = plt.figure(figsize=(10, 5), dpi=100)
+    ax = plt.gca()
+    
+    # Plot data
+    df.plot(kind='line', x='Kalman-Time', y='Kalman-Dt', color='k')
+
+    ax.set_title('Kalman Time Stabilization', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Time [s]', fontweight='bold')
+    ax.set_ylabel('dt [s]',  fontweight='bold')
+    
+    
 ########################
 # Argparse
 # Example use: python plotter.py --input "flight1.csv"
@@ -382,3 +394,5 @@ plt.show()
 
 
 # velocity / accel
+
+# CHANGE PLOTTING FILE NAME ORDER

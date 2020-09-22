@@ -197,3 +197,17 @@ for ii in range(0,len(idx),2):
 ########################
 plt.show()
 fig.savefig(str(fileName).replace('.csv','')+'.png', dpi=fig.dpi)
+
+
+# Time Plot
+fig = plt.figure(figsize=(10, 5), dpi=100)
+ax = plt.gca()
+
+# Plot data
+df.plot(kind='line', x='Time', y='dt', color='k')
+
+ax.set_title('Time Stabilization', fontsize=14, fontweight='bold')
+ax.set_xlabel('Time [s]', fontweight='bold')
+ax.set_ylabel('dt [s]',  fontweight='bold')
+
+plt.show()
