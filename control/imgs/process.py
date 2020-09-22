@@ -42,8 +42,8 @@ for ii in range(len(camA)):
     upperB = cv2.adaptiveThreshold(tempB.copy(), 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, threshHigh, 7)
 
     # Update ArUco
-    tempA = V.VP1.getPose(tempA)
-    tempB = V.VP2.getPose(tempB)
+    tempA, _ = V.VP1.getPose(tempA, graphics=True)
+    tempB, _ = V.VP2.getPose(tempB, graphics=True)
     
     # Group images
     lowerA = cv2.cvtColor(lowerA, cv2.COLOR_GRAY2RGB)
@@ -54,12 +54,7 @@ for ii in range(len(camA)):
     A = np.concatenate((tempA, lowerA, upperA), axis=1)
     B = np.concatenate((tempB, lowerB, upperB), axis=1)
     master = np.concatenate((A, B), axis=0)
-    
-    # raw    = np.concatenate((tempA, tempB),   axis=1)
-    # lower  = np.concatenate((lowerA, lowerB), axis=1)
-    # upper  = np.concatenate((upperA, upperB), axis=1)
-    # master = np.concatenate((raw, lower, upper), axis=0)
-    
+        
     # Write 
     fileName = 'Master-' + str(ii) + '.png'
     cv2.imwrite(fileName, master)
