@@ -51,10 +51,14 @@ for ii in range(len(camA)):
     upperA = cv2.cvtColor(upperA, cv2.COLOR_GRAY2RGB)
     upperB = cv2.cvtColor(upperB, cv2.COLOR_GRAY2RGB)
     
-    raw    = np.concatenate((tempA, tempB),   axis=1)
-    lower  = np.concatenate((lowerA, lowerB), axis=1)
-    upper  = np.concatenate((upperA, upperB), axis=1)
-    master = np.concatenate((raw, lower, upper), axis=0)
+    A = np.concatenate((tempA, lowerA, upperA), axis=1)
+    B = np.concatenate((tempB, lowerB, upperB), axis=1)
+    master = np.concatenate((A, B), axis=0)
+    
+    # raw    = np.concatenate((tempA, tempB),   axis=1)
+    # lower  = np.concatenate((lowerA, lowerB), axis=1)
+    # upper  = np.concatenate((upperA, upperB), axis=1)
+    # master = np.concatenate((raw, lower, upper), axis=0)
     
     # Write 
     fileName = 'Master-' + str(ii) + '.png'
