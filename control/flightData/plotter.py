@@ -355,13 +355,16 @@ def KalmanTune(df):
 # Example use: python plotter.py --input "flight1.csv"
 ########################
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", help = "input filename")
+parser.add_argument("--input", help = "input date time")
 args = parser.parse_args()
 fileName = args.input
+mainFile = fileName + '--MAIN.csv'
+controlFile = fileName + '--CONTROL.csv'
+
 
 # Prepare CSV
 try:
-    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 
+    df = pd.read_csv(mainFile, header=0, names=['Mode', 'Time', 
                             'Freq', 'time2delay', 'actualDelay',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
@@ -374,16 +377,25 @@ try:
                             'North-One', 'East-One', 'Down-One', 'Yaw-One',
                             'North-Two', 'East-Two', 'Down-Two', 'Yaw-Two',
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
-                            
+    
+    df2 = pd.read_csv(controlFile, header=0, names=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+                                                    'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+                                                    'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+                                                    'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                                    'errorN', 'desiredN', 'actualN',
+                                                    'errorE', 'desiredE', 'actualE',
+                                                    'errorD', 'desiredD', 'actualD',
+                                                    'errorY', 'desiredY', 'actualY',
+                                                    'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])                   
 except:
     print('Error with file.')
     exit()
+
 
 # Cut time
 # start = 25  #df['Time'].iloc[0]
 # end   = 120 #df['Time'].iloc[-1]
 # df = df[(df['Time'] >= start) & (df['Time'] <= end)]
-
 
 # Plotting options
 General(df.copy(), fileName, saveFlag=False)
@@ -391,8 +403,3 @@ FreqSleep(df.copy(), fileName, saveFlag=False)
 DiffState(df.copy(), fileName, saveFlag=False)
 # KalmanTune(df.copy())
 plt.show()
-
-
-# velocity / accel
-
-# CHANGE PLOTTING FILE NAME ORDER

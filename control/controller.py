@@ -245,6 +245,6 @@ class Controller:
                                               'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
 
         # Save data to CSV
-        fileName = 'flightData/' + now.strftime('CONTROL-%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S--CONTROL') + '.csv'
         df.to_csv(fileName, index=None, header=True)
         print('Control log saved to: ' + fileName)

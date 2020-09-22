@@ -157,7 +157,7 @@ def main():
         print('Sampling Frequency: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Freq'].mean(), df['Freq'].std()))
         
         # Save data to CSV
-        fileName = 'flightData/' + now.strftime('MAIN-%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S--MAIN') + '.csv'
         df.to_csv(fileName, index=None, header=True)
         print('Main log saved to: ' + fileName)
 
