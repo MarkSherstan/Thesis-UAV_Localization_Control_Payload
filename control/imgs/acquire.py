@@ -7,16 +7,15 @@ sys.path.append('../')
 from T265 import T265
 from filter import TimeSync
 
+# Initialize
 cam = T265()
+
 sync = TimeSync(0.5)
 sync.startTimer()
+
+# Variables
 counter = 0
 startTime = time.time()
-
-# cam = cv2.VideoCapture(0)
-# cam.set(cv2.CAP_PROP_FRAME_WIDTH, 1280)
-# cam.set(cv2.CAP_PROP_FRAME_HEIGHT, 720)
-# cam.set(cv2.CAP_PROP_FPS, 30)
         
 try:
     while(True):
@@ -24,9 +23,6 @@ try:
         tempA = cam.Img1
         tempB = cam.Img2
 
-        # _, tempA = cam.read()
-        # _, tempB = cam.read()
-  
         # Write frames
         cv2.imwrite(str(counter) + 'A.png', tempA)
         cv2.imwrite(str(counter) + 'B.png', tempB)
