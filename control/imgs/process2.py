@@ -66,7 +66,7 @@ for adaptiveThreshWinSizeMin in range(3, 20):
                                  thresh1, thresh2, len(camA), len(camB)])
 
                     # Update user
-                    print('{:<d} of 399 complete. Time elapsed: {:<0.2f}'.format(counter, time.time()-startTime))
+                    print('{:<d} of 1654 complete. Time elapsed: {:<0.2f}'.format(counter, time.time()-startTime))
                     counter += 1
 
 df = pd.DataFrame(data, columns=['adaptiveThreshWinSizeMin', 'adaptiveThreshWinSizeMax',
