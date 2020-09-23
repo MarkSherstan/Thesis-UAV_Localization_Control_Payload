@@ -1,25 +1,38 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
+import itertools
 
-# Read csv into data frame
-df = pd.read_csv('Data0.csv', header=0, names=['adaptiveThreshWinSizeMin', 'adaptiveThreshWinSizeMax',
-                                              'adaptiveThreshWinSizeStep', 'foundA', 'foundB', 'Total Found', 
-                                              'Thresh1', 'Thresh2', 'Cam A Imgs', 'Cam B Imgs'])
+dataFiles = ['Data0', 'Data1', 'Data2', 'Data3', 'Data4']
+dataList = []
 
-# Create some additional metrics
-df['Percent-Tot'] = (df['foundA'] + df['foundB']) / (df['Cam A Imgs'] + df['Cam B Imgs']) 
-df['Percent-A'] = df['foundA'] / df['Cam A Imgs'] 
-df['Percent-B'] = df['foundB'] / df['Cam B Imgs']
-df['THRESH'] = df.Thresh1.astype(str) + '-' + df.Thresh2.astype(str)
+for dat in dataFiles:
+    # Read csv into data frame
+    df = pd.read_csv(dat+'.csv', header=0, names=['adaptiveThreshWinSizeMin', 'adaptiveThreshWinSizeMax',
+                                                'adaptiveThreshWinSizeStep', 'foundA', 'foundB', 'Total Found', 
+                                                'Thresh1', 'Thresh2', 'Cam A Imgs', 'Cam B Imgs'])
 
-# Find the top 20%
-top20percent = df.nlargest(int(len(df)*(20/100)), 'Percent-Tot')
-print(top20percent)
+    # Create some additional metrics
+    df['Percent-Tot'] = (df['foundA'] + df['foundB']) / (df['Cam A Imgs'] + df['Cam B Imgs']) 
+    df['Percent-A'] = df['foundA'] / df['Cam A Imgs'] 
+    df['Percent-B'] = df['foundB'] / df['Cam B Imgs']
+    df['THRESH'] = df.Thresh1.astype(str) + '-' + df.Thresh2.astype(str)
 
-# print(top50['THRESH'].value_counts()[:10].index.tolist())
+    # Find the top 20%
+    top = df.nlargest(int(len(df)*(20/100)), 'Percent-Tot')
 
-print(df['THRESH'].nunique())
+    dataList.append(top['THRESH'].value_counts()[:10].index.tolist())
+
+
+
+
+
+merged = list(itertools.chain(*dataList))
+A = list(set(merged))
+
+print(A)
+
+# print(df['THRESH'].nunique())
 
 
 # # Time Plot

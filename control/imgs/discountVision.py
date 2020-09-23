@@ -75,53 +75,56 @@ class VisionPose:
         self.font = cv2.FONT_HERSHEY_SIMPLEX
 
     def getPose(self, frame, graphics=False):
-        # lists of ids and corners belonging to each id
-        corners, ids, _ = aruco.detectMarkers(image=frame, dictionary=self.arucoDict,
-                                              parameters=self.parm, cameraMatrix=self.mtx,
-                                              distCoeff=self.dist)
+        try:
+            # lists of ids and corners belonging to each id
+            corners, ids, _ = aruco.detectMarkers(image=frame, dictionary=self.arucoDict,
+                                                parameters=self.parm, cameraMatrix=self.mtx,
+                                                distCoeff=self.dist)
 
-        # Only estimate the pose if a marker was found
-        if np.all(ids != None):
-            _, self.rvec, self.tvec = aruco.estimatePoseBoard(corners=corners, ids=ids, board=self.board,
-                                                              cameraMatrix=self.mtx, distCoeffs=self.dist,
-                                                              rvec=self.rvec, tvec=self.tvec)
-
-            # Convert from vector to rotation matrix and then transform to body frame
-            R, _ = cv2.Rodrigues(self.rvec)
-            R, t = self.transform2Body(R, self.tvec)
-
-            # Get yaw
-            _, _, yaw = self.rotationMatrix2EulerAngles(R)
-
-            # Save values
-            self.N = t[1]
-            self.E = t[0]
-            self.D = t[2]
-            self.Y = yaw
-
-            if graphics is True:
-                # Make the frame color
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+            # Only estimate the pose if a marker was found
+            if np.all(ids != None):
+                _, self.rvec, self.tvec = aruco.estimatePoseBoard(corners=corners, ids=ids, board=self.board,
+                                                                cameraMatrix=self.mtx, distCoeffs=self.dist,
+                                                                rvec=self.rvec, tvec=self.tvec)
                 
-                # Draw axis if applicable
-                cv2.aruco.drawDetectedMarkers(frame, corners, ids)
-                cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 8)
-                
-                # Write
-                cv2.putText(frame, 'N: ' + str(round(self.N,1)), (5,50),  self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
-                cv2.putText(frame, 'E: ' + str(round(self.E,1)), (5,100), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
-                cv2.putText(frame, 'D: ' + str(round(self.D,1)), (5,150), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
-                cv2.putText(frame, 'Y: ' + str(round(self.Y,1)), (5,200), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+                # Convert from vector to rotation matrix and then transform to body frame
+                R, _ = cv2.Rodrigues(self.rvec)
+                R, t = self.transform2Body(R, self.tvec)
 
-            # Found ArUco
-            found = 1
-        else:
-            # Did not find ArUco
+                # Get yaw
+                _, _, yaw = self.rotationMatrix2EulerAngles(R)
+
+                # Save values
+                self.N = t[1]
+                self.E = t[0]
+                self.D = t[2]
+                self.Y = yaw
+
+                if graphics is True:
+                    # Make the frame color
+                    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+                    
+                    # Draw axis if applicable
+                    cv2.aruco.drawDetectedMarkers(frame, corners, ids)
+                    cv2.aruco.drawAxis(frame, self.mtx, self.dist, self.rvec, self.tvec, 8)
+                    
+                    # Write
+                    cv2.putText(frame, 'N: ' + str(round(self.N,1)), (5,50),  self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+                    cv2.putText(frame, 'E: ' + str(round(self.E,1)), (5,100), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+                    cv2.putText(frame, 'D: ' + str(round(self.D,1)), (5,150), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+                    cv2.putText(frame, 'Y: ' + str(round(self.Y,1)), (5,200), self.font, 1.5, (0, 255, 0), 2, cv2.LINE_AA)
+
+                # Found ArUco
+                found = 1
+            else:
+                # Did not find ArUco
+                found = 0
+                
+                if graphics is True:
+                    # Update frame to RGB
+                    frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
+        except:
             found = 0
-            
-            if graphics is True:
-                # Update frame to RGB
-                frame = cv2.cvtColor(frame, cv2.COLOR_GRAY2RGB)
 
         return frame, found
 
