@@ -1,7 +1,6 @@
 import matplotlib.pyplot as plt
 import pandas as pd
 import numpy as np
-import itertools
 
 # Data files 
 dataFiles = ['Data0', 'Data1', 'Data2', 'Data3', 'Data4', 'Data5']
@@ -25,9 +24,9 @@ for ii in range(len(dataFiles)):
     df.plot(kind='line', x='Thresh', y='Percent-Tot', style='.', color=colors[ii], ax=ax)
 
 # Format
-ax.set_title('Threshold Vs Accuracy', fontsize=14, fontweight='bold')
+ax.set_title('Threshold Vs Relative Accuracy', fontsize=14, fontweight='bold')
 ax.set_xlabel('Threshold Value', fontweight='bold')
-ax.set_ylabel('Relative Accuracy [%]',  fontweight='bold')
+ax.set_ylabel('Relative Accuracy [%]', fontweight='bold')
 ax.legend(dataFiles)
 
 plt.show()
