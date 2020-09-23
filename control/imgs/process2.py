@@ -15,9 +15,9 @@ counter = 1
 startTime = time.time()
 
 # Loop through min, max, and steps
-for adaptiveThreshWinSizeMin in range(3, 20):
-    for adaptiveThreshWinSizeMax in range(3, 20):
-        for adaptiveThreshWinSizeStep in range(3, 20):
+for adaptiveThreshWinSizeMin in range(3, 30):
+    for adaptiveThreshWinSizeMax in range(3, 30):
+        for adaptiveThreshWinSizeStep in range(3, 30):
             # Lazy assert
             min3 = (adaptiveThreshWinSizeMin >= 3) and (adaptiveThreshWinSizeMax >= 3)
             maxMin = adaptiveThreshWinSizeMax >= adaptiveThreshWinSizeMin
