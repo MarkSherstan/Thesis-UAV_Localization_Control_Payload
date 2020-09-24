@@ -145,7 +145,9 @@ class VisionPose:
         self.parm.cornerRefinementWinSize = 5
         self.parm.cornerRefinementMaxIterations = 50
         self.parm.cornerRefinementMinAccuracy = 0.01
-        self.parm.adaptiveThreshWinSizeStep = 15
+        self.parm.adaptiveThreshWinSizeMin = 9
+        self.parm.adaptiveThreshWinSizeMax = 23
+        self.parm.adaptiveThreshWinSizeStep = 14
         self.parm.minMarkerPerimeterRate = 0.05
 
         # Create the ArUco board
