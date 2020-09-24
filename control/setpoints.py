@@ -4,7 +4,7 @@ class SetPoints:
     def __init__(self, state, nDesired=0, eDesired=0, dDesired=0, yDesired=0, args=None):
         '''
         Example uses:
-        1. SP = SetPoints(state='Trajectory', nDesired=-10, eDesired=40, dDesired=0, yDesired=0)
+        1. SP = SetPoints(state='Trajectory', nDesired=-12, eDesired=40, dDesired=10, yDesired=0)
         2. SP = SetPoints(state='Step')
         3. SP = SetPoints(state='Wave', args='Y')
             * Complete args list = 'Y', 'RP', 'T'
