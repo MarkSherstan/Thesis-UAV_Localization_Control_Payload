@@ -17,17 +17,17 @@ for item in files:
 # ArUco stuff
 V = Vision()
 
-V.VP1.parm.adaptiveThreshWinSizeMin = 7
-V.VP2.parm.adaptiveThreshWinSizeMin = 7
+V.VP1.parm.adaptiveThreshWinSizeMin = 9
+V.VP2.parm.adaptiveThreshWinSizeMin = 9
 
-V.VP1.parm.adaptiveThreshWinSizeMax = 28
-V.VP2.parm.adaptiveThreshWinSizeMax = 28
+V.VP1.parm.adaptiveThreshWinSizeMax = 23
+V.VP2.parm.adaptiveThreshWinSizeMax = 23
 
-V.VP1.parm.adaptiveThreshWinSizeStep = 16
-V.VP2.parm.adaptiveThreshWinSizeStep = 16
+V.VP1.parm.adaptiveThreshWinSizeStep = 14
+V.VP2.parm.adaptiveThreshWinSizeStep = 14
 
 # Lower and upper thresholding block size
-threshLow = 7
+threshLow = 9
 threshHigh = 23
 
 # Counter 

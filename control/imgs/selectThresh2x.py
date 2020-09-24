@@ -27,33 +27,25 @@ for dat in dataFiles:
 df = pd.concat(dataFrameList)
 
 
-# Plot data
-# fig = plt.figure(figsize=(8, 4), dpi=100)
-# ax = plt.gca()
-# df.plot(kind='line', x='Thresh1', y='Scaled-Percent', style='.', ax=ax)
-# plt.show()
-
-
-
-
-# Average everything based off thresh 1 value
-tempData = df.groupby('Thresh1').mean()
-
-# Save data into numpy array
-idx = np.array(tempData.index)
-x = np.array(tempData['Thresh2'])
-y = np.array(tempData['Scaled-Percent'])
 
 # Create plot
 fig = plt.figure(figsize=(10, 5), dpi=100)
 ax = plt.gca()
 
-# Plot the data
-for ii in range(len(idx)):
+# Loop through data idx's
+for ii in range(3,27):
+    # Get data 
+    temp = df.loc[df['Thresh1'] == ii]
+    x = np.array(temp['Thresh2'])
+    y = np.array(temp['Scaled-Percent'])
+
+    # Plot the data
     if not(ii % 3):
-        ax.scatter(x[ii], y[ii], marker='*', label=idx[ii])
+        ax.scatter(x, y, marker='*', label=ii)
+    elif not(ii % 2):
+        ax.scatter(x, y, marker='o', label=ii)
     else:
-        ax.scatter(x[ii], y[ii], marker='.', label=idx[ii])
+        ax.scatter(x, y, marker='.', label=ii)
         
 # Format
 ax.set_title('Threshold Values vs Accuracy', fontsize=14, fontweight='bold')
@@ -65,26 +57,32 @@ plt.show()
 
 
 
-# temp = df.groupby('THRESH')['Percent-Tot'].mean()
-# print(temp)
-# exit()
+# # Average everything based off thresh 1 value
+# tempData = df.groupby('Thresh1').mean()
 
-# # Find the top 20%
-# top = df.nlargest(int(len(df)*(20/100)), 'Percent-Tot')
+# # Save data into numpy array
+# idx = np.array(tempData.index)
+# x = np.array(tempData['Thresh2'])
+# y = np.array(tempData['Scaled-Percent'])
 
-# dataList.append(top['THRESH'].value_counts()[:10].index.tolist())
+# # Create plot
+# fig = plt.figure(figsize=(10, 5), dpi=100)
+# ax = plt.gca()
 
+# # Plot the data
+# for ii in range(len(idx)):
+#     if not(ii % 3):
+#         ax.scatter(x[ii], y[ii], marker='*', label=idx[ii])
+#     else:
+#         ax.scatter(x[ii], y[ii], marker='.', label=idx[ii])
+        
+# # Format
+# ax.set_title('Threshold Values vs Accuracy', fontsize=14, fontweight='bold')
+# ax.set_xlabel('Threshold 2', fontweight='bold')
+# ax.set_ylabel('Accuracy [%]',  fontweight='bold')
+# ax.legend(ncol=8, loc='lower right')
 
-# merged = list(itertools.chain(*dataList))
-# A = list(set(merged))
-
-# print(A)
-
-# # print(df['THRESH'].nunique())
-
-
-
-
+# plt.show()
 
 
 
