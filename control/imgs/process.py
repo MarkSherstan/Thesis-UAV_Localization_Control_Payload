@@ -17,9 +17,22 @@ for item in files:
 # ArUco stuff
 V = Vision()
 
+V.VP1.parm.adaptiveThreshWinSizeMin = 7
+V.VP2.parm.adaptiveThreshWinSizeMin = 7
+
+V.VP1.parm.adaptiveThreshWinSizeMax = 28
+V.VP2.parm.adaptiveThreshWinSizeMax = 28
+
+V.VP1.parm.adaptiveThreshWinSizeStep = 16
+V.VP2.parm.adaptiveThreshWinSizeStep = 16
+
 # Lower and upper thresholding block size
-threshLow = 3
-threshHigh = 15
+threshLow = 7
+threshHigh = 23
+
+# Counter 
+countA = 0
+countB = 0
 
 # Get image paths from calibration folder
 camA = sorted(glob.glob('*A.png'))
@@ -27,7 +40,7 @@ camB = sorted(glob.glob('*B.png'))
 
 # Loop through values
 for ii in range(len(camA)):
-    # Read raw images
+    # Read raw images and convert to gray scale
     tempA = cv2.imread(camA[ii])
     tempB = cv2.imread(camB[ii])
     
@@ -42,8 +55,12 @@ for ii in range(len(camA)):
     upperB = cv2.adaptiveThreshold(tempB.copy(), 255, cv2.ADAPTIVE_THRESH_MEAN_C, cv2.THRESH_BINARY_INV, threshHigh, 7)
 
     # Update ArUco
-    tempA, _ = V.VP1.getPose(tempA, graphics=True)
-    tempB, _ = V.VP2.getPose(tempB, graphics=True)
+    tempA, numA = V.VP1.getPose(tempA, graphics=True)
+    tempB, numB = V.VP2.getPose(tempB, graphics=True)
+    
+    # Increment counter
+    countA += numA
+    countB += numB
     
     # Group images
     lowerA = cv2.cvtColor(lowerA, cv2.COLOR_GRAY2RGB)
@@ -58,3 +75,5 @@ for ii in range(len(camA)):
     # Write 
     fileName = 'Master-' + str(ii) + '.png'
     cv2.imwrite(fileName, master)
+
+print(countA, countB)
