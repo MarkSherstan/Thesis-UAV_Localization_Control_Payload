@@ -114,7 +114,7 @@ class Vision:
             print('\nMaster vision thread rate: ', round(self.counter / (self.endTime - self.startTime),1))
 
 class VisionPose:
-    def __init__(self, ID, mtx, dist, offset, lengthMarker=14.15, spacing=21.6):        
+    def __init__(self, ID, mtx, dist, offset, lengthMarker=13.25, spacing=21.6):        
         # ID
         self.ID = ID
         
