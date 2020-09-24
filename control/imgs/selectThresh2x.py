@@ -16,6 +16,10 @@ for dat in dataFiles:
     df['Percent-Tot'] = (df['foundA'] + df['foundB']) / (df['Cam A Imgs'] + df['Cam B Imgs']) 
     df['THRESH'] = df.Thresh1.astype(str) + '-' + df.Thresh2.astype(str)
 
+    # Adjust everything to 100%
+    tempMax = df['Percent-Tot'].max()
+    df['Scaled-Percent'] = df['Percent-Tot'] / tempMax
+    
     # Store the data
     dataFrameList.append(df)
 
@@ -23,35 +27,41 @@ for dat in dataFiles:
 df = pd.concat(dataFrameList)
 
 
-
-
-
-
-
-
-# # Average everything based off thresh 1 value
-# threshOnePlot = df.groupby('Thresh1').mean()
-
-# # Save data into numpy array
-# idx = np.array(threshOnePlot.index)
-# xxx = np.array(threshOnePlot['Thresh2'])
-# yyy = np.array(threshOnePlot['Percent-Tot'])
-
-# # Create plot
+# Plot data
 # fig = plt.figure(figsize=(8, 4), dpi=100)
 # ax = plt.gca()
-
-# # Plot data
-# plt.plot(xxx, yyy)
-# # for ii in range(len(idx)):
-# #     plt.plot(xxx[ii], yyy[ii], label=idx[ii])
-
-# # Format
-# ax.set_title('Test', fontsize=14, fontweight='bold')
-# ax.set_xlabel('Time [s]', fontweight='bold')
-# ax.set_ylabel('dt [s]',  fontweight='bold')
-
+# df.plot(kind='line', x='Thresh1', y='Scaled-Percent', style='.', ax=ax)
 # plt.show()
+
+
+
+
+# Average everything based off thresh 1 value
+tempData = df.groupby('Thresh1').mean()
+
+# Save data into numpy array
+idx = np.array(tempData.index)
+x = np.array(tempData['Thresh2'])
+y = np.array(tempData['Scaled-Percent'])
+
+# Create plot
+fig = plt.figure(figsize=(10, 5), dpi=100)
+ax = plt.gca()
+
+# Plot the data
+for ii in range(len(idx)):
+    if not(ii % 3):
+        ax.scatter(x[ii], y[ii], marker='*', label=idx[ii])
+    else:
+        ax.scatter(x[ii], y[ii], marker='.', label=idx[ii])
+        
+# Format
+ax.set_title('Threshold Values vs Accuracy', fontsize=14, fontweight='bold')
+ax.set_xlabel('Threshold 2', fontweight='bold')
+ax.set_ylabel('Accuracy [%]',  fontweight='bold')
+ax.legend(ncol=8, loc='lower right')
+
+plt.show()
 
 
 
