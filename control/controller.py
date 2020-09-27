@@ -16,12 +16,12 @@ class Controller:
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.03
-        self.ki_NORTH = 0.001 # Max 0.5 deg with 500 bounds
+        self.ki_NORTH = 0.002 # Max 1 deg with 500 bounds
         self.kd_NORTH = 0.006
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.025
-        self.ki_EAST = 0.001 # Max 0.5 deg with 500 bounds
+        self.ki_EAST = 0.002 # Max 1 deg with 500 bounds
         self.kd_EAST = 0.005
 
         # PID Gains: DOWN (thrust)
