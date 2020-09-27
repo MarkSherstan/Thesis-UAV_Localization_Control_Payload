@@ -17,12 +17,12 @@ class Controller:
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.03
         self.ki_NORTH = 0.00 # Max 1 deg with 500 bounds
-        self.kd_NORTH = 0.01
+        self.kd_NORTH = 0.008
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.03
         self.ki_EAST = 0.00 # Max 1 deg with 500 bounds
-        self.kd_EAST = 0.01
+        self.kd_EAST = 0.008
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -32,7 +32,7 @@ class Controller:
         # PID Gains: YAW (yaw rate)
         self.kp_YAW = 0.5
         self.ki_YAW = 0
-        self.kd_YAW = 0
+        self.kd_YAW = 0.1
 
         # Cutoff height
         self.gainHeight = 25.0
