@@ -81,7 +81,7 @@ def main():
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # If landed, engange the quick connect
-            # if (landState == True):
+            # if (landState == True) and (modeState == 0):
             #     qc.engage()
             #     SP.reset(-10, 40, 100)
             #     SP.update(actualPos, [0, 0, 0], [0, 0, 0])
