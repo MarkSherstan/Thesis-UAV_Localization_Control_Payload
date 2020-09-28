@@ -185,9 +185,35 @@ class SetPoints:
         # Return the result 
         return y
 
+    def dampedSineWaveGenerator(self, A, b=0, T=6, sampleRate=1/30, plotFlag=False):
+        # Time array
+        x = np.linspace(0, T/3, round((T/3)/sampleRate), endpoint=True)
+        xx = np.linspace(0, T, round((T/sampleRate)), endpoint=True)
+
+        # Function parameters
+        f = 30
+        fs = 30
+
+        # Output
+        y1 = np.exp(-x) * A*np.sin(2*np.pi*f * (x/fs)) + b          # Decay fnc
+        y2 = A*np.sin(2*np.pi*f * (x/fs)) + b                       # Sine fnc
+        y3 = np.concatenate((np.zeros(1), -np.flip(y1), y2[1:-1], y1, np.zeros(1)), axis=0)   # Combine
+        
+        # Visualizing
+        if plotFlag is True:
+            # Import packages
+            import matplotlib.pyplot as plt
+
+            # Display the results
+            plt.plot(xx, y3)
+            plt.show()
+        
+        # Return the result 
+        return y3
+    
 def main():
     SP = SetPoints('Wave')
-    SP.sineWaveGenerator(A=20, plotFlag=True)
+    SP.dampedSineWaveGenerator(A=10, plotFlag=True)
     
 if __name__ == "__main__":
     main()
