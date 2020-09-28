@@ -17,12 +17,12 @@ class Controller:
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.02
         self.ki_NORTH = 0.005 # Max 2.5 deg with 500 bounds
-        self.kd_NORTH = 0
+        self.kd_NORTH = 0.01
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.02
         self.ki_EAST = 0.005 # Max 2.5 deg with 500 bounds
-        self.kd_EAST = 0
+        self.kd_EAST = 0.01
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -70,6 +70,7 @@ class Controller:
         
     def startController(self):
         self.resetController()
+        self.sendAttitudeTarget(0, 0, 0, 0.5)
         self.timer = time.time()
         self.startTime = time.time()
 
@@ -112,6 +113,7 @@ class Controller:
         yawRate = math.radians(yawRate)
 
         # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
+        # https://ardupilot.org/dev/docs/copter-commands-in-guided-mode.html#copter-commands-in-guided-mode-set-attitude-target
         msg = self.UAV.message_factory.set_attitude_target_encode(
             0, # time_boot_ms
             0, # Target system
