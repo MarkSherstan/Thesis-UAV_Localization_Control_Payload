@@ -136,7 +136,7 @@ class SetPoints:
         
         # Update set points
         self.northDesired = posIC[0] 
-        self.eastDesired  = posIC[1] + 50
+        self.eastDesired  = posIC[1] + 30
         self.downDesired  = posIC[2] 
 
     def createWave(self, axis):
