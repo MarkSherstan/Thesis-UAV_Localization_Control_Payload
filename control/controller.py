@@ -14,6 +14,7 @@ class Controller:
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-10, 10]           # Deg / s
+        self.derivativeGainConstrain = [-5, 5]      # [ ]
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.03
@@ -70,10 +71,10 @@ class Controller:
         self.data = []
         
         # Low pass filter for D term
-        self.nAvg = MovingAverage(3)
-        self.eAvg = MovingAverage(3)
-        self.dAvg = MovingAverage(3)
-        self.yAvg = MovingAverage(3)
+        self.nAvg = MovingAverage(5)
+        self.eAvg = MovingAverage(5)
+        self.dAvg = MovingAverage(5)
+        self.yAvg = MovingAverage(5)
         
     def startController(self):
         self.resetController()
@@ -150,7 +151,7 @@ class Controller:
         # Run the PID controller
         P = error
         I = I + error * dt
-        D = filt.update((error - errorPrev) / dt)
+        D = filt.update(self.constrain((error - errorPrev) / dt, self.derivativeGainConstrain[0], self.derivativeGainConstrain[1]))
         PID = (kp * P) + (ki * I) + (kd * D)
 
         # Logging
