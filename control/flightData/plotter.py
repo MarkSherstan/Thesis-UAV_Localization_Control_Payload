@@ -388,7 +388,7 @@ def gainTune(df, fileName, saveFlag):
 
     df.plot(kind='line', x='Time', y='N-P',   color='k', style='-',  ax=ax2)
     df.plot(kind='line', x='Time', y='N-I',   color='k', style='--', ax=ax2)
-    df.plot(kind='line', x='Time', y='N-D',   color='k', style=':',  ax=ax2)
+    df.plot(kind='line', x='Time', y='N-D',   color='k', style='-.', ax=ax2)
     df.plot(kind='line', x='Time', y='N-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
     ax2.set_xlabel('Time [s]', fontweight='bold')
@@ -426,7 +426,7 @@ def gainTune(df, fileName, saveFlag):
 
     df.plot(kind='line', x='Time', y='E-P',   color='k', style='-',  ax=ax2)
     df.plot(kind='line', x='Time', y='E-I',   color='k', style='--', ax=ax2)
-    df.plot(kind='line', x='Time', y='E-D',   color='k', style=':',  ax=ax2)
+    df.plot(kind='line', x='Time', y='E-D',   color='k', style='-.', ax=ax2)
     df.plot(kind='line', x='Time', y='E-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
     ax2.set_xlabel('Time [s]', fontweight='bold')
@@ -463,7 +463,7 @@ def gainTune(df, fileName, saveFlag):
 
     df.plot(kind='line', x='Time', y='D-P',   color='k', style='-',  ax=ax2)
     df.plot(kind='line', x='Time', y='D-I',   color='k', style='--', ax=ax2)
-    df.plot(kind='line', x='Time', y='D-D',   color='k', style=':',  ax=ax2)
+    df.plot(kind='line', x='Time', y='D-D',   color='k', style='-.', ax=ax2)
     df.plot(kind='line', x='Time', y='D-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
     ax2.set_xlabel('Time [s]', fontweight='bold')
@@ -499,7 +499,7 @@ def gainTune(df, fileName, saveFlag):
 
     df.plot(kind='line', x='Time', y='Y-P',   color='k', style='-',  ax=ax2)
     df.plot(kind='line', x='Time', y='Y-I',   color='k', style='--', ax=ax2)
-    df.plot(kind='line', x='Time', y='Y-D',   color='k', style=':',  ax=ax2)
+    df.plot(kind='line', x='Time', y='Y-D',   color='k', style='-.', ax=ax2)
     df.plot(kind='line', x='Time', y='Y-PID', color='k', alpha=0.5, style='-', ax=ax2)
 
     ax2.set_xlabel('Time [s]', fontweight='bold')
@@ -561,8 +561,8 @@ try:
     
     df2 = pd.read_csv(controlFile, header=0, names=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
                                                     'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
-                                                    'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
                                                     'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                                    'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
                                                     'errorN', 'desiredN', 'actualN',
                                                     'errorE', 'desiredE', 'actualE',
                                                     'errorD', 'desiredD', 'actualD',

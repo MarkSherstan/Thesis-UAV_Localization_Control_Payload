@@ -33,7 +33,7 @@ class Controller:
         # PID Gains: YAW (yaw rate)
         self.kp_YAW = 0.2
         self.ki_YAW = 0.02
-        self.kd_YAW = 0
+        self.kd_YAW = 0.005
 
         # Cutoff height
         self.gainHeight = 25.0
@@ -245,8 +245,8 @@ class Controller:
         # Write data to a data frame
         df = pd.DataFrame(self.data, columns=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
                                               'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
-                                              'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
                                               'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                              'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
                                               'errorN', 'desiredN', 'actualN',
                                               'errorE', 'desiredE', 'actualE',
                                               'errorD', 'desiredD', 'actualD',
