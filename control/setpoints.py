@@ -135,7 +135,7 @@ class SetPoints:
         self.downDesiredList  = [posIC[2]]
         
         # Update set points
-        self.northDesired = posIC[0] + 40
+        self.northDesired = posIC[0] + 50
         self.eastDesired  = posIC[1] 
         self.downDesired  = posIC[2] 
 
