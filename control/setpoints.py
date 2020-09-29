@@ -127,16 +127,16 @@ class SetPoints:
 
     def createStep(self, posIC, sampleRate=1/30):
         # Two second steady state
-        n = int(5.0 / sampleRate)
+        n = int(1.0 / sampleRate)
         
         # Update the lists
-        self.northDesiredList = [posIC[0]]
-        self.eastDesiredList  = [posIC[1]] * n
+        self.northDesiredList = [posIC[0]] * n
+        self.eastDesiredList  = [posIC[1]] 
         self.downDesiredList  = [posIC[2]]
         
         # Update set points
-        self.northDesired = posIC[0] 
-        self.eastDesired  = posIC[1] + 30
+        self.northDesired = posIC[0] + 30
+        self.eastDesired  = posIC[1] 
         self.downDesired  = posIC[2] 
 
     def createWave(self, axis):
