@@ -1,3 +1,4 @@
+from filter import MovingAverage
 import pandas as pd
 import datetime
 import time
@@ -16,17 +17,17 @@ class Controller:
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.03
-        self.ki_NORTH = 0.005 # Max 2.5 deg with 500 bounds
+        self.ki_NORTH = 0.005   # Max 2.5 deg with 500 bounds
         self.kd_NORTH = 0.02
 
         # PID Gains: EAST (roll)
         self.kp_EAST = 0.03
-        self.ki_EAST = 0.005 # Max 2.5 deg with 500 bounds
+        self.ki_EAST = 0.005    # Max 2.5 deg with 500 bounds
         self.kd_EAST = 0.02
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
-        self.ki_DOWN = 0.00008     # Max 0.04 with 500 bounds
+        self.ki_DOWN = 0.00008   # Max 0.04 with 500 bounds
         self.kd_DOWN = 0
 
         # PID Gains: YAW (yaw rate)
@@ -67,6 +68,12 @@ class Controller:
         # Data logging
         self.tempData = []
         self.data = []
+        
+        # Low pass filter for D term
+        self.nAvg = MovingAverage(3)
+        self.eAvg = MovingAverage(3)
+        self.dAvg = MovingAverage(3)
+        self.yAvg = MovingAverage(3)
         
     def startController(self):
         self.resetController()
@@ -139,11 +146,11 @@ class Controller:
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
 
-    def PID(self, error, errorPrev, I, dt, kp, ki, kd, debug=False):
+    def PID(self, error, errorPrev, I, dt, kp, ki, kd, filt, debug=False):
         # Run the PID controller
         P = error
         I = I + error * dt
-        D = (error - errorPrev) / dt
+        D = filt.update((error - errorPrev) / dt)
         PID = (kp * P) + (ki * I) + (kd * D)
 
         # Logging
@@ -168,11 +175,11 @@ class Controller:
         self.timer = time.time()
             
         # Run the remainder of the control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
-        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
-        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-                
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST, self.eAvg)
+        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH, self.nAvg)
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN, self.dAvg)
+        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW, self.yAvg)
+        
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
         self.eastI  = self.constrain(self.eastI, self.eastIcontstrain[0], self.eastIcontstrain[1]) 
