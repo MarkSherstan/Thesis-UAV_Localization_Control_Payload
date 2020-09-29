@@ -127,7 +127,7 @@ class SetPoints:
 
     def createStep(self, posIC, sampleRate=1/30):
         # Two second steady state
-        n = int(3.0 / sampleRate)
+        n = int(5.0 / sampleRate)
         
         # Update the lists
         self.northDesiredList = [posIC[0]]
