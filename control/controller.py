@@ -14,7 +14,7 @@ class Controller:
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-10, 10]           # Deg / s
-        self.derivativeGainConstrain = [-5, 5]      # [ ]
+        self.derivativeGainConstrain = [-125, 125]      # [ ]
 
         # PID Gains: NORTH (pitch)
         self.kp_NORTH = 0.03
