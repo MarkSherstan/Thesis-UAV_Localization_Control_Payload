@@ -41,8 +41,8 @@ def main():
     modeState = 1
     
     # Connect to serial port and quick connect
-    # s = SerialComs()
-    # qc = QuickConnect(s)
+    s = SerialComs()
+    qc = QuickConnect(s)
 
     # Moving average for velocity and acceleration (trajectory generation)
     winSizeVel = 5;                      winSizeAcc = 10
@@ -81,12 +81,15 @@ def main():
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
             
             # If landed, engange the quick connect
-            # if (landState == True) and (modeState == 0):
-            #     qc.engage()
-            #     SP.reset(-10, 40, 100)
-            #     SP.update(actualPos, [0, 0, 0], [0, 0, 0])
-            #     C.resetController()
-            
+            if (landState == True) and (modeState == 0):
+                qc.engage()
+                # SP.reset(-10, 40, 100, 0)
+                # SP.update(actualPos, [0, 0, 0], [0, 0, 0])
+                C.resetController()
+                landState = True
+            else:
+                landState = False
+                
             # Get actual vehicle attitude
             roll, pitch, yaw = C.getVehicleAttitude()
 
