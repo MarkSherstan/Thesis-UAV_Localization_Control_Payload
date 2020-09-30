@@ -37,7 +37,7 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(state='Trajectory', nDesired=-10, eDesired=40, dDesired=10, yDesired=0)
+    SP = SetPoints(state='Step')
     modeState = 1
     
     # Connect to serial port and quick connect
