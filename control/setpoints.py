@@ -97,9 +97,9 @@ class SetPoints:
     
     def createTrajectory(self, posIC, velIC, accIC):
         # Calculate the trajectories
-        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=5)
-        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=5)
-        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=7)
+        self.northDesiredList = self.trajectoryGen(posIC[0], velIC[0], accIC[0], self.northDesired, T=4)
+        self.eastDesiredList  = self.trajectoryGen(posIC[1], velIC[1], accIC[1], self.eastDesired,  T=4)
+        self.downDesiredList  = self.trajectoryGen(posIC[2], velIC[2], accIC[2], self.downDesired,  T=8)
 
     def trajectoryGen(self, pos0, vel0, acc0, endPos, T, sampleRate=1/30):
         # Define time array and storage variables
