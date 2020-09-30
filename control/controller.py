@@ -17,14 +17,14 @@ class Controller:
         self.derivativeGainConstrain = [-125, 125]  # [ ]
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.04
-        self.ki_NORTH = 0.006   # Max 3 deg with 500 bounds
-        self.kd_NORTH = 0.04
+        self.kp_NORTH = 0.09 #0.04
+        self.ki_NORTH = 0.001 #0.006   # Max 3 deg with 500 bounds
+        self.kd_NORTH = 0.07 #0.04
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.035
-        self.ki_EAST = 0.005    # Max 2.5 deg with 500 bounds
-        self.kd_EAST = 0.05
+        self.kp_EAST = 0.075 #0.035
+        self.ki_EAST = 0.001 #0.005    # Max 2.5 deg with 500 bounds
+        self.kd_EAST = 0.065 #0.05
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -32,9 +32,9 @@ class Controller:
         self.kd_DOWN = 0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.1
-        self.ki_YAW = 0.02
-        self.kd_YAW = 0
+        self.kp_YAW = 0.6 #0.1
+        self.ki_YAW = 0 #0.02
+        self.kd_YAW = 0.3 #0
 
         # Cutoff height
         self.gainHeight = 25.0
