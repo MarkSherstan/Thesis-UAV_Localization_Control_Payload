@@ -135,7 +135,7 @@ def main():
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
         print('Closing')
-        # s.close()
+        s.close()
         
         # Record time stamp for data logs
         now = datetime.datetime.now()
