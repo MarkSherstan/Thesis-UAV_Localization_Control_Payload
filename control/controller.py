@@ -40,7 +40,8 @@ class Controller:
         self.gainHeight = 25.0
         
         # Landing check 
-        self.landErrorNE = 3.0
+        self.landErrorNE = 5.0
+        self.landErrorD  = 3.0
         self.landHeight  = 15.0
         self.landCount   = 0 
         self.landCountRequired = 45
@@ -215,10 +216,10 @@ class Controller:
         # Check if UAV has landed
         if ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
                 (actual[2] < self.landHeight) and (self.landCount >= self.landCountRequired) and 
-                (errorDown < 0)):
+                (abs(errorDown) < self.landErrorD)):
             landState = True
         elif ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
-                (actual[2] < self.landHeight) and (errorDown < 0)):
+                (actual[2] < self.landHeight) and (abs(errorDown) < self.landErrorD)):
             self.landCount += 1
             landState = False
         else:
