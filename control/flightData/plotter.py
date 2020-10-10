@@ -530,6 +530,56 @@ def gainTune(df, fileName, saveFlag):
     ax.set_xlabel('Time [s]', fontweight='bold')
     ax.set_ylabel('dt [s]',  fontweight='bold')
     ax.get_legend().remove()
+
+def eastTune(df):
+    # Find Autonomous Sections
+    df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
+
+    idx = []
+    for ii in range(df.shape[0]-1):
+        if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
+            pass
+        else:
+            idx.append(ii)
+
+    # Master
+    fig = plt.figure(figsize=(13, 7), dpi=100)
+
+    ################################################################################################
+
+    # East - Pos 
+    plt.subplot(2, 1, 1)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualE',  color='tab:orange', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredE', color='tab:orange', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['E-kp'][0]) + ' Ki: ' + str(df['E-ki'][0]) + ' Kd: ' + str(df['E-kd'][0])
+    ax1.set_title('East\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # East - Control 
+    plt.subplot(2, 1, 2)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='E-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='E-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='E-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='E-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylim([-5,5])
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+ 
  
 ########################
 # Argparse
@@ -585,3 +635,6 @@ DiffState(df.copy())
 # KalmanTune(df.copy())
 gainTune(df2.copy(), fileName, saveFlag=True)
 plt.show()
+
+# eastTune(df2.copy())
+# plt.show()
