@@ -1,5 +1,5 @@
-import cv2 as cv2
 import time
+import cv2
 
 # Import custom classes
 import sys
@@ -14,19 +14,17 @@ sync = TimeSync(1/30)
 sync.startTimer()
 
 # Variables
+aList = []
+bList = []
 counter = 0
 startTime = time.time()
         
 try:
     while(True):
         # Get frames
-        tempA = cam.Img1
-        tempB = cam.Img2
+        aList.append(cam.Img1)
+        bList.append(cam.Img2)
 
-        # Write frames
-        cv2.imwrite(str(counter) + 'A.png', tempA)
-        cv2.imwrite(str(counter) + 'B.png', tempB)
-        
         # Stabilize and increment
         counter += 1
         _ = sync.stabilize()
@@ -37,7 +35,16 @@ except KeyboardInterrupt:
     dt = endTime - startTime
 
 finally:
-    print('Done')
     print('Capture Rate: ', counter/dt)
     cam.close() 
+    
+    print('Saving A Images')
+    for ii in range(len(aList)):
+        cv2.imwrite(str(ii) + 'A.png', aList[ii])
+        
+    print('Saving B Images')
+    for ii in range(len(bList)):
+        cv2.imwrite(str(ii) + 'B.png', bList[ii])
+        
+    print('Done')
     
