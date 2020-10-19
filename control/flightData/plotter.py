@@ -579,6 +579,55 @@ def eastTune(df):
 
     for ii in range(0,len(idx),2):
         plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+def northTune(df):
+    # Find Autonomous Sections
+    df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
+
+    idx = []
+    for ii in range(df.shape[0]-1):
+        if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
+            pass
+        else:
+            idx.append(ii)
+
+    # Master
+    fig = plt.figure(figsize=(13, 7), dpi=100)
+
+    ################################################################################################
+
+    # North - Pos 
+    plt.subplot(2, 1, 1)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualN',  color='tab:purple', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredN', color='tab:purple', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['N-kp'][0]) + ' Ki: ' + str(df['N-ki'][0]) + ' Kd: ' + str(df['N-kd'][0])
+    ax1.set_title('North\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # North - Control 
+    plt.subplot(2, 1, 2)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='N-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='N-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='N-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='N-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylim([-5,5])
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
  
 def trajectory3D(df):
     # Load required packages
@@ -664,6 +713,8 @@ DiffState(df.copy())
 gainTune(df2.copy(), fileName, saveFlag=True)
 plt.show()
 
-# eastTune(df2.copy())
-# plt.show()
+eastTune(df2.copy())
+northTune(df2.copy())
+plt.show()
+
 # trajectory3D(df.copy())
