@@ -72,10 +72,10 @@ class Controller:
         self.data = []
         
         # Low pass filter for D term
-        self.nAvg = MovingAverage(5)
-        self.eAvg = MovingAverage(5)
-        self.dAvg = MovingAverage(5)
-        self.yAvg = MovingAverage(5)
+        self.nAvg = MovingAverage(3)
+        self.eAvg = MovingAverage(3)
+        self.dAvg = MovingAverage(3)
+        self.yAvg = MovingAverage(3)
         
     def startController(self):
         self.resetController()
