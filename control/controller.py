@@ -10,21 +10,21 @@ class Controller:
         self.UAV = vehicle
 
         # Maximum controller output constraints
-        self.rollConstrain  = [-3.5, 3.5]               # Deg
+        self.rollConstrain  = [-3.5, 3.5]           # Deg
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-10, 10]           # Deg / s
         self.derivativeGainConstrain = [-125, 125]  # [ ]
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.2 #0.04
-        self.ki_NORTH = 0.004 #0.006   # Max 3 deg with 500 bounds
-        self.kd_NORTH = 0.15 #0.04
+        self.kp_NORTH = 0.20
+        self.ki_NORTH = 0.015   # Max 3 deg with 200 bounds
+        self.kd_NORTH = 0.15
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.2 #0.035
-        self.ki_EAST = 0.004 #0.005    # Max 2.5 deg with 500 bounds
-        self.kd_EAST = 0.15 #0.05
+        self.kp_EAST = 0.20
+        self.ki_EAST = 0.015    # Max 3 deg with 200 bounds
+        self.kd_EAST = 0.15
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
@@ -32,9 +32,9 @@ class Controller:
         self.kd_DOWN = 0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.2 #0.1
-        self.ki_YAW = 0.02 #0.02
-        self.kd_YAW = 0 #0
+        self.kp_YAW = 0.20
+        self.ki_YAW = 0.02
+        self.kd_YAW = 0.00
 
         # Cutoff height
         self.gainHeight = 25.0
@@ -59,8 +59,8 @@ class Controller:
         self.yawI = 0
 
         # Integral term constraints
-        self.northIcontstrain = [-500, 500]
-        self.eastIcontstrain  = [-500, 500]
+        self.northIcontstrain = [-200, 200]
+        self.eastIcontstrain  = self.northIcontstrain
         self.downIcontstrain  = [-500, 500]
         self.yawIcontstrain   = [-500, 500]
 
