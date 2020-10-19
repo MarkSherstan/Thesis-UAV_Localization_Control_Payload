@@ -17,12 +17,12 @@ class Controller:
         self.derivativeGainConstrain = [-125, 125]  # [ ]
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.17 #0.04
+        self.kp_NORTH = 0.2 #0.04
         self.ki_NORTH = 0.004 #0.006   # Max 3 deg with 500 bounds
         self.kd_NORTH = 0.15 #0.04
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.17 #0.035
+        self.kp_EAST = 0.2 #0.035
         self.ki_EAST = 0.004 #0.005    # Max 2.5 deg with 500 bounds
         self.kd_EAST = 0.15 #0.05
 
