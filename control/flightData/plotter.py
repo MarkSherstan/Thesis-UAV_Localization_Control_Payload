@@ -580,7 +580,35 @@ def eastTune(df):
     for ii in range(0,len(idx),2):
         plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
  
- 
+def trajectory3D(df):
+    # Load required packages
+    from mpl_toolkits.mplot3d import Axes3D
+
+    # Create plot
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    # Actual
+    x = np.array(df['North-Pos'])
+    y = np.array(df['East-Pos'])
+    z = np.array(df['Down-Pos'])
+    
+    # Desired
+    xx = np.array(df['North-Desired'])
+    yy = np.array(df['East-Desired'])
+    zz = np.array(df['Down-Desired'])
+    
+    # Plot 
+    ax.plot(x, y, z, label='Actual')
+    ax.plot(xx, yy, zz, label='Desired')
+    
+    # Formatting and show
+    ax.legend()
+    ax.set_xlabel('North')
+    ax.set_ylabel('East')
+    ax.set_zlabel('Down')
+    plt.show()
+
 ########################
 # Argparse
 # Example use: python plotter.py --input "flight1.csv"
@@ -638,3 +666,4 @@ plt.show()
 
 # eastTune(df2.copy())
 # plt.show()
+# trajectory3D(df.copy())
