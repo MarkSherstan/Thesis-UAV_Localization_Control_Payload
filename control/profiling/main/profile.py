@@ -4,7 +4,7 @@ from main import main
 import yappi
 
 # Get yappi to do its thing
-yappi.set_clock_type("wall") # cpu
+yappi.set_clock_type("cpu")
 yappi.start(builtins=True)
 main()
 yappi.stop()
