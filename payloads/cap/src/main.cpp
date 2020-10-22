@@ -15,8 +15,8 @@
 #define clampServo      4
 #define radioCE         7
 #define radioCSN        8
-#define gLED            9
-#define rLED            10
+#define rLED            9
+#define gLED            10
 
 // Servo pulses, threshold, and timer
 #define clampOpen         2000
@@ -44,6 +44,9 @@ void boundaryControl();
 
 // Run once
 void setup(){
+  // Serial port for debug
+  // Serial.begin(9600);
+
   // Configure digital pins
   CP.setUpDigitalPins(limitSwitchA, limitSwitchB, rLED, gLED);
 
