@@ -19,14 +19,32 @@ void CapPayload::startTimeSync(long loopTimeMicroSec){
    micros();
  }
 
-float CapPayload::readCurrent(int analogPin){
+float CapPayload::readCurrentHall(int analogPin){
   // Read analog pin and process value
-  currentADC = analogRead(analogPin);
-  amps = ((((float)currentADC / 1024.0) * 5000.0) - offSet) / scale;
-  milliAmps = amps * 1000;
+  hallADC = analogRead(analogPin);
+  hallCurrentRaw = (((((float)hallADC / 1023.0) * 5000.0) - offSet) / scale) * 1000.0;
 
   // Return the result
-  return milliAmps;
+  return hallCurrent;
+}
+
+float CapPayload::readCurrentOpAmp(int analogPin){
+  // Read analog pin and process value
+  opAmpADC = analogRead(analogPin);
+  opAmpCurrentRaw = ((float)opAmpADC * (5.0 / 1023.0)) / (rSense * gain);
+
+  // Return the result
+  return opAmpCurrent;
+}
+
+float CapPayload::readCurrent(int hallPin, int opAmpPin){
+  // Get the two current readings and average
+  hallCurrent = readCurrentHall(hallPin);
+  opAmpCurrent = readCurrentOpAmp(opAmpPin);
+  current = (hallCurrent + opAmpCurrent) / 2.0;
+
+  // Return the average result
+  return current;
 }
 
 float CapPayload::readFSR(int analogPin){

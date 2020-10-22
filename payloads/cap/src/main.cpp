@@ -6,8 +6,9 @@
 #include "capPayload.h"
 
 // Pinout Analog
-#define forceAnalog     0
-#define currentAnalog   2
+#define forceAnalog         0
+#define currentHallAnalog   6
+#define currentOpAmpAnalog  2
 
 // Pinout Digital
 #define limitSwitchA    2
@@ -90,7 +91,7 @@ void loop(){
 
         // Acquire new data from onboard sensors
         force = CP.readFSR(forceAnalog);
-        current = CP.readCurrent(currentAnalog);
+        current = CP.readCurrent(currentHallAnalog, currentOpAmpAnalog);
 
         // If threshold is met keep clamped
         if (force >= forceThresh){

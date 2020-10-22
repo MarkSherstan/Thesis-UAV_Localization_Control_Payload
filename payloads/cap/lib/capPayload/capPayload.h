@@ -23,11 +23,20 @@ private:
   float VCC = 4.98;       // volts
   float RES = 10000.0;    // ohms
 
-  // Current sensor variables
-  int currentADC;
-  float amps;
-  float scale = 185.0;    // mV/A
+  // Hall effect current sensor variables
+  int hallADC;
+  float hallCurrentRaw;
+  float scale = 400.0;    // mV/A
   float offSet = 2500.0;  // mV
+
+  // Op amp current sensor variables
+  int opAmpADC;
+  float opAmpCurrentRaw;
+  float rSense = 0.016;   // ohm
+  float gain = 100.0;     // V/V
+
+  // Current
+  float hallCurrent, opAmpCurrent, current;
 
   // Time sync
   long _loopTimeMicroSec;
@@ -43,7 +52,9 @@ public:
   void setUpDigitalPins(int limitSwitchA, int limitSwitchB, int ledA, int ledB);
   void startTimeSync(long loopTimeMicroSec);
   float readFSR(int analogPin);
-  float readCurrent(int analogPin);
+  float readCurrent(int hallPin, int opAmpPin);
+  float readCurrentHall(int analogPin);
+  float readCurrentOpAmp(int analogPin);
   bool readSwitch(int limitSwitch);
   void LED_ON(int LED);
   void LED_OFF(int LED);
