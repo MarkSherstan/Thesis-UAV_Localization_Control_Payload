@@ -1,19 +1,25 @@
 #include <Arduino.h>
 #include <Servo.h>
 
+// Class 
 Servo myservo;
 
+// Variables 
 int numReadings = 25;
 int bufferA = 0;
 int bufferB = 0;
 
-// the setup function runs once when you press reset or power the board
+// Functions 
+void smooth();
+void readCurrent();
+
+// Run once
 void setup() {
   Serial.begin(9600);
   myservo.attach(4);
 }
 
-// the loop function runs over and over again forever
+// Run forever
 void loop() {
   for (int pos = 0; pos <= 180; pos += 1) { // goes from 0 degrees to 180 degrees
     // in steps of 1 degree
