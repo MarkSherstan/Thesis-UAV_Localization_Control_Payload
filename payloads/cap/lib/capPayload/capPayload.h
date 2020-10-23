@@ -50,7 +50,7 @@ public:
   void setUpDigitalPins(int limitSwitchA, int limitSwitchB, int ledA, int ledB);
   void startTimeSync(long loopTimeMicroSec);
   float readFSR(int analogPin);
-  float readCurrent(int hallPin, int opAmpPin);
+  float readCurrent(int hallPin, int opAmpPin, bool print = false);
   float readCurrentHall(int analogPin, int window);
   float readCurrentOpAmp(int analogPin, int window);
   bool readSwitch(int limitSwitch);
