@@ -51,15 +51,15 @@ float CapPayload::readCurrentOpAmp(int analogPin, int window){
 
 float CapPayload::readCurrent(int hallPin, int opAmpPin, bool print){
   // Get the two current readings and average
-  hallCurrent = readCurrentHall(hallPin, 5);
-  opAmpCurrent = readCurrentOpAmp(opAmpPin, 5);
+  hallCurrent = readCurrentHall(hallPin, 50);
+  opAmpCurrent = readCurrentOpAmp(opAmpPin, 50);
   current = (hallCurrent + opAmpCurrent) / 2.0;
 
   // Print data based on flag
   if (print == true){
     Serial.print(hallCurrent); Serial.print(","); 
     Serial.print(opAmpCurrent); Serial.print(","); 
-    Serial.println(current);
+    Serial.print(current); Serial.print(",");
   }
 
   // Return the average result

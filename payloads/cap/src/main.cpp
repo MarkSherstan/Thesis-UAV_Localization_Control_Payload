@@ -24,6 +24,7 @@
 #define clampClose        1000
 #define clampStop         1520
 #define forceThresh       300
+#define currentThresh     300
 #define loopTimeMicroSec  10000
 
 // Variables
@@ -42,14 +43,12 @@ RF24Network network(radio);
 void sendMessage(byte dataOut);
 void receiveMessage();
 void boundaryControl();
+void calibrate();
 void close();
 void open();
 
 // Run once
 void setup(){
-  // Serial port for debug
-  // Serial.begin(9600);
-
   // Configure digital pins
   CP.setUpDigitalPins(limitSwitchA, limitSwitchB, rLED, gLED);
 
@@ -65,6 +64,9 @@ void setup(){
 
   // Start time sync (10000->100Hz, 5000->200Hz)
   CP.startTimeSync(loopTimeMicroSec);
+
+  // Calibration streaming function
+  // calibrate();
 }
 
 // Run forever
@@ -225,4 +227,26 @@ void open(){
 
   // Stop the clamp and break
   clamp.write(clampStop);
+}
+
+
+void calibrate(){
+  // Start a serial port
+  Serial.begin(9600);
+  unsigned long now = micros();
+
+  while(true){
+    // Beware of limit switches
+    boundaryControl();
+
+    // Print current and FSR values
+    now = micros();
+    Serial.print(now); Serial.print(",");
+    current = CP.readCurrent(currentHallAnalog, currentOpAmpAnalog, true);
+    force = CP.readFSR(forceAnalog);
+    Serial.println(force);
+
+    // Stabilize sampling rate
+    CP.timeSync();
+  }
 }
