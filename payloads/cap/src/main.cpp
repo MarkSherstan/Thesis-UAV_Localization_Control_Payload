@@ -152,13 +152,16 @@ void close(){
     force = CP.readFSR(forceAnalog);
     current = CP.readCurrent(currentHallAnalog, currentOpAmpAnalog);
 
-    // If threshold is met keep clamped
-    if (force >= forceThresh){
+    // If thresholds are met keep clamped
+    if ((force >= forceThresh) && (current >= currentThresh)) {
+      // Turn on LED
+      CP.LED_ON(gLED);
+
       // Send clamped message
       sendMessage(CLAMPED);
 
       // Update control variables
-      forceDesH = force * 1.4;
+      forceDesH = force * 1.3;
       forceDesL = force * 1;
       servoControl = clampStop;
 
@@ -187,6 +190,7 @@ void close(){
         // Can the cap be released?
         receiveMessage();
         if (dataIn == OPEN){
+          CP.LED_OFF(gLED);
           break;
         }
 
@@ -228,7 +232,6 @@ void open(){
   // Stop the clamp and break
   clamp.write(clampStop);
 }
-
 
 void calibrate(){
   // Start a serial port
