@@ -42,6 +42,8 @@ RF24Network network(radio);
 void sendMessage(byte dataOut);
 void receiveMessage();
 void boundaryControl();
+void close();
+void open();
 
 // Run once
 void setup(){
@@ -73,103 +75,11 @@ void loop(){
   // Use incoming byte to determine state
   switch(dataIn) {
     case CLOSE:
-      while(true){
-        // Close the clamps
-        clamp.writeMicroseconds(clampClose);
-
-        // Not yet closed
-        sendMessage(FLOATING);
-
-        // Check if there is an updated command
-        receiveMessage();
-        if (dataIn == OPEN){
-          break;
-        }
-
-        // Beware of limit switches
-        boundaryControl();
-
-        // Acquire new data from onboard sensors
-        force = CP.readFSR(forceAnalog);
-        current = CP.readCurrent(currentHallAnalog, currentOpAmpAnalog);
-
-        // If threshold is met keep clamped
-        if (force >= forceThresh){
-          // Send clamped message
-          sendMessage(CLAMPED);
-
-          // Update control variables
-          forceDesH = force * 1.4;
-          forceDesL = force * 1;
-          servoControl = clampStop;
-
-          while(true){
-            // Beware of limit switches
-            boundaryControl();
-
-            // Get fresh force data
-            force = CP.readFSR(forceAnalog);
-
-            // Do some control for clamping force
-            if (force >= forceDesH){
-              servoControl += 1;
-            } else if (force <= forceDesL){
-              servoControl -= 1;
-            }
-
-            servoControl = constrain(servoControl, clampClose, clampOpen);
-
-            // Send the servo command
-            clamp.writeMicroseconds(servoControl);
-
-            // Update message
-            sendMessage(CLAMPED);
-
-            // Can the cap be released?
-            receiveMessage();
-            if (dataIn == OPEN){
-              break;
-            }
-
-            // Stabilize sampling rate
-            CP.timeSync();
-          }
-        }
-
-        // Stabilize sampling rate
-        CP.timeSync();
-      }
-
-      // Break from switch case
+      close();
       break;
 
     case OPEN:
-      while(CP.readSwitch(limitSwitchB) != 0){
-        // Open the clamp
-        clamp.writeMicroseconds(clampOpen);
-
-        // Check if there is an updated command
-        receiveMessage();
-        if (dataIn == CLOSE){
-          break;
-        }
-
-        // Get fresh force data
-        force = CP.readFSR(forceAnalog);
-
-        // Check if released and send corresponding message
-        if (force < 50){
-          sendMessage(RELEASED);
-        } else {
-          sendMessage(FLOATING);
-        }
-
-        // Stabilize sampling rate
-        CP.timeSync();
-      }
-
-      // Stop the clamp and break
-      clamp.write(clampStop);
+      open();
       break;
 
     default:
@@ -217,4 +127,102 @@ void boundaryControl(){
     delay(500);
     CP.LED_OFF(rLED);
   }
+}
+
+void close(){
+  while(true){
+    // Close the clamps
+    clamp.writeMicroseconds(clampClose);
+
+    // Not yet closed
+    sendMessage(FLOATING);
+
+    // Check if there is an updated command
+    receiveMessage();
+    if (dataIn == OPEN){
+      break;
+    }
+
+    // Beware of limit switches
+    boundaryControl();
+
+    // Acquire new data from onboard sensors
+    force = CP.readFSR(forceAnalog);
+    current = CP.readCurrent(currentHallAnalog, currentOpAmpAnalog);
+
+    // If threshold is met keep clamped
+    if (force >= forceThresh){
+      // Send clamped message
+      sendMessage(CLAMPED);
+
+      // Update control variables
+      forceDesH = force * 1.4;
+      forceDesL = force * 1;
+      servoControl = clampStop;
+
+      while(true){
+        // Beware of limit switches
+        boundaryControl();
+
+        // Get fresh force data
+        force = CP.readFSR(forceAnalog);
+
+        // Do some control for clamping force
+        if (force >= forceDesH){
+          servoControl += 1;
+        } else if (force <= forceDesL){
+          servoControl -= 1;
+        }
+
+        servoControl = constrain(servoControl, clampClose, clampOpen);
+
+        // Send the servo command
+        clamp.writeMicroseconds(servoControl);
+
+        // Update message
+        sendMessage(CLAMPED);
+
+        // Can the cap be released?
+        receiveMessage();
+        if (dataIn == OPEN){
+          break;
+        }
+
+        // Stabilize sampling rate
+        CP.timeSync();
+      }
+    }
+
+    // Stabilize sampling rate
+    CP.timeSync();
+  }
+}
+
+void open(){
+  while(CP.readSwitch(limitSwitchB) != 0){
+    // Open the clamp
+    clamp.writeMicroseconds(clampOpen);
+
+    // Check if there is an updated command
+    receiveMessage();
+    if (dataIn == CLOSE){
+      break;
+    }
+
+    // Get fresh force data
+    force = CP.readFSR(forceAnalog);
+
+    // Check if released and send corresponding message
+    if (force < 50){
+      sendMessage(RELEASED);
+    } else {
+      sendMessage(FLOATING);
+    }
+
+    // Stabilize sampling rate
+    CP.timeSync();
+  }
+
+  // Stop the clamp and break
+  clamp.write(clampStop);
 }
