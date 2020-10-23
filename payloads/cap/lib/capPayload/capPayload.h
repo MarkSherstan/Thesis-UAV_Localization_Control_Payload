@@ -24,14 +24,12 @@ private:
   float RES = 10000.0;    // ohms
 
   // Hall effect current sensor variables
-  int hallADC;
-  float hallCurrentRaw;
+  float hallCurrentVal;
   float scale = 400.0;    // mV/A
   float offSet = 2500.0;  // mV
 
   // Op amp current sensor variables
-  int opAmpADC;
-  float opAmpCurrentRaw;
+  float opAmpCurrentVal;
   float rSense = 0.016;   // ohm
   float gain = 100.0;     // V/V
 
@@ -53,8 +51,8 @@ public:
   void startTimeSync(long loopTimeMicroSec);
   float readFSR(int analogPin);
   float readCurrent(int hallPin, int opAmpPin);
-  float readCurrentHall(int analogPin);
-  float readCurrentOpAmp(int analogPin);
+  float readCurrentHall(int analogPin, int window);
+  float readCurrentOpAmp(int analogPin, int window);
   bool readSwitch(int limitSwitch);
   void LED_ON(int LED);
   void LED_OFF(int LED);

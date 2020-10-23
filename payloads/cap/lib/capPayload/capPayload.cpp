@@ -19,28 +19,40 @@ void CapPayload::startTimeSync(long loopTimeMicroSec){
    micros();
  }
 
-float CapPayload::readCurrentHall(int analogPin){
-  // Read analog pin and process value
-  hallADC = analogRead(analogPin);
-  hallCurrentRaw = (((((float)hallADC / 1023.0) * 5000.0) - offSet) / scale) * 1000.0;
+float CapPayload::readCurrentHall(int analogPin, int window){
+  // Moving avg analog value
+  float hallADC = 0;
+  for (int ii = 0; ii < window; ii++){
+    hallADC += analogRead(analogPin);
+  }
+  hallADC /= (float)window;
+
+  // Process analog value
+  hallCurrentVal = ((((hallADC / 1023.0) * 5000.0) - offSet) / scale) * 1000.0;
 
   // Return the result
-  return hallCurrentRaw;
+  return hallCurrentVal;
 }
 
-float CapPayload::readCurrentOpAmp(int analogPin){
-  // Read analog pin and process value
-  opAmpADC = analogRead(analogPin);
-  opAmpCurrentRaw = (((float)opAmpADC * (5.0 / 1023.0)) / (rSense * gain)) * 1000.0;
+float CapPayload::readCurrentOpAmp(int analogPin, int window){
+  // Moving avg analog value
+  float opAmpADC = 0;
+  for (int ii = 0; ii < window; ii++){
+    opAmpADC += analogRead(analogPin);
+  }
+  opAmpADC /= (float)window;
+
+  // Process analog value
+  opAmpCurrentVal = ((opAmpADC * (5.0 / 1023.0)) / (rSense * gain)) * 1000.0;
 
   // Return the result
-  return opAmpCurrentRaw;
+  return opAmpCurrentVal;
 }
 
 float CapPayload::readCurrent(int hallPin, int opAmpPin){
   // Get the two current readings and average
-  hallCurrent = readCurrentHall(hallPin);
-  opAmpCurrent = readCurrentOpAmp(opAmpPin);
+  hallCurrent = readCurrentHall(hallPin, 5);
+  opAmpCurrent = readCurrentOpAmp(opAmpPin, 5);
   current = (hallCurrent + opAmpCurrent) / 2.0;
 
   // Return the average result
