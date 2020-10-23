@@ -25,16 +25,16 @@ float CapPayload::readCurrentHall(int analogPin){
   hallCurrentRaw = (((((float)hallADC / 1023.0) * 5000.0) - offSet) / scale) * 1000.0;
 
   // Return the result
-  return hallCurrent;
+  return hallCurrentRaw;
 }
 
 float CapPayload::readCurrentOpAmp(int analogPin){
   // Read analog pin and process value
   opAmpADC = analogRead(analogPin);
-  opAmpCurrentRaw = ((float)opAmpADC * (5.0 / 1023.0)) / (rSense * gain);
+  opAmpCurrentRaw = (((float)opAmpADC * (5.0 / 1023.0)) / (rSense * gain)) * 1000.0;
 
   // Return the result
-  return opAmpCurrent;
+  return opAmpCurrentRaw;
 }
 
 float CapPayload::readCurrent(int hallPin, int opAmpPin){
