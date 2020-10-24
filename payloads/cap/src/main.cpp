@@ -202,6 +202,9 @@ void close(){
     // Stabilize sampling rate
     CP.timeSync();
   }
+
+  // Stop the clamp and break
+  clamp.write(clampStop); 
 }
 
 void open(){
