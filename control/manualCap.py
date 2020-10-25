@@ -1,4 +1,4 @@
-from payloads import SerialComs, QuickConnect
+from payloads import SerialComs, QuickConnect, CAP
 from filter import MovingAverage, TimeSync
 from dronekit import connect, VehicleMode
 from pymavlink import mavutil
@@ -48,9 +48,8 @@ def main():
     startTime = time.time()
     loopTimer = time.time()
     sync.startTimer()
-    C.startController()
 
-
+    # Run forever
     try:
         while(True):
             # Stabilize rate
@@ -60,10 +59,13 @@ def main():
             
             # Monitor the switch
             state = vehicle.channels['7']
-            if state > 1600:
+            print(state)
+            if state > 1500:
                 c.openJaws()
-            elif state < 1400:
+                print('Open jaws')
+            elif state < 1000:
                 c.closeJaws()
+                print('Close jaws')
 
             # Clear the data line
             for _ in range(5):
