@@ -117,24 +117,20 @@ class CAP:
 
     def openJaws(self):
         # Send ID
-        self.ser.writeSerialData(self.ID)
+        for _ in range(5):
+            self.ser.writeSerialData(self.ID)
 
-        # Send open command
-        self.ser.writeSerialData(self.OPEN)
-
-        # Do something unitl released
+        # Send open command until released
         while(self.ser.byteOut != self.RELEASED):
             self.ser.writeSerialData(self.OPEN)
             time.sleep(0.01)
 
     def closeJaws(self):
         # Send ID
-        self.ser.writeSerialData(self.ID)
+        for _ in range(5):
+            self.ser.writeSerialData(self.ID)
 
-        # Send closed command
-        self.ser.writeSerialData(self.CLOSE)
-
-        # Do something until clamped
+        # Send closed command until clamped
         while(self.ser.byteOut != self.CLAMPED):
             self.ser.writeSerialData(self.CLOSE)
             time.sleep(0.01)
@@ -165,7 +161,9 @@ def main():
             c.closeJaws()
 
         # Clear the data line
-        s.writeSerialData(0xEE)
+        for _ in range(5):
+            s.writeSerialData(q.EXIT)
+            time.sleep(0.01)
 
     # Close the serial port
     s.close()
