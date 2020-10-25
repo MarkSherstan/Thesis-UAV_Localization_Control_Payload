@@ -87,15 +87,15 @@ class QuickConnect:
             self.ser.writeSerialData(self.ENGAGE)
             time.sleep(1/15)
 
-        # # Wait till ready command is received
-        # while(self.ser.byteOut != self.READY):
-        #     pass
+        # Wait till ready command is received
+        while(self.ser.byteOut != self.READY):
+            pass
 
-        # # Acknowledge ready
-        # self.ser.writeSerialData(self.READY)
+        # Acknowledge ready
+        self.ser.writeSerialData(self.READY)
 
     def release(self):
-        # Send the command to engage
+        # Send the command to release
         for _ in range(5):
             self.ser.writeSerialData(self.RELEASE)
             time.sleep(1/15)
@@ -124,6 +124,7 @@ class CAP:
 
         # Do something unitl released
         while(self.ser.byteOut != self.RELEASED):
+            self.ser.writeSerialData(self.OPEN)
             time.sleep(0.01)
 
     def closeJaws(self):
@@ -135,6 +136,7 @@ class CAP:
 
         # Do something until clamped
         while(self.ser.byteOut != self.CLAMPED):
+            self.ser.writeSerialData(self.CLOSE)
             time.sleep(0.01)
 
 def main():
