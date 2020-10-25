@@ -209,6 +209,9 @@ void close(){
 
 void open(){
   while(CP.readSwitch(limitSwitchB) != 0){
+    // Turn on LED 
+    CP.LED_ON(gLED);
+
     // Open the clamp
     clamp.writeMicroseconds(clampOpen);
 
@@ -232,8 +235,9 @@ void open(){
     CP.timeSync();
   }
 
-  // Stop the clamp and break
+  // Stop the clamp, turn off LED, and break
   clamp.write(clampStop);
+  CP.LED_OFF(gLED);
 }
 
 void calibrate(){
