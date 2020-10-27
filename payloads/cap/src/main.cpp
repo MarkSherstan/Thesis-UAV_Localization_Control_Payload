@@ -225,7 +225,7 @@ void open(){
     force = CP.readFSR(forceAnalog);
 
     // Check if released and send corresponding message
-    if (force < 50){
+    if (force < 5){
       sendMessage(RELEASED);
     } else {
       sendMessage(FLOATING);
