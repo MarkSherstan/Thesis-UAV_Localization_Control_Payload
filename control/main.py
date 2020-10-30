@@ -83,8 +83,8 @@ def main():
             # If landed, engange the quick connect
             if (landState == True) and (modeState == 0):
                 qc.engage()
-                SP.reset(-10, 40, 100, 0)
-                SP.update(actualPos, [0, 0, 0], [0, 0, 0])
+                # SP.reset(-10, 40, 100, 0)
+                # SP.update(actualPos, [0, 0, 0], [0, 0, 0])
                 C.resetController()
                 landState = True
             else:
