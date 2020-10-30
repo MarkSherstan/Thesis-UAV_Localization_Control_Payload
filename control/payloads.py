@@ -119,9 +119,9 @@ class CAP:
         # Send ID
         for _ in range(5):
             self.ser.writeSerialData(self.ID)
+            time.sleep(0.01)
 
-        # Send open command until released
-        while(self.ser.byteOut != self.RELEASED):
+        for _ in range(5):
             self.ser.writeSerialData(self.OPEN)
             time.sleep(0.01)
 
@@ -129,9 +129,9 @@ class CAP:
         # Send ID
         for _ in range(5):
             self.ser.writeSerialData(self.ID)
+            time.sleep(0.01)
 
-        # Send closed command until clamped
-        while(self.ser.byteOut != self.CLAMPED):
+        for _ in range(5):
             self.ser.writeSerialData(self.CLOSE)
             time.sleep(0.01)
 

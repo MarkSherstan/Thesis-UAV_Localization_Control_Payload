@@ -20,7 +20,7 @@ def main():
     vehicle.send_mavlink(msg)
     time.sleep(0.5)
 
-    # Speed up reading of RC channels (test w/ and w/out)
+    # Speed up reading of RC channels
     msg = vehicle.message_factory.request_data_stream_encode(
         0, 0,
         mavutil.mavlink.MAV_DATA_STREAM_RC_CHANNELS,
@@ -40,13 +40,17 @@ def main():
     
     # Engage 
     print('Engage quick conenct in 3 seconds')
-    time.sleep(3)    
+    print('3')
+    time.sleep(1) 
+    print('2')
+    time.sleep(1) 
+    print('1')
+    time.sleep(1) 
+
     q.engage()
     
     # Timers
     print('Start')
-    startTime = time.time()
-    loopTimer = time.time()
     sync.startTimer()
 
     # Run forever
@@ -59,18 +63,13 @@ def main():
             
             # Monitor the switch
             state = vehicle.channels['7']
-            print(state)
+            
             if state > 1500:
                 c.openJaws()
                 print('Open jaws')
             elif state < 1000:
                 c.closeJaws()
                 print('Close jaws')
-
-            # Clear the data line
-            for _ in range(5):
-                s.writeSerialData(q.EXIT)
-                time.sleep(0.01)
    
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
