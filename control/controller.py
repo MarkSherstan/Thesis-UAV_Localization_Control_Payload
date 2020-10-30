@@ -40,9 +40,9 @@ class Controller:
         self.gainHeight = 25.0
         
         # Landing check 
-        self.landErrorNE = 5.0
+        self.landErrorNE = 10.0
         self.landErrorD  = 10.0
-        self.landHeight  = 15.0
+        self.landHeight  = 20.0
         self.landCount   = 0 
         self.landCountRequired = 45
 
