@@ -23,7 +23,7 @@
 #define clampOpen         2000
 #define clampClose        1000
 #define clampStop         1520
-#define forceThresh       300
+#define forceThresh       150
 #define currentThresh     300
 #define loopTimeMicroSec  10000
 
