@@ -8,7 +8,7 @@ There is a growing trend of using unmanned aerial vehicles (also known as UAVs, 
 Clone the repo and install all the dependencies. For the first time call
 `git submodule update --init --recursive`. Otherwise update using `git submodule update --recursive`.
 
-Most of the developed code uses Python where a list of all the major packages can be viewed in the below table. A majority of the Python packages come preinstalled; however, additional packages should be installed with `pip` (denoted with *), Additional packages must be built directly from source code (denoted with **). All software ran on a Jetson Nano (quadcore ARM A57 processor) with Python 3.6.9 and Ubuntu 18.04.5 LTS.
+Most of the developed code uses Python where a list of all the imported packages can be viewed in the below table. A majority of the Python packages come preinstalled; however, additional packages should be installed with `pip` (denoted with *). Two packages must be built directly from source code (denoted with **). All software ran on a Jetson Nano (quadcore ARM A57 processor) with Python 3.6.9 and Ubuntu 18.04.5 LTS.
 
 | Package         |Version | \| | Package        |Version |
 |-----------------|--------|----|----------------|--------|
@@ -26,13 +26,13 @@ For information regarding the building of non standard packages refer to the [wi
 * [Build Pyrealsense2](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki/Build-Pyrealsense2)
 
 ## Use  
-Run the bash script `run.sh` and once the UAV is flipped into `GUIDED_NOGPS` mode the UAV will be in full control. Use `control + c` to terminate the program and log data. 
+Run the bash script `run.sh` and once the UAV is placed into `GUIDED_NOGPS` mode the UAV will be in full control. Use `control + c` to terminate the program and complete data logging.
 
 ## Flight Logs 
-Flight logs are saved after each flight in `.csv` format. To plot data and analyze the log navigate to the `\flightData` directory and enter the file name in the command line as such: `python3 plotter.py --input "flight1.csv"`.
+Flight logs are saved after each flight in `.csv` format. To plot data and analyze the log, navigate to the `/flightData` directory and enter the file name in the command line as such: `python3 plotter.py --input "flight1.csv"`.
 
 ## Payloads
-Open the `/payloads` directory and navigate to either the `\cap` or `\MASTER` directory and build using PlatformIO. All pinout is labeled in `src/main.cpp`. The servo library may need to be re-installed with the following command: `pio lib install "Servo"` in the PlatformIO command line. Upload the compiled code to its respective PCB. 
+Open the `/payloads` directory and navigate to either the `/cap` or `/MASTER` directory and build using PlatformIO. All pinout is labeled in `src/main.cpp`. The servo library may need to be re-installed with the following command: `pio lib install "Servo"` in the PlatformIO command line. Upload the compiled code to its respective PCB. 
 
 ## PCB
 The PCB's were designed with [KiCad 5](https://kicad-pcb.org/download/) and manufactured by [JLCPCB](https://jlcpcb.com).
