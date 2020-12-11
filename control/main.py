@@ -37,8 +37,9 @@ def main():
 
     # Connect to control scheme and prepare setpoints
     C = Controller(vehicle)
-    SP = SetPoints(-10, 40, 0)
-
+    SP = SetPoints(state='Trajectory', nDesired=-10, eDesired=40, dDesired=10, yDesired=0)
+    modeState = 1
+    
     # Connect to serial port and quick connect
     s = SerialComs()
     qc = QuickConnect(s)
@@ -56,28 +57,8 @@ def main():
     # Data logging
     data = []
 
-    # Wait till mode switch to prevent integral windup and from logging to much data
-    while(vehicle.mode.name != 'GUIDED_NOGPS'):
-        # Current mode
-        print(vehicle.mode.name)
-
-        # Stabilize rate
-        _ = sync.stabilize()
-
-        # Get vision and IMU data
-        vData.update()
-        
-        # Create moving average for velocity and acceleration
-        velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
-        accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
-
-    # Create a trajectory to follow
-    # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
-    # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
-    SP.createWave(testState='Y')
-    modeState = 0
-
     # Timers
+    print('Start')
     startTime = time.time()
     loopTimer = time.time()
     sync.startTimer()
@@ -94,60 +75,62 @@ def main():
             vData.update()
         
             # Calculate control and execute
-            actual = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
-            desired = SP.getDesired()
-            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actual, desired)
-
-            rollControl = desired[1]; pitchControl = desired[0]; yawControl = desired[3]; thrustControl = desired[2]; # Only for testing
+            actualPos = [vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang]
+            desiredPos = SP.getDesired()
+            rollControl, pitchControl, yawControl, thrustControl, landState = C.positionControl(actualPos, desiredPos)
             C.sendAttitudeTarget(rollControl, pitchControl, yawControl, thrustControl)
-
+            
+            # If landed, engange the quick connect
+            if (landState == True) and (modeState == 0):
+                qc.engage()
+                # SP.reset(-10, 40, 100, 0)
+                # SP.update(actualPos, [0, 0, 0], [0, 0, 0])
+                C.resetController()
+                landState = True
+            else:
+                landState = False
+                
             # Get actual vehicle attitude
             roll, pitch, yaw = C.getVehicleAttitude()
-
-            # If landed, engange the quick connect
-            # if (landState == True):
-            #     qc.engage()
-            #     SP.updateSetPoints(-10, 40, 100)
-            #     SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], 0, 0)
-            #     C.resetController()
 
             # Calculate the sample rate
             tempTime = time.time()
             freqLocal = (1.0 / (tempTime - loopTimer))
             loopTimer = tempTime
 
-            # Print data
-            # print('f: {:<8.0f} N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(freqLocal, vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
-            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
-            # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
-
             # Log data
             data.append([vehicle.mode.name, time.time()-startTime, 
                         freqLocal, time2delay, actualDelay,
-                        desired[0], desired[1], desired[2],
+                        desiredPos[0], desiredPos[1], desiredPos[2],
                         roll, pitch, yaw,
                         rollControl, pitchControl, yawControl, thrustControl,
                         vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang,
                         vData.N.Vel, vData.E.Vel, vData.D.Vel, vData.Y.Vel,
                         vData.N.Acc, vData.E.Acc, vData.D.Acc,
-                        vData.N.Raw, vData.E.Raw, vData.D.Raw, vData.Y.Raw,
+                        vData.N.Avg, vData.E.Avg, vData.D.Avg, vData.Y.Avg,
                         vData.N.Dif, vData.E.Dif, vData.D.Dif, vData.Y.Dif,
+                        vData.N.One, vData.E.One, vData.D.One, vData.Y.One,
+                        vData.N.Two, vData.E.Two, vData.D.Two, vData.Y.Two,
                         landState, Q.qsize(), vData.T.time, vData.T.dt])
 
             # Create moving average for vel and acc for the trajectory
             velAvg = [nVelAvg.update(vData.N.Vel), eVelAvg.update(vData.E.Vel), dVelAvg.update(vData.D.Vel)]
             accAvg = [nAccAvg.update(vData.N.Acc), eAccAvg.update(vData.E.Acc), dAccAvg.update(vData.D.Acc)]
 
-            # Reset controller and generate new trajectory whenever there is a mode switch
+            # Reset controller and generate new setpoint list whenever there is a mode switch
             if (vehicle.mode.name == 'STABILIZE'):
                 modeState = 1
 
             if (vehicle.mode.name == 'GUIDED_NOGPS') and (modeState == 1):
                 modeState = 0
                 C.resetController()
-                # SP.createTrajectory([vData.N.Pos, vData.E.Pos, vData.D.Pos], velAvg, accAvg)
-                # SP.createStep([vData.N.Pos, vData.E.Pos, vData.D.Pos])
-                SP.createWave(testState='Y')
+                SP.update(actualPos, velAvg, accAvg)
+
+            # Print data
+            # print('N: {:<8.0f} E: {:<8.0f} D: {:<8.0f} Y: {:<8.1f}'.format(vData.N.Pos, vData.E.Pos, vData.D.Pos, vData.Y.Ang))
+            # print('R: {:<8.2f} P: {:<8.2f} Y: {:<8.2f} r: {:<8.2f} p: {:<8.2f} y: {:<8.2f} t: {:<8.2f}'.format(roll, pitch, yaw, rollControl, pitchControl, yawControl, thrustControl))
+            # print('N: {:<8.1f} {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.Pos, vData.N.Vel, vData.N.Acc, vData.E.Pos, vData.E.Vel, vData.E.Acc, vData.D.Pos, vData.D.Vel, vData.D.Acc, vData.Y.Ang, vData.Y.Vel)) 
+            # print('N: {:<8.1f} {:<8.1f} E: {:<8.1f} {:<8.1f} D: {:<8.1f} {:<8.1f} Y: {:<8.1f} {:<8.1f}'.format(vData.N.One, vData.N.Two, vData.E.One, vData.E.Two, vData.D.One, vData.D.Two, vData.Y.One, vData.Y.Two))
 
     except KeyboardInterrupt:
         # Print final remarks and close connections/threads
@@ -168,15 +151,17 @@ def main():
                             'North-Pos', 'East-Pos', 'Down-Pos', 'Yaw-Ang',
                             'North-Vel', 'East-Vel', 'Down-Vel', 'Yaw-Vel',
                             'North-Acc', 'East-Acc', 'Down-Acc', 
-                            'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
+                            'North-Avg', 'East-Avg', 'Down-Avg', 'Yaw-Avg',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
+                            'North-One', 'East-One', 'Down-One', 'Yaw-One',
+                            'North-Two', 'East-Two', 'Down-Two', 'Yaw-Two',
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
         
         # Print sampling rate
-        print('Sampling Frequency: ' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std()))
+        print('Sampling Frequency: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Freq'].mean(), df['Freq'].std()))
         
         # Save data to CSV
-        fileName = 'flightData/' + now.strftime('MAIN-%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S--MAIN') + '.csv'
         df.to_csv(fileName, index=None, header=True)
         print('Main log saved to: ' + fileName)
 

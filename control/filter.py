@@ -123,4 +123,5 @@ class TimeSync:
             return time2delay
         else:
             # Return delay time
+            self.previousTime = time.time()
             return 0

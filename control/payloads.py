@@ -87,15 +87,15 @@ class QuickConnect:
             self.ser.writeSerialData(self.ENGAGE)
             time.sleep(1/15)
 
-        # # Wait till ready command is received
-        # while(self.ser.byteOut != self.READY):
-        #     pass
+        # Wait till ready command is received
+        while(self.ser.byteOut != self.READY):
+            pass
 
-        # # Acknowledge ready
-        # self.ser.writeSerialData(self.READY)
+        # Acknowledge ready
+        self.ser.writeSerialData(self.READY)
 
     def release(self):
-        # Send the command to engage
+        # Send the command to release
         for _ in range(5):
             self.ser.writeSerialData(self.RELEASE)
             time.sleep(1/15)
@@ -117,24 +117,22 @@ class CAP:
 
     def openJaws(self):
         # Send ID
-        self.ser.writeSerialData(self.ID)
+        for _ in range(5):
+            self.ser.writeSerialData(self.ID)
+            time.sleep(0.01)
 
-        # Send open command
-        self.ser.writeSerialData(self.OPEN)
-
-        # Do something unitl released
-        while(self.ser.byteOut != self.RELEASED):
+        for _ in range(5):
+            self.ser.writeSerialData(self.OPEN)
             time.sleep(0.01)
 
     def closeJaws(self):
         # Send ID
-        self.ser.writeSerialData(self.ID)
+        for _ in range(5):
+            self.ser.writeSerialData(self.ID)
+            time.sleep(0.01)
 
-        # Send closed command
-        self.ser.writeSerialData(self.CLOSE)
-
-        # Do something until clamped
-        while(self.ser.byteOut != self.CLAMPED):
+        for _ in range(5):
+            self.ser.writeSerialData(self.CLOSE)
             time.sleep(0.01)
 
 def main():
@@ -163,7 +161,9 @@ def main():
             c.closeJaws()
 
         # Clear the data line
-        s.writeSerialData(0xEE)
+        for _ in range(5):
+            s.writeSerialData(q.EXIT)
+            time.sleep(0.01)
 
     # Close the serial port
     s.close()

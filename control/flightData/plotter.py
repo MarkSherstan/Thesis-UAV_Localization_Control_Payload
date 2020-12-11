@@ -7,7 +7,7 @@ def General(df, fileName, saveFlag):
     # Find autonomous sections
     df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
 
-    idx = [0]
+    idx = []
     for ii in range(df.shape[0]-1):
         if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
             pass
@@ -21,11 +21,11 @@ def General(df, fileName, saveFlag):
     plt.subplot(2, 2, 1)
     ax0 = plt.gca()
 
-    df.plot(kind='line', x='Time', y='Roll-UAV',  color='#FB8604', alpha=0.5, style='-', ax=ax0)
-    df.plot(kind='line', x='Time', y='Pitch-UAV', color='#700CBC', alpha=0.5, style='-', ax=ax0)
+    df.plot(kind='line', x='Time', y='Roll-UAV',  color='tab:orange', alpha=0.5, style='--', ax=ax0)
+    df.plot(kind='line', x='Time', y='Pitch-UAV', color='tab:purple', alpha=0.5, style='--', ax=ax0)
 
-    df.plot(kind='line', x='Time', y='Roll-Control',  color='#FB8604', style='-', ax=ax0)
-    df.plot(kind='line', x='Time', y='Pitch-Control', color='#700CBC', style='-', ax=ax0)
+    df.plot(kind='line', x='Time', y='Roll-Control',  color='tab:orange', style='-', ax=ax0)
+    df.plot(kind='line', x='Time', y='Pitch-Control', color='tab:purple', style='-', ax=ax0)
 
     ax0.set_title('Roll & Pitch Control', fontsize=14, fontweight='bold')
     ax0.set_xlabel('')
@@ -52,13 +52,13 @@ def General(df, fileName, saveFlag):
     plt.subplot(2, 2, 3)
     ax3 = plt.gca()
 
-    df.plot(kind='line', x='Time', y='North-Pos', color='#700CBC', style='-',  ax=ax3)
-    df.plot(kind='line', x='Time', y='East-Pos',  color='#FB8604', style='-',  ax=ax3)
-    df.plot(kind='line', x='Time', y='Down-Pos',  color='#7FBD32', style='-',  ax=ax3)
+    df.plot(kind='line', x='Time', y='North-Pos', color='tab:purple', style='-',  ax=ax3)
+    df.plot(kind='line', x='Time', y='East-Pos',  color='tab:orange', style='-',  ax=ax3)
+    df.plot(kind='line', x='Time', y='Down-Pos',  color='tab:green', style='-',  ax=ax3)
 
-    df.plot(kind='line', x='Time', y='North-Desired', color='#700CBC', style='--',  ax=ax3)
-    df.plot(kind='line', x='Time', y='East-Desired',  color='#FB8604', style='--',  ax=ax3)
-    df.plot(kind='line', x='Time', y='Down-Desired',  color='#7FBD32',  style='--', ax=ax3)
+    df.plot(kind='line', x='Time', y='North-Desired', color='tab:purple', style='--',  ax=ax3)
+    df.plot(kind='line', x='Time', y='East-Desired',  color='tab:orange', style='--',  ax=ax3)
+    df.plot(kind='line', x='Time', y='Down-Desired',  color='tab:green',  style='--', ax=ax3)
 
     ax3.set_title('NED Position', fontsize=14, fontweight='bold')
     ax3.set_xlabel('Time [s]', fontweight='bold')
@@ -73,7 +73,7 @@ def General(df, fileName, saveFlag):
     plt.subplot(2, 2, 4)
     ax4 = plt.gca()
 
-    df.plot(kind='line', x='Time', y='Thrust-Control', color='#7FBD32', style='-', ax=ax4)
+    df.plot(kind='line', x='Time', y='Thrust-Control', color='tab:green', style='-', ax=ax4)
 
     ax4.set_title('Thrust Control', fontsize=14, fontweight='bold')
     ax4.set_xlabel('Time [s]', fontweight='bold')
@@ -85,9 +85,9 @@ def General(df, fileName, saveFlag):
     
     # Save the figure    
     if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-GENERAL.png', dpi=fig.dpi)
+        fig.savefig(str(fileName).replace('.csv','')+'-MAIN.png', dpi=fig.dpi)
 
-def FreqSleep(df, fileName, saveFlag): 
+def FreqSleep(df): 
     # Create a figure
     fig = plt.figure(figsize=(12, 6), dpi=100)
 
@@ -96,7 +96,7 @@ def FreqSleep(df, fileName, saveFlag):
     ax1 = plt.gca()
 
     # Plot data
-    df.plot(kind='line', x='Time', y='Freq',  color='k',  style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='Freq',  color='k',  style='.',  ax=ax1)
 
     # Format figure
     title = 'Sampling Frequency\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Freq'].mean(), df['Freq'].std())
@@ -125,11 +125,7 @@ def FreqSleep(df, fileName, saveFlag):
     # Add grid
     plt.grid()
 
-    # Save the figure 
-    if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP.png', dpi=fig.dpi)
-
-def DiffState(df, fileName, saveFlag):
+def DiffState(df):
     # Master
     fig = plt.figure(figsize=(12, 6), dpi=100)
 
@@ -148,6 +144,13 @@ def DiffState(df, fileName, saveFlag):
     ax.set_xlabel('Time [s]', fontweight='bold')
     ax.set_ylabel('Difference [Cm]', fontweight='bold')
 
+    # Comparison 
+    print('NED Difference Stats: ')
+    print('   North: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['North-Dif'].mean(), df['North-Dif'].std()))
+    print('   East: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['East-Dif'].mean(), df['East-Dif'].std()))
+    print('   Down: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Down-Dif'].mean(), df['Down-Dif'].std()))
+    print('   Yaw: ' + '{:<4.2f} +/- {:<0.2f} '.format(df['Yaw-Dif'].mean(), df['Yaw-Dif'].std()))
+
 
     # Create subplot: Land and Queue
     plt.subplot(1, 2, 2)
@@ -163,10 +166,22 @@ def DiffState(df, fileName, saveFlag):
     ax.set_xlabel('Time [s]', fontweight='bold')
     ax.set_ylabel('State [ ]', fontweight='bold')
 
-    # Save the figure 
-    if saveFlag is True:
-        fig.savefig(str(fileName).replace('.csv','')+'-FREQ_SLEEP.png', dpi=fig.dpi)
-
+    # Scatter Plot: Raw Pos Data
+    fig = plt.figure(figsize=(12, 6), dpi=100)
+    ax = plt.gca()
+    
+    # Plot data
+    df.plot(kind='scatter', x='North-One', y='North-Two', color='tab:purple', ax=ax)
+    df.plot(kind='scatter', x='East-One',  y='East-Two',  color='tab:orange', ax=ax)
+    df.plot(kind='scatter', x='Down-One',  y='Down-Two',  color='tab:green',  ax=ax)
+    df.plot(kind='scatter', x='Yaw-One',   y='Yaw-Two',   color='tab:blue',   ax=ax)
+    
+    ax.set_title('Difference Scatter', fontsize=14, fontweight='bold')
+    ax.set_xlabel('Camera One [Cm | Degree]', fontweight='bold')
+    ax.set_ylabel('Camera Two [Cm | Degree]',  fontweight='bold')
+    
+    ax.legend(['N', 'E', 'D', 'Y'])
+    
 def KalmanTune(df):
     # Add custom packages one directory up 
     import sys
@@ -181,12 +196,12 @@ def KalmanTune(df):
     timeData = np.array(df['Kalman-Time'])
     deltaT   = np.array(df['Kalman-Dt'])
 
-    yawData = np.array(df['Yaw-Raw'])
+    yawData = np.array(df['Yaw-Avg'])
     gyroData = np.array(df['Yaw-Vel'])
 
-    northPosData = np.array(df['North-Raw'])
-    eastPosData  = np.array(df['East-Raw'])
-    downPosData  = np.array(df['Down-Raw'])
+    northPosData = np.array(df['North-Avg'])
+    eastPosData  = np.array(df['East-Avg'])
+    downPosData  = np.array(df['Down-Avg'])
 
     northVelData = np.array(df['North-Vel'])
     eastVelData = np.array(df['East-Vel'])
@@ -264,49 +279,383 @@ def KalmanTune(df):
         D.append(KFlist[ii][2])
         Y.append(KFlist[ii][3])
 
-    print('N', sum(np.array(N) - np.array(nlistKF2)))
-    print('E', sum(np.array(E) - np.array(elistKF2)))
-    print('D', sum(np.array(D) - np.array(dlistKF2)))
-    print('Y', sum(np.array(Y) - np.array(ylistKF2)))
+    nSumDif = sum(np.array(N) - np.array(nlistKF2))
+    eSumDif = sum(np.array(E) - np.array(elistKF2))
+    dSumDif = sum(np.array(D) - np.array(dlistKF2))
+    ySumDif = sum(np.array(Y) - np.array(ylistKF2))
+    sumDifTot = nSumDif + eSumDif + dSumDif + ySumDif
+    
+    if (sumDifTot != 0):
+        print('N', nSumDif)
+        print('E', eSumDif)
+        print('D', dSumDif)
+        print('Y', ySumDif)
 
     ##########################
     # Plot the data -> Rotation
     ##########################
-    plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Raw Yaw Data')
-    plt.plot(timeData, gyroData,      'k--', alpha=0.5, label='Raw Gyro Data')
-    plt.plot(timeData[:-1], ylistKF,  'r-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], Y,        'g-',  label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], ylistAvg, 'b-',  label='Moving Average')
+    fig = plt.figure(figsize=(11, 7), dpi=100)
 
-    plt.xlabel('Time [s]')
-    plt.ylabel('Yaw [deg] \nYaw Rate [deg/s]')
+    plt.plot(timeData, yawData,       'k-',  alpha=0.9, label='Y: Raw Ang Data')
+    plt.plot(timeData, gyroData,      color='tab:blue', linestyle='--', alpha=0.3, label='Y: Raw Vel Data')
+    plt.plot(timeData[:-1], ylistKF,  color='tab:blue', linestyle='-',  label='Y: Kalman Filter Pos')
+    plt.plot(timeData[:-1], Y,        color='tab:blue', linestyle='--', label='Y: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], ylistAvg, color='tab:blue', linestyle='-.', label='Y: Moving Average')
+
+    plt.title('Yaw Kalman Filter', fontsize=14, fontweight='bold')
+    plt.xlabel('Time [s]', fontweight='bold')
+    plt.ylabel('Yaw [deg]\nYaw Rate [deg/s]', fontweight='bold')
     plt.legend()
-    plt.show()
 
     ##########################
     # Plot the data -> Position
     ##########################
-    plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='Raw N-Pos Data')
-    plt.plot(timeData, northVelData,  'r--', alpha=0.3, label='Raw N-Vel Data')
-    plt.plot(timeData[:-1], nlistKF,  'r-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], N,        'r--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], nlistAvg, 'r.-', label='Moving Average')
+    fig = plt.figure(figsize=(11, 7), dpi=100)
 
-    plt.plot(timeData, eastPosData,   'k-',  alpha=0.9, label='Raw E-Pos Data')
-    plt.plot(timeData, eastVelData,   'g--', alpha=0.3, label='Raw E-Vel Data')
-    plt.plot(timeData[:-1], elistKF,  'g-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], E,        'g--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], elistAvg, 'g.-', label='Moving Average')
+    plt.plot(timeData, northPosData,  'k-',  alpha=0.9, label='N: Raw Pos Data')
+    plt.plot(timeData, northVelData,  color='tab:purple', linestyle='--', alpha=0.3, label='N: Raw Vel Data')
+    plt.plot(timeData[:-1], nlistKF,  color='tab:purple', linestyle='-',  label='N: Kalman Filter Pos')
+    plt.plot(timeData[:-1], N,        color='tab:purple', linestyle='--', label='N: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], nlistAvg, color='tab:purple', linestyle='-.', label='N: Moving Average')
 
-    plt.plot(timeData, downPosData,   'k-',  alpha=0.9, label='Raw D-Pos Data')
-    plt.plot(timeData, downVelData,   'b--', alpha=0.3, label='Raw D-Vel Data')
-    plt.plot(timeData[:-1], dlistKF,  'b-',  label='Kalman Filter Pos')
-    plt.plot(timeData[:-1], D,        'b--', label='Kalman Filter Pos and Vel')
-    plt.plot(timeData[:-1], dlistAvg, 'b.-', label='Moving Average')
+    plt.plot(timeData, eastPosData,   'k-',  alpha=0.9, label='E: Raw Pos Data')
+    plt.plot(timeData, eastVelData,   color='tab:orange', linestyle='--', alpha=0.3, label='E: Raw Vel Data')
+    plt.plot(timeData[:-1], elistKF,  color='tab:orange', linestyle='-',  label='E: Kalman Filter Pos')
+    plt.plot(timeData[:-1], E,        color='tab:orange', linestyle='--', label='E: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], elistAvg, color='tab:orange', linestyle='-.', label='E: Moving Average')
 
-    plt.xlabel('Time [s]')
-    plt.ylabel('Position [cm] \nVelocity [cm/s]')
+    plt.plot(timeData, downPosData,   'k-',  alpha=0.9, label='D: Raw Pos Data')
+    plt.plot(timeData, downVelData,   color='tab:green', linestyle='--', alpha=0.3, label='D: Raw Vel Data')
+    plt.plot(timeData[:-1], dlistKF,  color='tab:green', linestyle='-',  label='D: Kalman Filter Pos')
+    plt.plot(timeData[:-1], D,        color='tab:green', linestyle='--', label='D: Kalman Filter Pos and Vel')
+    plt.plot(timeData[:-1], dlistAvg, color='tab:green', linestyle='-.', label='D: Moving Average')
+
+    plt.title('NED Kalman Filter', fontsize=14, fontweight='bold')
+    plt.xlabel('Time [s]', fontweight='bold')
+    plt.ylabel('Position [cm]\nVelocity [cm/s]', fontweight='bold')
     plt.legend()
+
+    # Time Plot
+    fig = plt.figure(figsize=(8, 4), dpi=100)
+    ax = plt.gca()
+    
+    # Plot data
+    df.plot(kind='line', x='Kalman-Time', y='Kalman-Dt', style='.', color='k', ax=ax)
+
+    # Format
+    title = 'T265 Time Delta\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['Kalman-Dt'].mean(), df['Kalman-Dt'].std())
+    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_xlabel('Time [s]', fontweight='bold')
+    ax.set_ylabel('dt [s]',  fontweight='bold')
+    ax.get_legend().remove()
+    
+def gainTune(df, fileName, saveFlag):
+    # Find Autonomous Sections
+    df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
+
+    idx = []
+    for ii in range(df.shape[0]-1):
+        if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
+            pass
+        else:
+            idx.append(ii)
+
+    # Master
+    fig = plt.figure(figsize=(13, 7), dpi=100)
+
+    ################################################################################################
+
+    # North - Pos 
+    plt.subplot(2, 4, 1)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualN',  color='tab:purple', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredN', color='tab:purple', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['N-kp'][0]) + ' Ki: ' + str(df['N-ki'][0]) + ' Kd: ' + str(df['N-kd'][0])
+    ax1.set_title('North\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_ylabel('Position [cm]', fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # North - Control 
+    plt.subplot(2, 4, 5)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='N-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='N-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='N-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='N-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylabel('Angle [deg]', fontweight='bold')
+    ax2.set_ylim([-5,5])
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+        
+        
+    ################################################################################################
+
+
+    # East - Pos 
+    plt.subplot(2, 4, 2)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualE',  color='tab:orange', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredE', color='tab:orange', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['E-kp'][0]) + ' Ki: ' + str(df['E-ki'][0]) + ' Kd: ' + str(df['E-kd'][0])
+    ax1.set_title('East\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # East - Control 
+    plt.subplot(2, 4, 6)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='E-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='E-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='E-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='E-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylim([-5,5])
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+
+    ################################################################################################
+
+
+    # Down - Pos 
+    plt.subplot(2, 4, 3)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualD',  color='tab:green', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredD', color='tab:green', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorD',   color='tab:green', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['D-kp'][0]) + ' Ki: ' + str(df['D-ki'][0]) + ' Kd: ' + str(df['D-kd'][0])
+    ax1.set_title('Down\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # Down - Control 
+    plt.subplot(2, 4, 7)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='D-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='D-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='D-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='D-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+
+    ################################################################################################
+
+
+    # Yaw - Ang 
+    plt.subplot(2, 4, 4)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualY',  color='tab:blue', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredY', color='tab:blue', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorY',   color='tab:blue', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['Y-kp'][0]) + ' Ki: ' + str(df['Y-ki'][0]) + ' Kd: ' + str(df['Y-kd'][0])
+    ax1.set_title('Yaw\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # Yaw - Control 
+    plt.subplot(2, 4, 8)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='Y-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='Y-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='Y-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='Y-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylim([-10,10])
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    ################################################################################################
+
+    # Save the figure    
+    if saveFlag is True:
+        fig.savefig(str(fileName)+'-CONTROL.png', dpi=fig.dpi)
+
+    ################################################################################################
+
+    # Time Plot
+    fig = plt.figure(figsize=(8, 4), dpi=100)
+    ax = plt.gca()
+    
+    # Plot data
+    df.plot(kind='line', x='Time', y='dt', style='.', color='k', ax=ax)
+
+    # Format
+    title = 'Controller Time Delta\n' + '{:<4.3f} +/- {:<0.3f} '.format(df['dt'].mean(), df['dt'].std())
+    ax.set_title(title, fontsize=14, fontweight='bold')
+    ax.set_xlabel('Time [s]', fontweight='bold')
+    ax.set_ylabel('dt [s]',  fontweight='bold')
+    ax.get_legend().remove()
+
+def eastTune(df):
+    # Find Autonomous Sections
+    df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
+
+    idx = []
+    for ii in range(df.shape[0]-1):
+        if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
+            pass
+        else:
+            idx.append(ii)
+
+    # Master
+    fig = plt.figure(figsize=(13, 7), dpi=100)
+
+    ################################################################################################
+
+    # East - Pos 
+    plt.subplot(2, 1, 1)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualE',  color='tab:orange', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredE', color='tab:orange', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorE',   color='tab:orange', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['E-kp'][0]) + ' Ki: ' + str(df['E-ki'][0]) + ' Kd: ' + str(df['E-kd'][0])
+    ax1.set_title('East\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # East - Control 
+    plt.subplot(2, 1, 2)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='E-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='E-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='E-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='E-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylim([-5,5])
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+def northTune(df):
+    # Find Autonomous Sections
+    df['modeSwitch'] =  df['Mode'] == 'GUIDED_NOGPS'
+
+    idx = []
+    for ii in range(df.shape[0]-1):
+        if (df['modeSwitch'][ii+1] == df['modeSwitch'][ii]):
+            pass
+        else:
+            idx.append(ii)
+
+    # Master
+    fig = plt.figure(figsize=(13, 7), dpi=100)
+
+    ################################################################################################
+
+    # North - Pos 
+    plt.subplot(2, 1, 1)
+    ax1 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='actualN',  color='tab:purple', style='-',  ax=ax1)
+    df.plot(kind='line', x='Time', y='desiredN', color='tab:purple', style='--', ax=ax1)
+    df.plot(kind='line', x='Time', y='errorN',   color='tab:purple', alpha=0.25, style='-', ax=ax1)
+
+    tempTitle = 'Kp: ' + str(df['N-kp'][0]) + ' Ki: ' + str(df['N-ki'][0]) + ' Kd: ' + str(df['N-kd'][0])
+    ax1.set_title('North\n' + tempTitle, fontsize=10, fontweight='bold')
+    ax1.set_xlabel('')
+    ax1.legend(['Actual', 'Desired', 'Error'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+
+    # North - Control 
+    plt.subplot(2, 1, 2)
+    ax2 = plt.gca()
+
+    df.plot(kind='line', x='Time', y='N-P',   color='k', style='-',  ax=ax2)
+    df.plot(kind='line', x='Time', y='N-I',   color='k', style='--', ax=ax2)
+    df.plot(kind='line', x='Time', y='N-D',   color='k', style='-.', ax=ax2)
+    df.plot(kind='line', x='Time', y='N-PID', color='k', alpha=0.5, style='-', ax=ax2)
+
+    ax2.set_xlabel('Time [s]', fontweight='bold')
+    ax2.set_ylim([-5,5])
+
+    ax2.legend(['P', 'I', 'D', 'PID'])
+
+    for ii in range(0,len(idx),2):
+        plt.axvspan(df['Time'][idx[ii]], df['Time'][idx[ii+1]], color='gray', alpha=0.2)
+ 
+def trajectory3D(df):
+    # Load required packages
+    from mpl_toolkits.mplot3d import Axes3D
+
+    # Create plot
+    fig = plt.figure()
+    ax = fig.gca(projection='3d')
+
+    # Actual
+    x = np.array(df['North-Pos'])
+    y = np.array(df['East-Pos'])
+    z = np.array(df['Down-Pos'])
+    
+    # Desired
+    xx = np.array(df['North-Desired'])
+    yy = np.array(df['East-Desired'])
+    zz = np.array(df['Down-Desired'])
+    
+    # Plot 
+    ax.plot(x, y, z, label='Actual')
+    ax.plot(xx, yy, zz, label='Desired')
+    
+    # Formatting and show
+    ax.legend()
+    ax.set_xlabel('North')
+    ax.set_ylabel('East')
+    ax.set_zlabel('Down')
     plt.show()
 
 ########################
@@ -314,13 +663,16 @@ def KalmanTune(df):
 # Example use: python plotter.py --input "flight1.csv"
 ########################
 parser = argparse.ArgumentParser()
-parser.add_argument("--input", help = "input filename")
+parser.add_argument("--input", help = "input date time")
 args = parser.parse_args()
 fileName = args.input
+mainFile = fileName + '--MAIN.csv'
+controlFile = fileName + '--CONTROL.csv'
+
 
 # Prepare CSV
 try:
-    df = pd.read_csv(fileName, header = 0, names = ['Mode', 'Time', 
+    df = pd.read_csv(mainFile, header=0, names=['Mode', 'Time', 
                             'Freq', 'time2delay', 'actualDelay',
                             'North-Desired', 'East-Desired', 'Down-Desired',
                             'Roll-UAV', 'Pitch-UAV', 'Yaw-UAV',
@@ -328,20 +680,41 @@ try:
                             'North-Pos', 'East-Pos', 'Down-Pos', 'Yaw-Ang',
                             'North-Vel', 'East-Vel', 'Down-Vel', 'Yaw-Vel',
                             'North-Acc', 'East-Acc', 'Down-Acc', 
-                            'North-Raw', 'East-Raw', 'Down-Raw', 'Yaw-Raw',
+                            'North-Avg', 'East-Avg', 'Down-Avg', 'Yaw-Avg',
                             'North-Dif', 'East-Dif', 'Down-Dif', 'Yaw-Dif',
+                            'North-One', 'East-One', 'Down-One', 'Yaw-One',
+                            'North-Two', 'East-Two', 'Down-Two', 'Yaw-Two',
                             'Landing-State', 'Q-Size', 'Kalman-Time', 'Kalman-Dt'])
-                            
+    
+    df2 = pd.read_csv(controlFile, header=0, names=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+                                                    'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+                                                    'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
+                                                    'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
+                                                    'errorN', 'desiredN', 'actualN',
+                                                    'errorE', 'desiredE', 'actualE',
+                                                    'errorD', 'desiredD', 'actualD',
+                                                    'errorY', 'desiredY', 'actualY',
+                                                    'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])                   
 except:
     print('Error with file.')
     exit()
 
+
+# Cut time
+# start = 25  #df['Time'].iloc[0]
+# end   = 120 #df['Time'].iloc[-1]
+# df = df[(df['Time'] >= start) & (df['Time'] <= end)]
+
 # Plotting options
-General(df.copy(), fileName, saveFlag=False)
-FreqSleep(df.copy(), fileName, saveFlag=False)
-DiffState(df.copy(), fileName, saveFlag=False)
-KalmanTune(df.copy())
+General(df.copy(), fileName, saveFlag=True)
+FreqSleep(df.copy())
+DiffState(df.copy())
+# KalmanTune(df.copy())
+gainTune(df2.copy(), fileName, saveFlag=True)
 plt.show()
 
+eastTune(df2.copy())
+northTune(df2.copy())
+plt.show()
 
-# velocity / accel
+# trajectory3D(df.copy())

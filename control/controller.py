@@ -1,3 +1,4 @@
+from filter import MovingAverage
 import pandas as pd
 import datetime
 import time
@@ -13,32 +14,34 @@ class Controller:
         self.pitchConstrain = self.rollConstrain    # Deg
         self.thrustConstrain = [-0.5, 0.5]	        # Normalized
         self.yawRateConstrain = [-10, 10]           # Deg / s
+        self.derivativeGainConstrain = [-125, 125]  # [ ]
 
         # PID Gains: NORTH (pitch)
-        self.kp_NORTH = 0.08 #0.09
-        self.ki_NORTH = 0.002      # Max 1 deg with 500 bounds
-        self.kd_NORTH = 0.06 #0.07
+        self.kp_NORTH = 0.17
+        self.ki_NORTH = 0.015   # Max 3 deg with 200 bounds
+        self.kd_NORTH = 0.08
 
         # PID Gains: EAST (roll)
-        self.kp_EAST = 0.05 #0.075
-        self.ki_EAST = 0.004       # Max 2 deg with 500 bounds
-        self.kd_EAST = 0.04  #0.065
+        self.kp_EAST = 0.16
+        self.ki_EAST = 0.015    # Max 3 deg with 200 bounds
+        self.kd_EAST = 0.11
 
         # PID Gains: DOWN (thrust)
         self.kp_DOWN = 0.002
-        self.ki_DOWN = 0.00008     # Max 0.04 with 500 bounds
-        self.kd_DOWN = 0.0
+        self.ki_DOWN = 0.00008   # Max 0.04 with 500 bounds
+        self.kd_DOWN = 0
 
         # PID Gains: YAW (yaw rate)
-        self.kp_YAW = 0.5
-        self.ki_YAW = 0
-        self.kd_YAW = 0
+        self.kp_YAW = 0.20
+        self.ki_YAW = 0.02
+        self.kd_YAW = 0.00
 
         # Cutoff height
         self.gainHeight = 25.0
         
         # Landing check 
-        self.landErrorNE = 3.0
+        self.landErrorNE = 5.0
+        self.landErrorD  = 10.0
         self.landHeight  = 15.0
         self.landCount   = 0 
         self.landCountRequired = 45
@@ -56,8 +59,8 @@ class Controller:
         self.yawI = 0
 
         # Integral term constraints
-        self.northIcontstrain = [-500, 500]
-        self.eastIcontstrain  = [-500, 500]
+        self.northIcontstrain = [-200, 200]
+        self.eastIcontstrain  = self.northIcontstrain
         self.downIcontstrain  = [-500, 500]
         self.yawIcontstrain   = [-500, 500]
 
@@ -68,8 +71,15 @@ class Controller:
         self.tempData = []
         self.data = []
         
+        # Low pass filter for D term
+        self.nAvg = MovingAverage(5)
+        self.eAvg = MovingAverage(5)
+        self.dAvg = MovingAverage(5)
+        self.yAvg = MovingAverage(5)
+        
     def startController(self):
         self.resetController()
+        self.sendAttitudeTarget(0, 0, 0, 0.5)
         self.timer = time.time()
         self.startTime = time.time()
 
@@ -82,6 +92,9 @@ class Controller:
         
         # Reset landing counter 
         self.landCount = 0
+        
+        # Reset timer 
+        self.timer = time.time()
 
     def euler2quaternion(self, roll, pitch, yaw):
         # Convert degrees to radians 
@@ -109,6 +122,7 @@ class Controller:
         yawRate = math.radians(yawRate)
 
         # https://mavlink.io/en/messages/common.html#SET_ATTITUDE_TARGET
+        # https://ardupilot.org/dev/docs/copter-commands-in-guided-mode.html#copter-commands-in-guided-mode-set-attitude-target
         msg = self.UAV.message_factory.set_attitude_target_encode(
             0, # time_boot_ms
             0, # Target system
@@ -134,11 +148,11 @@ class Controller:
     def constrain(self, val, minVal, maxVal):
         return max(min(maxVal, val), minVal)
 
-    def PID(self, error, errorPrev, I, dt, kp, ki, kd, debug=False):
+    def PID(self, error, errorPrev, I, dt, kp, ki, kd, filt, debug=False):
         # Run the PID controller
         P = error
         I = I + error * dt
-        D = (error - errorPrev) / dt
+        D = filt.update(self.constrain((error - errorPrev) / dt, self.derivativeGainConstrain[0], self.derivativeGainConstrain[1]))
         PID = (kp * P) + (ki * I) + (kd * D)
 
         # Logging
@@ -163,11 +177,11 @@ class Controller:
         self.timer = time.time()
             
         # Run the remainder of the control
-        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST)
-        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH)
-        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW)
-        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN)
-                
+        rollControl, self.eastI   = self.PID(errorEast, self.eastPrevError, self.eastI, dt, self.kp_EAST, self.ki_EAST, self.kd_EAST, self.eAvg)
+        pitchControl, self.northI = self.PID(errorNorth, self.northPrevError, self.northI, dt, self.kp_NORTH, self.ki_NORTH, self.kd_NORTH, self.nAvg)
+        thrustControl, self.downI = self.PID(errorDown, self.downPrevError, self.downI, dt, self.kp_DOWN, self.ki_DOWN, self.kd_DOWN, self.dAvg)
+        yawControl, self.yawI     = self.PID(errorYaw, self.yawPrevError, self.yawI, dt, self.kp_YAW, self.ki_YAW, self.kd_YAW, self.yAvg)
+        
         # Constrain I terms to prevent integral windup
         self.northI = self.constrain(self.northI, self.northIcontstrain[0], self.northIcontstrain[1])
         self.eastI  = self.constrain(self.eastI, self.eastIcontstrain[0], self.eastIcontstrain[1]) 
@@ -202,10 +216,10 @@ class Controller:
         # Check if UAV has landed
         if ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
                 (actual[2] < self.landHeight) and (self.landCount >= self.landCountRequired) and 
-                (errorDown < 0)):
+                (abs(errorDown) < self.landErrorD)):
             landState = True
         elif ((abs(errorNorth) < self.landErrorNE) and (abs(errorEast) < self.landErrorNE) and 
-                (actual[2] < self.landHeight) and (errorDown < 0)):
+                (actual[2] < self.landHeight) and (abs(errorDown) < self.landErrorD)):
             self.landCount += 1
             landState = False
         else:
@@ -231,9 +245,9 @@ class Controller:
 
     def logData(self, now):
         # Write data to a data frame
-        df = pd.DataFrame(self.data, columns=['D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
-                                              'E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
+        df = pd.DataFrame(self.data, columns=['E-kp', 'E-ki', 'E-kd', 'E-I-Tot', 'E-P', 'E-I', 'E-D', 'E-PID',
                                               'N-kp', 'N-ki', 'N-kd', 'N-I-Tot', 'N-P', 'N-I', 'N-D', 'N-PID',
+                                              'D-kp', 'D-ki', 'D-kd', 'D-I-Tot', 'D-P', 'D-I', 'D-D', 'D-PID',
                                               'Y-kp', 'Y-ki', 'Y-kd', 'Y-I-Tot', 'Y-P', 'Y-I', 'Y-D', 'Y-PID',
                                               'errorN', 'desiredN', 'actualN',
                                               'errorE', 'desiredE', 'actualE',
@@ -242,6 +256,6 @@ class Controller:
                                               'roll', 'pitch', 'yaw-rate', 'thrust', 'dt', 'Time', 'Mode'])
 
         # Save data to CSV
-        fileName = 'flightData/' + now.strftime('CONTROL-%Y-%m-%d__%H-%M-%S') + '.csv'
+        fileName = 'flightData/' + now.strftime('%Y-%m-%d__%H-%M-%S--CONTROL') + '.csv'
         df.to_csv(fileName, index=None, header=True)
         print('Control log saved to: ' + fileName)

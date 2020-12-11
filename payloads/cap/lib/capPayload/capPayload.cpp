@@ -19,14 +19,51 @@ void CapPayload::startTimeSync(long loopTimeMicroSec){
    micros();
  }
 
-float CapPayload::readCurrent(int analogPin){
-  // Read analog pin and process value
-  currentADC = analogRead(analogPin);
-  amps = ((((float)currentADC / 1024.0) * 5000.0) - offSet) / scale;
-  milliAmps = amps * 1000;
+float CapPayload::readCurrentHall(int analogPin, int window){
+  // Moving avg analog value
+  float hallADC = 0;
+  for (int ii = 0; ii < window; ii++){
+    hallADC += analogRead(analogPin);
+  }
+  hallADC /= (float)window;
+
+  // Process analog value
+  hallCurrentVal = ((((hallADC / 1023.0) * 5000.0) - offSet) / scale) * 1000.0;
 
   // Return the result
-  return milliAmps;
+  return hallCurrentVal;
+}
+
+float CapPayload::readCurrentOpAmp(int analogPin, int window){
+  // Moving avg analog value
+  float opAmpADC = 0;
+  for (int ii = 0; ii < window; ii++){
+    opAmpADC += analogRead(analogPin);
+  }
+  opAmpADC /= (float)window;
+
+  // Process analog value
+  opAmpCurrentVal = ((opAmpADC * (5.0 / 1023.0)) / (rSense * gain)) * 1000.0;
+
+  // Return the result
+  return opAmpCurrentVal;
+}
+
+float CapPayload::readCurrent(int hallPin, int opAmpPin, bool print){
+  // Get the two current readings and average
+  hallCurrent = readCurrentHall(hallPin, 50);
+  opAmpCurrent = readCurrentOpAmp(opAmpPin, 50);
+  current = (hallCurrent + opAmpCurrent) / 2.0;
+
+  // Print data based on flag
+  if (print == true){
+    Serial.print(hallCurrent); Serial.print(","); 
+    Serial.print(opAmpCurrent); Serial.print(","); 
+    Serial.print(current); Serial.print(",");
+  }
+
+  // Return the average result
+  return current;
 }
 
 float CapPayload::readFSR(int analogPin){

@@ -142,6 +142,12 @@ void payloadReady(){
       count++;
     }
 
+    // Allow for exit if there is a timeout
+    serialByteOut = readSerialPort();
+    if (serialByteOut == EXIT){
+      break;
+    }
+
     // Update serial port and stabilize sampling rate
     Serial.write(WAIT);
     MP.timeSync();

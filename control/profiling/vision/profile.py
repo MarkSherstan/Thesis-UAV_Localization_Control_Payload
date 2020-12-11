@@ -5,7 +5,7 @@ from vision import Vision
 import yappi
 
 # Get yappi to do its thing
-yappi.set_clock_type("wall") # cpu
+yappi.set_clock_type("cpu")
 yappi.start(builtins=True)
 
 Q = Queue()
