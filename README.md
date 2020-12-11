@@ -1,38 +1,38 @@
-# UAV-Sampling-Control-System
-Control, DAQ, and actuation system for autonomous modular UAV system.
+# Thesis-UAV_Localization_Control_Payload
+MSc thesis code for Localization and Control of a Quadcopter Universal Payload System.
+
+## Abstract
+There is a growing trend of using unmanned aerial vehicles (also known as UAVs, uncrewed aerial vehicles, or drones) to manipulate and interact with their surroundings. The algorithms and tools used are typically unique to the different tasks performed by UAVs; however, the fundamental UAV system largely remains consistent. This thesis offers a general quadrotor UAV system capable of performing multiple tasks dependent on available payloads. The system is empirically developed and performs localization using ArUco fiducial markers, an inertial measurement unit, and a Kalman filter. Navigation is achieved using a proportional integral derivative controller, and interfacing with various payloads is accomplished with a custom-developed universal payload manipulator. The system is described in detail and demonstrated with real-world experimentation, including the deployment of an example payload for removing twist caps off sump lubricant reservoirs. Empirical results show the developed system as an initial functional prototype in ideal conditions, and further work is required to increase system reliability and functionality for non-ideal scenarios.
 
 ## Setup
 Clone the repo and install all the dependencies. For the first time call
 `git submodule update --init --recursive`. Otherwise update using `git submodule update --recursive`.
 
-For information regarding building required packages refer to the [wiki](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki). Some helpful links:
+Most of the developed code uses Python where a list of all the major packages can be viewed in the below table. A majority of the Python packages come preinstalled; however, additional packages should be installed with `pip` (denoted with *), Additional packages must be built directly from source code (denoted with **). All software ran on a Jetson Nano (quadcore ARM A57 processor) with Python 3.6.9 and Ubuntu 18.04.5 LTS.
+
+| Package         |Version | \| | Package        |Version |
+|-----------------|--------|----|----------------|--------|
+| datetime        | 3.6.9  | \| | pymavlink*     | 2.4.9  |
+| DroneKit*       | 2.9.2  | \| | pyrealsense2** | 2.36.0 |
+| math            | 3.6.9  | \| | pySerial*      | 3.4    |
+| Matplotlib*     | 3.3.1  | \| | simdkalman*    | 1.0.1  |
+| multiprocessing | 3.6.9  | \| | statistics     | 3.6.9  |
+| NumPy*          | 1.18.4 | \| | struct         | 3.6.9  |
+| openCV**        | 4.3.0  | \| | threading      | 3.6.9  |
+| pandas*         | 1.1.0  | \| | time           | 3.6.9  |
+
+For information regarding the building of non standard packages refer to the [wiki](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki).
 * [Build OpenCV](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki/Build-OpenCV)
 * [Build Pyrealsense2](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki/Build-Pyrealsense2)
-* [Ubuntu Install & Setup](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki/Ubuntu-20.04-LTS-Set-Up)
-* [Gazebo SITL-ArduPilot](https://github.com/MarkSherstan/UAV-Sampling-Control-System/wiki/Gazebo-ArduPilot-SITL-Setup)
 
-## Control 
-### Off Board Interfacing
-A [companion computer](http://ardupilot.org/dev/docs/companion-computers.html#companion-computers) is used to connect with the flight controller to implement off board control. I am currently using an Odroid C4 with Ubuntu 20.04. 
+## Use  
+Run the bash script `run.sh` and once the UAV is flipped into `GUIDED_NOGPS` mode the UAV will be in full control. Use `control + c` to terminate the program and log data. 
 
-Connect on `/dev/ttyS1` which are pins 8 and 10 on the J1 expansion connector of the Odroid C4. Further information can be found [here](https://wiki.odroid.com/odroid-c2/hardware/expansion_connectors) and a wiring diagram can be found [here](http://ardupilot.org/dev/_images/RaspberryPi_Pixhawk_wiring1.jpg) (RPi and Odroid C4 can be wired the same).
-
-### Off Board (Guided No GPS) Control Python
-A `virtualenv` is used to house all the required dependincies. Once the repo is cloned on the microprocessor ensure to enter `workon cv` (run the code in a virtual environement) and run the main program with the controller and vision modules in the `\control` directory. Due to the T265 camera `sudo` must be used when running a script using the camera (e.g. `sudo python3 main.py`)
-
-To plot data (once saved) navigate to the `\flightData` directory and enter the file name in the command line as such: `python3 plotter.py --input "flight1.csv"`.
+## Flight Logs 
+Flight logs are saved after each flight in `.csv` format. To plot data and analyze the log navigate to the `\flightData` directory and enter the file name in the command line as such: `python3 plotter.py --input "flight1.csv"`.
 
 ## Payloads
-Open the `/MASTER` PlatformIO directory and build the project. All pinout is labeled in `src/main.cpp`. The servo library may need to be re-installed with the following command: `pio lib install "Servo"` in the PlatformIO command line. Build the individual payloads similarly.
+Open the `/payloads` directory and navigate to either the `\cap` or `\MASTER` directory and build using PlatformIO. All pinout is labeled in `src/main.cpp`. The servo library may need to be re-installed with the following command: `pio lib install "Servo"` in the PlatformIO command line. Upload the compiled code to its respective PCB. 
 
 ## PCB
 The PCB's were designed with [KiCad 5](https://kicad-pcb.org/download/) and manufactured by [JLCPCB](https://jlcpcb.com).
-
-## Running Code with Realsense T265 Camera
-```
-sudo /home/mark/.virtualenvs/py3cv4/bin/python3.6 <script.py>
-```
-
-## To Do
-* Instructions on how to use (e.g. - set up FC)
-* Move everything to wiki and/or explain better
